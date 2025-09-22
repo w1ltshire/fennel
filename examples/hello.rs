@@ -1,5 +1,5 @@
 use kousa::{events, graphics, EventHandler, Game};
-use sdl3::pixels::Color;
+use sdl3::{pixels::Color, render::FPoint};
 
 struct State {}
 
@@ -9,8 +9,9 @@ impl EventHandler for State {
     }
 
     fn draw(&self, game: &mut Game) -> anyhow::Result<()> {
-        game.graphics.canvas.set_draw_color(Color::RGB(255, 0, 0));
-        game.graphics.canvas.clear(); 
+        game.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
+        game.graphics.canvas.clear();
+        game.graphics.draw_image("./examples/example.png".to_string(), (0.0, 0.0));
         game.graphics.canvas.present();
         Ok(())
     }

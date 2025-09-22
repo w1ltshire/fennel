@@ -5,8 +5,12 @@
 //! - `init(...)`: initialize SDL, create a centered resizable window and return `Graphics`
 //!
 
+use std::path::Path;
+
+use image::{EncodableLayout, ImageReader};
+use sdl3::pixels::PixelFormat;
 use sdl3::Sdl;
-use sdl3::render::Canvas;
+use sdl3::render::{Canvas, FPoint, FRect};
 use sdl3::video::Window;
 
 /// Owned SDL variables used for rendering
@@ -52,4 +56,37 @@ pub fn init(name: String, dimensions: (u32, u32)) -> Result<Graphics, Box<dyn st
     let canvas = window.into_canvas();
 
     Ok(Graphics { canvas, sdl_context })
+}
+
+impl Graphics {
+    pub fn draw_image(&mut self, path: String, position: (f32, f32)) -> anyhow::Result<()> {
+        // ATM this function does not cache anything and gathers all data and calls everything
+        // again and again, this is not very performant but this works as a temporary prototype
+        // TODO: cache textures
+        let path = Path::new(&path);
+        let img = ImageReader::open(path)?.decode()?;
+        let mut binding = img.clone();
+        let surface = sdl3::surface::Surface::from_data(binding.as_mut_rgba8().unwrap(), img.width(), img.height(), img.width() * 4, PixelFormat::RGBA32).map_err(|e| e.to_string()).unwrap();
+
+        let texture_width = surface.width();
+        let texture_height = surface.height();
+
+        let texture_creator = self.canvas.texture_creator();
+        let texture = texture_creator
+            .create_texture_from_surface(surface)
+            .map_err(|e| e.to_string()).unwrap();
+
+        let mut dst_rect = FRect::new(
+            position.0,
+            position.1,
+            texture_width as f32,
+            texture_height as f32,
+        );
+
+         self.canvas
+            .copy_ex(&texture, None, Some(dst_rect), 0.0, None, false, false)
+            .unwrap();
+
+        Ok(())
+    }
 }
