@@ -1,4 +1,4 @@
-use kousa::{EventHandler, Game, events, graphics};
+use fennel::{EventHandler, Game, events, graphics};
 use sdl3::pixels::Color;
 
 struct State {}
@@ -20,7 +20,7 @@ impl EventHandler for State {
 
 fn main() {
     let graphics = graphics::Graphics::new(String::from("my cool game"), (500, 500));
-    let mut game = kousa::Game::new(
+    let mut game = fennel::Game::new(
         String::from("my cool game"),
         String::from("wiltshire"),
         graphics.unwrap(),

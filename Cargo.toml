@@ -1,8 +1,8 @@
 [package]
-name = "kousa"
+name = "fennel"
 version = "0.1.1"
 edition = "2024"
-repository = "https://github.com/w1ltshire/kousa.git"
+repository = "https://github.com/w1ltshire/fennel.git"
 license = "MIT"
 
 [dependencies]
