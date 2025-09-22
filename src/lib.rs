@@ -5,12 +5,17 @@ use sdl3::{
     mouse::{MouseButton, MouseState, MouseWheelDirection},
 };
 
-use crate::graphics::Graphics;
+use crate::{audio::Audio, graphics::Graphics};
 
+/// Audio playback
+pub mod audio;
 /// Handling keyboard, window, mouse and other events
 pub mod events;
 /// Rendering layer and all the related things
 pub mod graphics;
+
+unsafe impl Send for Game {}
+unsafe impl Sync for Game {}
 
 /// Main game struct
 ///
@@ -23,6 +28,8 @@ pub struct Game {
     pub author: String,
     /// Graphics subsystem used to render frames.
     pub graphics: Graphics,
+    /// Audio subsystem
+    pub audio: Audio,
 }
 
 impl Game {
@@ -36,10 +43,12 @@ impl Game {
     /// # Returns
     /// A [`Game`] instance ready to be used by an [`EventHandler`].
     pub fn new(name: String, author: String, graphics: Graphics) -> Game {
+        let audio = Audio::new();
         Game {
             name,
             author,
             graphics,
+            audio,
         }
     }
 }
@@ -49,9 +58,10 @@ impl Game {
 /// - `draw` is called to render the current state using `game.graphics`.
 ///
 /// Both return `anyhow::Result<()>`
+#[async_trait::async_trait]
 pub trait EventHandler {
-    fn update(&self, game: &mut Game) -> anyhow::Result<()>;
-    fn draw(&self, game: &mut Game) -> anyhow::Result<()>;
+    async fn update(&self, game: &mut Game) -> anyhow::Result<()>;
+    async fn draw(&self, game: &mut Game) -> anyhow::Result<()>;
     fn key_down_event(
         &self,
         _game: &mut Game,

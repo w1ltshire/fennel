@@ -21,7 +21,7 @@ use crate::{EventHandler, Game};
 /// let mut game = Game::new("cool title".into(), "cool author".into(), graphics);
 /// run(&mut game, Box::new(my_handler));
 /// ```
-pub fn run(game: &mut Game, state: Box<dyn EventHandler>) {
+pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
     'running: loop {
         let now = Instant::now();
 
@@ -138,8 +138,8 @@ pub fn run(game: &mut Game, state: Box<dyn EventHandler>) {
         }
 
         // Update game logic and render.
-        let _ = state.update(game);
-        let _ = state.draw(game);
+        let _ = state.update(game).await;
+        let _ = state.draw(game).await;
 
         // Simple frame limiter: aim for ~1 millisecond minimum frame time.
         let elapsed = Instant::now().duration_since(now).as_nanos() as u64;
