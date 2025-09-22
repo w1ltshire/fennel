@@ -1,7 +1,7 @@
 //! `sdl3::event::Event`-driven main loop.
 
-use std::time::{Duration, Instant};
 use sdl3::event::Event;
+use std::time::{Duration, Instant};
 
 use crate::{EventHandler, Game};
 
@@ -26,7 +26,7 @@ pub fn run(game: &mut Game, state: Box<dyn EventHandler>) {
         let now = Instant::now();
 
         // event_PUMP???? HOLY FUCK IS THAT A REFERENCE TO PSYCHOPOMP
-        for event in game.graphics.sdl_context.event_pump().unwrap().poll_iter() { 
+        for event in game.graphics.sdl_context.event_pump().unwrap().poll_iter() {
             match event {
                 // TODO: let the user register their own handlers
                 Event::Quit { .. } => break 'running,
@@ -34,14 +34,12 @@ pub fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     keycode: Some(_keycode),
                     which: _,
                     ..
-                } => {
-                }
+                } => {}
                 Event::KeyUp {
                     keycode: Some(_keycode),
                     which: _,
                     ..
-                } => {
-                }
+                } => {}
                 _ => {}
             }
         }
@@ -57,4 +55,3 @@ pub fn run(game: &mut Game, state: Box<dyn EventHandler>) {
         }
     }
 }
-

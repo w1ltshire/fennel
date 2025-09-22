@@ -2,10 +2,10 @@
 
 use crate::graphics::Graphics;
 
-/// Rendering layer and all the related things
-pub mod graphics;
 /// Handling keyboard, window, mouse and other events
 pub mod events;
+/// Rendering layer and all the related things
+pub mod graphics;
 
 /// Main game struct
 ///
