@@ -4,6 +4,7 @@ version = "0.1.1"
 edition = "2024"
 repository = "https://github.com/w1ltshire/fennel.git"
 license = "MIT"
+description = "A small 2D game framework I'm building just-for-fun and to learn Rust a little bit deeper"
 
 [dependencies]
 anyhow = "1.0.100"
