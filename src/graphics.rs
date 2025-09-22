@@ -29,7 +29,7 @@ pub struct Graphics {
 struct CachedTexture {
     buffer: Vec<u8>,
     width: u32,
-    height: u32
+    height: u32,
 }
 
 impl Graphics {
@@ -83,24 +83,29 @@ impl Graphics {
             let img = ImageReader::open(path)?.decode()?;
             let buffer = img.to_rgba8().into_raw();
 
-            self.texture_cache.insert(path.display().to_string(), CachedTexture { buffer, width: img.width(), height: img.height() });
+            self.texture_cache.insert(
+                path.display().to_string(),
+                CachedTexture {
+                    buffer,
+                    width: img.width(),
+                    height: img.height(),
+                },
+            );
         }
-
         let buffer: &mut CachedTexture = &mut self.texture_cache.get(&path).unwrap().clone(); // .unwrap() should be safe here
         // because in the previous if block we
         // make sure there is a texture with
         // this key in cache
         // otherwise i dunno :3
         let surface = sdl3::surface::Surface::from_data(
-                buffer.buffer.as_mut_slice(),
-                buffer.width,
-                buffer.height,
-                buffer.width * 4,
-                PixelFormat::RGBA32,
-            )
-            .map_err(|e| e.to_string())
-            .unwrap();
-        
+            buffer.buffer.as_mut_slice(),
+            buffer.width,
+            buffer.height,
+            buffer.width * 4,
+            PixelFormat::RGBA32,
+        )
+        .map_err(|e| e.to_string())
+        .unwrap();
 
         let dst_rect = FRect::new(
             position.0,
@@ -109,7 +114,8 @@ impl Graphics {
             surface.height() as f32,
         );
 
-        let texture = self.texture_creator
+        let texture = self
+            .texture_creator
             .create_texture_from_surface(surface)
             .map_err(|e| e.to_string())
             .unwrap();
@@ -117,7 +123,7 @@ impl Graphics {
         self.canvas
             .copy_ex(&texture, None, Some(dst_rect), 0.0, None, false, false)
             .unwrap();
-        
+
         Ok(())
     }
 }

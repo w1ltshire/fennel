@@ -31,15 +31,108 @@ pub fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                 // TODO: let the user register their own handlers
                 Event::Quit { .. } => break 'running,
                 Event::KeyDown {
-                    keycode: Some(_keycode),
-                    which: _,
-                    ..
-                } => {}
+                    timestamp,
+                    window_id,
+                    keycode: Some(keycode),
+                    scancode: Some(scancode),
+                    keymod,
+                    repeat,
+                    which,
+                    raw,
+                } => state
+                    .key_down_event(
+                        game,
+                        timestamp,
+                        window_id,
+                        Some(keycode),
+                        Some(scancode),
+                        keymod,
+                        repeat,
+                        which,
+                        raw,
+                    )
+                    .unwrap(),
+
                 Event::KeyUp {
-                    keycode: Some(_keycode),
-                    which: _,
-                    ..
-                } => {}
+                    timestamp,
+                    window_id,
+                    keycode: Some(keycode),
+                    scancode: Some(scancode),
+                    keymod,
+                    repeat,
+                    which,
+                    raw,
+                } => state
+                    .key_up_event(
+                        game,
+                        timestamp,
+                        window_id,
+                        Some(keycode),
+                        Some(scancode),
+                        keymod,
+                        repeat,
+                        which,
+                        raw,
+                    )
+                    .unwrap(),
+
+                Event::MouseMotion {
+                    timestamp,
+                    window_id,
+                    which,
+                    mousestate,
+                    x,
+                    y,
+                    xrel,
+                    yrel,
+                } => state
+                    .mouse_motion_event(
+                        game, timestamp, window_id, which, mousestate, x, y, xrel, yrel,
+                    )
+                    .unwrap(),
+
+                Event::MouseButtonDown {
+                    timestamp,
+                    window_id,
+                    which,
+                    mouse_btn,
+                    clicks,
+                    x,
+                    y,
+                } => state
+                    .mouse_button_down_event(
+                        game, timestamp, window_id, which, mouse_btn, clicks, x, y,
+                    )
+                    .unwrap(),
+
+                Event::MouseButtonUp {
+                    timestamp,
+                    window_id,
+                    which,
+                    mouse_btn,
+                    clicks,
+                    x,
+                    y,
+                } => state
+                    .mouse_button_up_event(
+                        game, timestamp, window_id, which, mouse_btn, clicks, x, y,
+                    )
+                    .unwrap(),
+
+                Event::MouseWheel {
+                    timestamp,
+                    window_id,
+                    which,
+                    x,
+                    y,
+                    direction,
+                    mouse_x,
+                    mouse_y,
+                } => state
+                    .mouse_wheel_event(
+                        game, timestamp, window_id, which, x, y, direction, mouse_x, mouse_y,
+                    )
+                    .unwrap(),
                 _ => {}
             }
         }
