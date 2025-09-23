@@ -17,7 +17,7 @@ impl EventHandler for State {
         game.graphics.canvas.clear();
         game.graphics
             .draw_image(
-                "/home/corruptmemory/pictures/niko.png".to_string(),
+                "examples/example.png".to_string(),
                 (0.0, 0.0),
             )
             .expect("failed to draw an image");

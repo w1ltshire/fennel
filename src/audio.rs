@@ -23,26 +23,25 @@ pub enum AudioCommand {
 
 impl Audio {
     pub fn new() -> Audio {
-        let (tx, mut rx) = mpsc::channel::<AudioCommand>(1);
+        let (tx, mut rx) = mpsc::channel::<AudioCommand>(16);
 
         tokio::spawn(async move {
-            println!("hey im the audio thread");
+            println!("hey im the audio thread nya meow meow >:3");
             let stream_handle = rodio::OutputStreamBuilder::open_default_stream()
                 .expect("audio: failed to initialize stream handle");
-            let mixer = stream_handle.mixer().clone();
-
+            let mixer = stream_handle.mixer();
             let mut current_sink: Option<rodio::Sink> = None; 
 
             while let Some(message) = rx.recv().await {
                 println!("{:?}", message);
                 if let AudioCommand::Play(pathbuf) = message {
-                    if let Some(sink) = current_sink.take() {
+                    if let Some(sink) = current_sink {
                         sink.stop();
                     }
 
                     let file = std::fs::File::open(pathbuf.to_string_lossy().to_string()).unwrap();
                     println!("{:?}", file.metadata());
-                    let sink = rodio::play(&mixer, BufReader::new(file)).unwrap();
+                    let sink = rodio::play(mixer, BufReader::new(file)).unwrap();
                     sink.set_volume(1.0);
                     current_sink = Some(sink); 
                 }
