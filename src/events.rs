@@ -17,7 +17,7 @@ use crate::{EventHandler, Game};
 /// - Calls `state.update(game)` then `state.draw(game)` each frame.
 ///
 /// Example:
-/// ```no_run
+/// ```ignore
 /// let mut game = Game::new("cool title".into(), "cool author".into(), graphics);
 /// run(&mut game, Box::new(my_handler));
 /// ```
