@@ -97,10 +97,9 @@ impl Graphics {
             let texture = loadable::Image::load(PathBuf::from(path.clone()));
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
-        // i honestly have no idea how to do this better and more optimized
-        let image: &Image = resources::as_concrete(manager.get_asset(path).unwrap());
 
-        //let buffer: &mut Image = Resourcemanager.get_asset(path).unwrap(); // .unwrap() should be safe here
+        let image: &Image = resources::as_concrete(manager.get_asset(path).unwrap());
+        // .unwrap() in the line above should be safe
         // because in the previous if block we
         // make sure there is a texture with
         // this key in cache
