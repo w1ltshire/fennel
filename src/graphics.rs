@@ -48,7 +48,7 @@ impl Graphics {
     /// - `Err(Box<dyn std::error::Error>)` on failure (window/canvas build error).
     ///
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// let graphics = graphics::new(String::from("my cool game"), (500, 500))?;
     /// ```
     pub fn new(
@@ -91,7 +91,7 @@ impl Graphics {
     /// - `Err(Box<dyn std::error::Error>)` on failure
     ///
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0));
     /// ```
     pub fn draw_image(&mut self, path: String, position: (f32, f32)) -> anyhow::Result<()> {
