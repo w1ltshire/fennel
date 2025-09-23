@@ -5,14 +5,15 @@
 //! - `Graphics::new(...)`: initialize SDL, create a centered resizable window and return [`Graphics`]
 //!
 
-use std::collections::HashMap;
-use std::path::Path;
+use std::path::PathBuf;
 
-use image::ImageReader;
 use sdl3::Sdl;
 use sdl3::pixels::PixelFormat;
 use sdl3::render::{Canvas, FRect};
 use sdl3::video::Window;
+
+use crate::resources::loadable::Image;
+use crate::resources::{self, LoadableResource, ResourceManager, loadable};
 
 /// Owned SDL variables used for rendering
 ///
@@ -25,14 +26,6 @@ pub struct Graphics {
     pub sdl_context: Sdl,
     /// SDL3 texture creator
     pub texture_creator: sdl3::render::TextureCreator<sdl3::video::WindowContext>,
-    texture_cache: HashMap<String, CachedTexture>,
-}
-
-#[derive(Clone)]
-struct CachedTexture {
-    buffer: Vec<u8>,
-    width: u32,
-    height: u32,
 }
 
 impl Graphics {
@@ -76,7 +69,6 @@ impl Graphics {
             canvas,
             sdl_context,
             texture_creator,
-            texture_cache: HashMap::new(),
         })
     }
 
@@ -94,31 +86,30 @@ impl Graphics {
     /// ```ignore
     /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0));
     /// ```
-    pub fn draw_image(&mut self, path: String, position: (f32, f32)) -> anyhow::Result<()> {
-        if !self.texture_cache.contains_key(&path) {
-            let path = Path::new(&path);
-            let img = ImageReader::open(path)?.decode()?;
-            let buffer = img.to_rgba8().into_raw();
-
-            self.texture_cache.insert(
-                path.display().to_string(),
-                CachedTexture {
-                    buffer,
-                    width: img.width(),
-                    height: img.height(),
-                },
-            );
+    pub fn draw_image(
+        &mut self,
+        path: String,
+        position: (f32, f32),
+        manager: &mut ResourceManager,
+    ) -> anyhow::Result<()> {
+        if !manager.is_cached(path.clone()) {
+            // rust programmers when they have to .clone()
+            let texture = loadable::Image::load(PathBuf::from(path.clone()));
+            manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
-        let buffer: &mut CachedTexture = &mut self.texture_cache.get(&path).unwrap().clone(); // .unwrap() should be safe here
+        // i honestly have no idea how to do this better and more optimized
+        let image: &Image = resources::as_concrete(manager.get_asset(path).unwrap());
+
+        //let buffer: &mut Image = Resourcemanager.get_asset(path).unwrap(); // .unwrap() should be safe here
         // because in the previous if block we
         // make sure there is a texture with
         // this key in cache
         // otherwise i dunno :3
         let surface = sdl3::surface::Surface::from_data(
-            buffer.buffer.as_mut_slice(),
-            buffer.width,
-            buffer.height,
-            buffer.width * 4,
+            image.as_mut_slice(),
+            image.width,
+            image.height,
+            image.width * 4,
             PixelFormat::RGBA32,
         )
         .map_err(|e| e.to_string())

@@ -30,7 +30,7 @@ impl Audio {
             let stream_handle = rodio::OutputStreamBuilder::open_default_stream()
                 .expect("audio: failed to initialize stream handle");
             let mixer = stream_handle.mixer();
-            let mut current_sink: Option<rodio::Sink> = None; 
+            let mut current_sink: Option<rodio::Sink> = None;
 
             while let Some(message) = rx.recv().await {
                 println!("{:?}", message);
@@ -43,7 +43,7 @@ impl Audio {
                     println!("{:?}", file.metadata());
                     let sink = rodio::play(mixer, BufReader::new(file)).unwrap();
                     sink.set_volume(1.0);
-                    current_sink = Some(sink); 
+                    current_sink = Some(sink);
                 }
                 thread::sleep(std::time::Duration::from_millis(100));
             }

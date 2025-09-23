@@ -19,6 +19,7 @@ impl EventHandler for State {
             .draw_image(
                 "examples/example.png".to_string(),
                 (0.0, 0.0),
+                &mut game.resource_manager,
             )
             .expect("failed to draw an image");
         game.graphics.canvas.present();
@@ -41,10 +42,7 @@ impl EventHandler for State {
         tokio::task::block_in_place(move || {
             Handle::current().block_on(async move {
                 game.audio
-                    .play_audio(
-                        Path::new("examples/music.ogg"),
-                        false,
-                    )
+                    .play_audio(Path::new("examples/music.ogg"), false)
                     .await
                     .unwrap();
             })

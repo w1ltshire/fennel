@@ -5,7 +5,7 @@ use sdl3::{
     mouse::{MouseButton, MouseState, MouseWheelDirection},
 };
 
-use crate::{audio::Audio, graphics::Graphics};
+use crate::{audio::Audio, graphics::Graphics, resources::ResourceManager};
 
 /// Audio playback
 pub mod audio;
@@ -13,6 +13,10 @@ pub mod audio;
 pub mod events;
 /// Rendering layer and all the related things
 pub mod graphics;
+/// Resource management
+pub mod resources;
+/// Tests
+mod tests;
 
 unsafe impl Send for Game {}
 unsafe impl Sync for Game {}
@@ -30,6 +34,8 @@ pub struct Game {
     pub graphics: Graphics,
     /// Audio subsystem
     pub audio: Audio,
+    /// Resource management
+    pub resource_manager: ResourceManager,
 }
 
 impl Game {
@@ -49,6 +55,7 @@ impl Game {
             author,
             graphics,
             audio,
+            resource_manager: ResourceManager::new(),
         }
     }
 }
@@ -60,8 +67,22 @@ impl Game {
 /// Both return `anyhow::Result<()>`
 #[async_trait::async_trait]
 pub trait EventHandler {
+    /// Updates the game state.
+    ///
+    /// This method should contain the logic for updating the game state.
+    ///
+    /// # Arguments
+    ///
+    /// * `game` - A mutable reference to the game state.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<()>` - `()` if everythings fine, otherwise you should return an error if
+    /// something failed in your logics
     async fn update(&self, game: &mut Game) -> anyhow::Result<()>;
+
     async fn draw(&self, game: &mut Game) -> anyhow::Result<()>;
+
     fn key_down_event(
         &self,
         _game: &mut Game,
