@@ -2,7 +2,7 @@
 //!
 //! Provides:
 //! - `Graphics`: owned SDL context + drawing canvas
-//! - `init(...)`: initialize SDL, create a centered resizable window and return `Graphics`
+//! - `Graphics::new(...)`: initialize SDL, create a centered resizable window and return [`Graphics`]
 //!
 
 use std::collections::HashMap;
@@ -19,8 +19,11 @@ use sdl3::video::Window;
 /// - `canvas`: the drawing surface for the window
 /// - `sdl_context`: the SDL context
 pub struct Graphics {
+    /// The SDL3 canvas, required to draw
     pub canvas: Canvas<Window>,
+    /// SDL3 contaxt
     pub sdl_context: Sdl,
+    /// SDL3 texture creator
     pub texture_creator: sdl3::render::TextureCreator<sdl3::video::WindowContext>,
     texture_cache: HashMap<String, CachedTexture>,
 }
@@ -46,7 +49,7 @@ impl Graphics {
     ///
     /// # Example
     /// ```no_run
-    /// let graphics = graphics::init(String::from("my cool game"), (500, 500));
+    /// let graphics = graphics::new(String::from("my cool game"), (500, 500))?;
     /// ```
     pub fn new(
         name: String,
@@ -77,6 +80,20 @@ impl Graphics {
         })
     }
 
+    /// Cache an image if it isn't cached and draw it on the canvas
+    ///
+    /// # Parameters
+    /// - `path`: Path to the image
+    /// - `position`: Where to draw the image in the window (x,y) in pixels (f32).
+    ///
+    /// # Returns
+    /// - `Ok(())` on success.
+    /// - `Err(Box<dyn std::error::Error>)` on failure
+    ///
+    /// # Example
+    /// ```no_run
+    /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0));
+    /// ```
     pub fn draw_image(&mut self, path: String, position: (f32, f32)) -> anyhow::Result<()> {
         if !self.texture_cache.contains_key(&path) {
             let path = Path::new(&path);
