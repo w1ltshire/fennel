@@ -108,7 +108,15 @@ impl Graphics {
         );
 
         self.canvas
-            .copy_ex(&image.texture, None, Some(dst_rect), 0.0, None, false, false)
+            .copy_ex(
+                &image.texture,
+                None,
+                Some(dst_rect),
+                0.0,
+                None,
+                false,
+                false,
+            )
             .unwrap();
 
         Ok(())

@@ -19,7 +19,7 @@ use crate::{EventHandler, Game};
 /// Example:
 /// ```ignore
 /// let mut game = Game::new("cool title".into(), "cool author".into(), graphics);
-/// run(&mut game, Box::new(my_handler));
+/// events::run(&mut game, Box::new(my_handler));
 /// ```
 pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
     'running: loop {

@@ -17,7 +17,10 @@ pub trait LoadableResource: Any {
     ///
     /// # Errors
     /// Returns an error if the file cannot be read or parsed
-    fn load(path: PathBuf, texture_creator: &Arc<TextureCreator<WindowContext>>) -> anyhow::Result<Box<dyn LoadableResource>>
+    fn load(
+        path: PathBuf,
+        texture_creator: &Arc<TextureCreator<WindowContext>>,
+    ) -> anyhow::Result<Box<dyn LoadableResource>>
     where
         Self: Sized;
 
@@ -58,7 +61,7 @@ impl ResourceManager {
         Ok(())
     }
 
-    // here i have NO fucking idea should it be `&Box<dyn LoadableResource>` or whatever 
+    // here i have NO fucking idea should it be `&Box<dyn LoadableResource>` or whatever
     // self.resources.get returns a reference to the resource, so basically a reference to Box
     // but afaik Box is a pointer, and for me it feels a bit fucking wrong to uh return a
     // reference to a pointer >:3 and also clippy is angry at me for doing this
@@ -78,4 +81,3 @@ impl Default for ResourceManager {
         Self::new()
     }
 }
-

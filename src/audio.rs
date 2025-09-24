@@ -53,8 +53,8 @@ impl Audio {
                             sink.stop();
                         }
 
-                        let file = std::fs::File::open(&pathbuf)
-                            .expect("audio: failed to open file");
+                        let file =
+                            std::fs::File::open(&pathbuf).expect("audio: failed to open file");
                         let sink = rodio::play(mixer, BufReader::new(file))
                             .expect("audio: failed to start playback");
                         sink.set_volume(1.0);
@@ -69,9 +69,7 @@ impl Audio {
             }
         });
 
-        Self {
-            channel: tx
-        }
+        Self { channel: tx }
     }
 
     /// Sends a `Play` command for the given path

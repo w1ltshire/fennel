@@ -1,9 +1,14 @@
 use image::ImageReader;
-use sdl3::{pixels::PixelFormat, render::{Texture, TextureCreator}, video::WindowContext};
+use sdl3::{
+    pixels::PixelFormat,
+    render::{Texture, TextureCreator},
+    video::WindowContext,
+};
 use std::{
     cell::{Ref, RefCell},
     path::PathBuf,
-    rc::Rc, sync::Arc,
+    rc::Rc,
+    sync::Arc,
 };
 
 use crate::resources::LoadableResource;
@@ -23,7 +28,10 @@ impl LoadableResource for Image {
     ///
     /// # Errors
     /// This implementation never fails, but the signature matches the trait.
-    fn load(path: PathBuf, texture_creator: &Arc<TextureCreator<WindowContext>>) -> anyhow::Result<Box<dyn LoadableResource>> {
+    fn load(
+        path: PathBuf,
+        texture_creator: &Arc<TextureCreator<WindowContext>>,
+    ) -> anyhow::Result<Box<dyn LoadableResource>> {
         let img = ImageReader::open(&path)?.decode()?;
         let mut buffer = img.to_rgba8().into_raw();
         let surface = sdl3::surface::Surface::from_data(
@@ -35,10 +43,9 @@ impl LoadableResource for Image {
         )?;
 
         let texture = unsafe {
-            std::mem::transmute::<
-                sdl3::render::Texture<'_>,
-                sdl3::render::Texture<'static>,
-            >(texture_creator.create_texture_from_surface(surface)?)
+            std::mem::transmute::<sdl3::render::Texture<'_>, sdl3::render::Texture<'static>>(
+                texture_creator.create_texture_from_surface(surface)?,
+            )
         };
 
         Ok(Box::new(Self {
