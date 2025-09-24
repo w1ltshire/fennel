@@ -16,7 +16,7 @@ cargo run --example hello
 - [x] Event handling
 - [x] Basic audio subsystem
 - [ ] More advanced audio
-- [ ] Resource management
+- [x] Resource management
 - [ ] ECS
 - [ ] Scripting
 - [ ] Editor
