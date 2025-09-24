@@ -41,7 +41,7 @@ impl Audio {
         let (tx, mut rx) = mpsc::channel::<AudioCommand>(16);
 
         tokio::spawn(async move {
-            println!("Audio thread started");
+            println!("hey im the audio thread nya meow meow >:3");
             let stream_handle = rodio::OutputStreamBuilder::open_default_stream()
                 .expect("audio: failed to initialize stream handle");
             let mixer = stream_handle.mixer();
