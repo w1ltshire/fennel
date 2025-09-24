@@ -4,8 +4,7 @@
 ///
 /// # Example
 /// ```ignore
-/// let mut audio = Audio::new();
-/// audio.play_audio(Path::new("sound.wav"), false).await?;
+/// game.audio.play_audio(Path::new("examples/music.ogg"), false).await?;
 /// ```
 use std::{
     io::BufReader,
