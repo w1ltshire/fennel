@@ -6,9 +6,9 @@
 //!
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use sdl3::Sdl;
-use sdl3::pixels::PixelFormat;
 use sdl3::render::{Canvas, FRect};
 use sdl3::video::Window;
 
@@ -25,7 +25,7 @@ pub struct Graphics {
     /// SDL3 contaxt
     pub sdl_context: Sdl,
     /// SDL3 texture creator
-    pub texture_creator: sdl3::render::TextureCreator<sdl3::video::WindowContext>,
+    pub texture_creator: Arc<sdl3::render::TextureCreator<sdl3::video::WindowContext>>,
 }
 
 impl Graphics {
@@ -68,7 +68,7 @@ impl Graphics {
         Ok(Graphics {
             canvas,
             sdl_context,
-            texture_creator,
+            texture_creator: Arc::new(texture_creator),
         })
     }
 
@@ -84,7 +84,7 @@ impl Graphics {
     ///
     /// # Example
     /// ```ignore
-    /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0));
+    /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0)).await;
     /// ```
     pub fn draw_image(
         &mut self,
@@ -94,41 +94,21 @@ impl Graphics {
     ) -> anyhow::Result<()> {
         if !manager.is_cached(path.clone()) {
             // rust programmers when they have to .clone()
-            let texture = loadable::Image::load(PathBuf::from(path.clone()));
+            let texture = loadable::Image::load(PathBuf::from(path.clone()), &self.texture_creator);
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
 
         let image: &Image = resources::as_concrete(manager.get_asset(path).unwrap());
-        // .unwrap() in the line above should be safe
-        // because in the previous if block we
-        // make sure there is a texture with
-        // this key in cache
-        // otherwise i dunno :3
-        let surface = sdl3::surface::Surface::from_data(
-            image.as_mut_slice(),
-            image.width,
-            image.height,
-            image.width * 4,
-            PixelFormat::RGBA32,
-        )
-        .map_err(|e| e.to_string())
-        .unwrap();
 
         let dst_rect = FRect::new(
             position.0,
             position.1,
-            surface.width() as f32,
-            surface.height() as f32,
+            image.width as f32,
+            image.height as f32,
         );
 
-        let texture = self
-            .texture_creator
-            .create_texture_from_surface(surface)
-            .map_err(|e| e.to_string())
-            .unwrap();
-
         self.canvas
-            .copy_ex(&texture, None, Some(dst_rect), 0.0, None, false, false)
+            .copy_ex(&image.texture, None, Some(dst_rect), 0.0, None, false, false)
             .unwrap();
 
         Ok(())

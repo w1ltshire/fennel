@@ -1,18 +1,19 @@
 use image::ImageReader;
+use sdl3::{pixels::PixelFormat, render::{Texture, TextureCreator}, video::WindowContext};
 use std::{
     cell::{Ref, RefCell},
     path::PathBuf,
-    rc::Rc,
+    rc::Rc, sync::Arc,
 };
 
 use crate::resources::LoadableResource;
 
 /// Simple image asset that stores its file location.
-#[derive(Clone)]
 pub struct Image {
     /// Filesystem path to the image.
     pub path: PathBuf,
     pub buffer: Rc<RefCell<Vec<u8>>>,
+    pub texture: Rc<Texture<'static>>,
     pub width: u32,
     pub height: u32,
 }
@@ -22,12 +23,28 @@ impl LoadableResource for Image {
     ///
     /// # Errors
     /// This implementation never fails, but the signature matches the trait.
-    fn load(path: PathBuf) -> anyhow::Result<Box<dyn LoadableResource>> {
+    fn load(path: PathBuf, texture_creator: &Arc<TextureCreator<WindowContext>>) -> anyhow::Result<Box<dyn LoadableResource>> {
         let img = ImageReader::open(&path)?.decode()?;
-        let buffer = img.to_rgba8().into_raw();
+        let mut buffer = img.to_rgba8().into_raw();
+        let surface = sdl3::surface::Surface::from_data(
+            &mut buffer,
+            img.width(),
+            img.height(),
+            img.width() * 4,
+            PixelFormat::RGBA32,
+        )?;
+
+        let texture = unsafe {
+            std::mem::transmute::<
+                sdl3::render::Texture<'_>,
+                sdl3::render::Texture<'static>,
+            >(texture_creator.create_texture_from_surface(surface)?)
+        };
+
         Ok(Box::new(Self {
             path,
             buffer: Rc::new(RefCell::new(buffer)),
+            texture: Rc::new(texture),
             width: img.width(),
             height: img.height(),
         }))
@@ -43,8 +60,6 @@ impl LoadableResource for Image {
         // even more evil shit that PROBABLY :) should be safe because as we know in normal conditions only
         // one thread should access (graphics, audio, ..) its respecting resources
         // otherwise have a SEGFAULT >:3
-        //
-        // i have no fucking idea how this worked and didn't crash
         unsafe { &mut *(mut_ref.as_mut_slice() as *mut [u8]) }
     }
 
