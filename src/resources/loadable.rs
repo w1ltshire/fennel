@@ -17,17 +17,18 @@ use crate::resources::LoadableResource;
 pub struct Image {
     /// Filesystem path to the image.
     pub path: PathBuf,
+    /// Vector of bytes containing the image pixels
     pub buffer: Rc<RefCell<Vec<u8>>>,
+    /// SDL3 texture for caching
     pub texture: Rc<Texture<'static>>,
+    /// Image width
     pub width: u32,
+    /// Image heiht
     pub height: u32,
 }
 
 impl LoadableResource for Image {
     /// Construct an `Image` from `path` and return it as a boxed trait object.
-    ///
-    /// # Errors
-    /// This implementation never fails, but the signature matches the trait.
     fn load(
         path: PathBuf,
         texture_creator: &Arc<TextureCreator<WindowContext>>,
@@ -57,7 +58,6 @@ impl LoadableResource for Image {
         }))
     }
 
-    /// Identifier for the asset is the the string representation of its path.
     fn name(&self) -> String {
         self.path.to_string_lossy().to_string()
     }
