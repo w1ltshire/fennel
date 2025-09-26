@@ -9,6 +9,8 @@ use crate::{audio::Audio, graphics::Graphics, resources::ResourceManager};
 
 /// Audio playback
 pub mod audio;
+/// Entity-component-system
+pub mod ecs;
 /// Handling keyboard, window, mouse and other events
 pub mod events;
 /// Rendering layer and all the related things
