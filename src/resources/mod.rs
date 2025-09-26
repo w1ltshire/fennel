@@ -1,6 +1,6 @@
-use std::{any::Any, cell::Ref, collections::HashMap, path::PathBuf, sync::Arc};
+use std::{any::Any, cell::Ref, collections::HashMap, path::PathBuf};
 
-use sdl3::{render::TextureCreator, video::WindowContext};
+use crate::graphics::Graphics;
 
 /// Module containing implementations of [`LoadableResource`] such as [`Image`]
 pub mod loadable;
@@ -15,11 +15,17 @@ pub struct ResourceManager {
 pub trait LoadableResource: Any {
     /// Load a resource from `path` and return it boxed
     ///
+    /// # Arguments
+    /// `path`: path to the resoruce file
+    /// `graphics`: current [`Graphics`] instance which holds `texture_creator` and `ttf_context`
+    /// `size`: optional size for any resoruce that needs it
+    ///
     /// # Errors
     /// Returns an error if the file cannot be read or parsed
     fn load(
         path: PathBuf,
-        texture_creator: &Arc<TextureCreator<WindowContext>>,
+        graphics: &mut Graphics,
+        size: Option<f32>
     ) -> anyhow::Result<Box<dyn LoadableResource>>
     where
         Self: Sized;
@@ -28,21 +34,29 @@ pub trait LoadableResource: Any {
     fn name(&self) -> String;
 
     /// Return a mutable slice that the graphics thread can pass to SDL
-    fn as_mut_slice(&self) -> &mut [u8];
+    ///
+    /// If the resource does not have a buffer, then it mustn't implement this function
+    fn as_mut_slice(&self) -> Option<&mut [u8]> {
+        None
+    }
 
     /// Return an immutable slice for read‑only access
-    fn as_slice(&self) -> Ref<'_, [u8]>;
+    ///
+    /// If the resource does not have a buffer, then it mustn't implement this function
+    fn as_slice(&self) -> Option<Ref<'_, [u8]>> {
+        None
+    }
 }
 
 /// evil &Box<dyn LoadableResource> to &T
-pub fn as_concrete<T: 'static + LoadableResource>(b: &Box<dyn LoadableResource>) -> &T {
+pub fn as_concrete<T: 'static + LoadableResource>(b: &Box<dyn LoadableResource>) -> anyhow::Result<&T> {
     let dyn_ref: &dyn LoadableResource = b.as_ref();
 
     let any_ref = dyn_ref as &dyn Any;
 
-    any_ref
+    Ok(any_ref
         .downcast_ref::<T>()
-        .expect("incorrect concrete type")
+        .expect("incorrect concrete type"))
 }
 
 impl ResourceManager {
@@ -70,6 +84,7 @@ impl ResourceManager {
         Ok(asset)
     }
 
+    /// Check if a resource is cached
     pub fn is_cached(&mut self, name: String) -> bool {
         self.resources.contains_key(&name)
     }

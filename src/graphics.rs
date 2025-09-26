@@ -26,6 +26,8 @@ pub struct Graphics {
     pub sdl_context: Sdl,
     /// SDL3 texture creator
     pub texture_creator: Arc<sdl3::render::TextureCreator<sdl3::video::WindowContext>>,
+    /// SDL3 TTF context required for text rendering
+    pub ttf_context: sdl3::ttf::Sdl3TtfContext,
 }
 
 impl Graphics {
@@ -51,10 +53,9 @@ impl Graphics {
         // TODO: allow the user to uh customize video_subsystem configuration 'cuz man this is ass why
         // do we position_centered() and resizable() it by default
 
-        let sdl_context = sdl3::init().unwrap();
-        let video_subsystem = sdl_context.video().unwrap(); // TODO: get this fucking unwrap out of
-        // here and replace with something more
-        // cool
+        let sdl_context = sdl3::init()?;
+        let ttf_context = sdl3::ttf::init().map_err(|e| e.to_string())?;
+        let video_subsystem = sdl_context.video()?;
 
         let window = video_subsystem
             .window(&name, dimensions.0, dimensions.1)
@@ -69,6 +70,7 @@ impl Graphics {
             canvas,
             sdl_context,
             texture_creator: Arc::new(texture_creator),
+            ttf_context
         })
     }
 
@@ -94,11 +96,11 @@ impl Graphics {
     ) -> anyhow::Result<()> {
         if !manager.is_cached(path.clone()) {
             // rust programmers when they have to .clone()
-            let texture = loadable::Image::load(PathBuf::from(path.clone()), &self.texture_creator);
+            let texture = loadable::Image::load(PathBuf::from(path.clone()), self, None);
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
 
-        let image: &Image = resources::as_concrete(manager.get_asset(path).unwrap());
+        let image: &Image = resources::as_concrete(manager.get_asset(path).unwrap())?;
 
         let dst_rect = FRect::new(
             position.0,
@@ -106,7 +108,6 @@ impl Graphics {
             image.width as f32,
             image.height as f32,
         );
-
         self.canvas
             .copy_ex(
                 &image.texture,

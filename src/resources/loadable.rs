@@ -1,17 +1,16 @@
+use anyhow::bail;
 use image::ImageReader;
 use sdl3::{
     pixels::PixelFormat,
-    render::{Texture, TextureCreator},
-    video::WindowContext,
+    render::Texture
 };
 use std::{
     cell::{Ref, RefCell},
     path::PathBuf,
     rc::Rc,
-    sync::Arc,
 };
 
-use crate::resources::LoadableResource;
+use crate::{graphics::Graphics, resources::LoadableResource};
 
 /// Simple image asset that stores its file location.
 pub struct Image {
@@ -27,11 +26,24 @@ pub struct Image {
     pub height: u32,
 }
 
+/// Simple font asset
+pub struct Font {
+    /// Filesystem path to the font.
+    pub path: PathBuf,
+    /// Font family name
+    pub family_name: String,
+    /// Point size
+    pub size: f32,
+    /// Vector of bytes containing the font data
+    pub buffer: Rc<sdl3::ttf::Font<'static>>,
+}
+
 impl LoadableResource for Image {
     /// Construct an `Image` from `path` and return it as a boxed trait object.
     fn load(
         path: PathBuf,
-        texture_creator: &Arc<TextureCreator<WindowContext>>,
+        graphics: &mut Graphics,
+        _size: Option<f32>
     ) -> anyhow::Result<Box<dyn LoadableResource>> {
         let img = ImageReader::open(&path)?.decode()?;
         let mut buffer = img.to_rgba8().into_raw();
@@ -45,7 +57,7 @@ impl LoadableResource for Image {
 
         let texture = unsafe {
             std::mem::transmute::<sdl3::render::Texture<'_>, sdl3::render::Texture<'static>>(
-                texture_creator.create_texture_from_surface(surface)?,
+                graphics.texture_creator.create_texture_from_surface(surface)?,
             )
         };
 
@@ -62,15 +74,41 @@ impl LoadableResource for Image {
         self.path.to_string_lossy().to_string()
     }
 
-    fn as_mut_slice(&self) -> &mut [u8] {
+    fn as_mut_slice(&self) -> Option<&mut [u8]> {
         let mut mut_ref = self.buffer.borrow_mut();
         // even more evil shit that PROBABLY :) should be safe because as we know in normal conditions only
         // one thread should access (graphics, audio, ..) its respecting resources
         // otherwise have a SEGFAULT >:3
-        unsafe { &mut *(mut_ref.as_mut_slice() as *mut [u8]) }
+        unsafe { Some(&mut *(mut_ref.as_mut_slice() as *mut [u8])) }
     }
 
-    fn as_slice(&self) -> Ref<'_, [u8]> {
-        Ref::map(self.buffer.borrow(), |v| v.as_slice())
+    fn as_slice(&self) -> Option<Ref<'_, [u8]>> {
+        Some(Ref::map(self.buffer.borrow(), |v| v.as_slice()))
+    }
+}
+
+impl LoadableResource for Font {
+    fn load(
+            path: PathBuf,
+            graphics: &mut Graphics,
+            size: Option<f32>
+        ) -> anyhow::Result<Box<dyn LoadableResource>>
+        where
+            Self: Sized {
+        if size.is_none() {
+            bail!("no font size was provided");
+        }
+
+        let font = graphics.ttf_context.load_font(&path, size.unwrap())?;
+        Ok(Box::new(Self {
+            path,
+            family_name: font.face_family_name().expect("failed to get font family name"),
+            size: size.unwrap(),
+            buffer: Rc::new(font)
+        }))
+    }
+
+    fn name(&self) -> String {
+        format!("{} {}", self.family_name, self.size)
     }
 }
