@@ -1,6 +1,6 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use fennel_engine::{EventHandler, Game, events, graphics};
+use fennel_engine::{events, graphics::{self, Graphics}, resources::{loadable::Font, LoadableResource, ResourceManager}, EventHandler, Game};
 use sdl3::pixels::Color;
 use tokio::runtime::Handle;
 
@@ -22,6 +22,7 @@ impl EventHandler for State {
                 &mut game.resource_manager,
             )
             .expect("failed to draw an image");
+        game.graphics.draw_text("hi".to_string(), (64.0, 64.0), "Terminus (TTF) 32".to_string(), Color::RGBA(255, 0, 0, 0), &mut game.resource_manager)?;
         game.graphics.canvas.present();
         Ok(())
     }
@@ -51,6 +52,11 @@ impl EventHandler for State {
     }
 }
 
+fn load_font(path: PathBuf, resource_manager: &mut ResourceManager, graphics: &mut Graphics, size: f32) {
+    let font = Font::load(path, graphics, Some(size));
+    resource_manager.cache_asset(font.unwrap()).unwrap();
+}
+
 #[tokio::main]
 async fn main() {
     let graphics = graphics::Graphics::new(String::from("my cool game"), (500, 500));
@@ -59,5 +65,6 @@ async fn main() {
         String::from("wiltshire"),
         graphics.unwrap(),
     );
+    load_font("examples/terminus.ttf".into(), &mut game.resource_manager, &mut game.graphics, 32.0);
     events::run(&mut game, Box::new(State {})).await;
 }

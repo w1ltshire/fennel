@@ -2,7 +2,7 @@ use anyhow::bail;
 use image::ImageReader;
 use sdl3::{
     pixels::PixelFormat,
-    render::Texture
+    render::Texture, surface::Surface
 };
 use std::{
     cell::{Ref, RefCell},
@@ -14,8 +14,8 @@ use crate::{graphics::Graphics, resources::LoadableResource};
 
 /// Simple image asset that stores its file location.
 pub struct Image {
-    /// Filesystem path to the image.
-    pub path: PathBuf,
+    /// Resource name (can be filesystem path to the image or something else)
+    pub name: String,
     /// Vector of bytes containing the image pixels
     pub buffer: Rc<RefCell<Vec<u8>>>,
     /// SDL3 texture for caching
@@ -36,6 +36,28 @@ pub struct Font {
     pub size: f32,
     /// Vector of bytes containing the font data
     pub buffer: Rc<sdl3::ttf::Font<'static>>,
+}
+
+impl Image {
+    pub fn load_from_surface(
+        name: String,
+        graphics: &mut Graphics,
+        surface: Surface
+    ) -> anyhow::Result<Box<dyn LoadableResource>> {
+        let texture = unsafe {
+            std::mem::transmute::<sdl3::render::Texture<'_>, sdl3::render::Texture<'static>>(
+                graphics.texture_creator.create_texture_from_surface(&surface)?,
+            )
+        };
+
+        Ok(Box::new(Self {
+            name,
+            buffer: Rc::new(RefCell::new(vec![])), // wtf
+            texture: Rc::new(texture),
+            width: surface.width(),
+            height: surface.height()
+        }))
+    }
 }
 
 impl LoadableResource for Image {
@@ -62,7 +84,7 @@ impl LoadableResource for Image {
         };
 
         Ok(Box::new(Self {
-            path,
+            name: path.to_string_lossy().to_string(),
             buffer: Rc::new(RefCell::new(buffer)),
             texture: Rc::new(texture),
             width: img.width(),
@@ -71,7 +93,7 @@ impl LoadableResource for Image {
     }
 
     fn name(&self) -> String {
-        self.path.to_string_lossy().to_string()
+        self.name.clone()
     }
 
     fn as_mut_slice(&self) -> Option<&mut [u8]> {

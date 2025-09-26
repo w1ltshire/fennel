@@ -6,13 +6,14 @@
 //!
 
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::rc::Rc;
 
+use sdl3::pixels::{Color, PixelFormat};
 use sdl3::Sdl;
 use sdl3::render::{Canvas, FRect};
 use sdl3::video::Window;
 
-use crate::resources::loadable::Image;
+use crate::resources::loadable::{Font, Image};
 use crate::resources::{self, LoadableResource, ResourceManager, loadable};
 
 /// Owned SDL variables used for rendering
@@ -25,7 +26,7 @@ pub struct Graphics {
     /// SDL3 contaxt
     pub sdl_context: Sdl,
     /// SDL3 texture creator
-    pub texture_creator: Arc<sdl3::render::TextureCreator<sdl3::video::WindowContext>>,
+    pub texture_creator: Rc<sdl3::render::TextureCreator<sdl3::video::WindowContext>>,
     /// SDL3 TTF context required for text rendering
     pub ttf_context: sdl3::ttf::Sdl3TtfContext,
 }
@@ -69,7 +70,7 @@ impl Graphics {
         Ok(Graphics {
             canvas,
             sdl_context,
-            texture_creator: Arc::new(texture_creator),
+            texture_creator: Rc::new(texture_creator),
             ttf_context
         })
     }
@@ -120,6 +121,55 @@ impl Graphics {
             )
             .unwrap();
 
+        Ok(())
+    }
+
+    /// Create a texture from font + text and render it on the canvas
+    /// 
+    /// This does not cache the font, so you have the load all the fonts you'll be using in your
+    /// initiaization function (like `main`). This does cache the texture created from supplied
+    /// font and text.
+    pub fn draw_text(
+        &mut self,
+        text: String,
+        position: (f32, f32),
+        font_family: String,
+        color: Color,
+        manager: &mut ResourceManager
+    ) -> anyhow::Result<()> {
+        let cache_key = format!("{}|{}|{:x?}", font_family, text, color.to_u32(&PixelFormat::RGBA32));
+        let font: &Font = {
+            let asset = manager.get_asset(font_family)?;
+            resources::as_concrete(asset)?
+        };
+
+        if !manager.is_cached(cache_key.clone()) {
+            let surface = font.buffer
+                .render(&text)
+                .blended(color)
+                .map_err(|e| anyhow::anyhow!("render error: {e}"))?;
+            let image = Image::load_from_surface(cache_key.clone(), self, surface);
+            manager.cache_asset(image?)?;
+        }
+        let texture: &Image = resources::as_concrete(manager.get_asset(cache_key)?)?;
+        
+        let dst_rect = FRect::new(
+            position.0,
+            position.1,
+            texture.width as f32,
+            texture.height as f32,
+        );
+        self.canvas
+            .copy_ex(
+                &texture.texture,
+                None,
+                Some(dst_rect),
+                0.0,
+                None,
+                false,
+                false,
+            )
+            .unwrap();
         Ok(())
     }
 }

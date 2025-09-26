@@ -49,6 +49,8 @@ pub trait LoadableResource: Any {
 }
 
 /// evil &Box<dyn LoadableResource> to &T
+#[allow(clippy::borrowed_box)] // i have no idea how can this be done better because here we box a
+                               // trait
 pub fn as_concrete<T: 'static + LoadableResource>(b: &Box<dyn LoadableResource>) -> anyhow::Result<&T> {
     let dyn_ref: &dyn LoadableResource = b.as_ref();
 
@@ -79,13 +81,14 @@ impl ResourceManager {
     // self.resources.get returns a reference to the resource, so basically a reference to Box
     // but afaik Box is a pointer, and for me it feels a bit fucking wrong to uh return a
     // reference to a pointer >:3 and also clippy is angry at me for doing this
-    pub fn get_asset(&mut self, name: String) -> anyhow::Result<&Box<dyn LoadableResource>> {
+    #[allow(clippy::borrowed_box)] // same reason as in `as_concrete`
+    pub fn get_asset(&self, name: String) -> anyhow::Result<&Box<dyn LoadableResource>> {
         let asset = self.resources.get(&name).unwrap();
         Ok(asset)
     }
 
     /// Check if a resource is cached
-    pub fn is_cached(&mut self, name: String) -> bool {
+    pub fn is_cached(&self, name: String) -> bool {
         self.resources.contains_key(&name)
     }
 }
