@@ -22,11 +22,13 @@ use crate::{EventHandler, Game};
 /// events::run(&mut game, Box::new(my_handler));
 /// ```
 pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
+    let mut event_pump = game.graphics.sdl_context.event_pump().unwrap();
+
     'running: loop {
         let now = Instant::now();
 
         // event_PUMP???? HOLY FUCK IS THAT A REFERENCE TO PSYCHOPOMP
-        for event in game.graphics.sdl_context.event_pump().unwrap().poll_iter() {
+        for event in event_pump.poll_iter() {
             match event {
                 // TODO: let the user register their own handlers
                 Event::Quit { .. } => break 'running,
