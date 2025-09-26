@@ -25,7 +25,7 @@ pub trait LoadableResource: Any {
     fn load(
         path: PathBuf,
         graphics: &mut Graphics,
-        size: Option<f32>
+        size: Option<f32>,
     ) -> anyhow::Result<Box<dyn LoadableResource>>
     where
         Self: Sized;
@@ -50,8 +50,10 @@ pub trait LoadableResource: Any {
 
 /// evil &Box<dyn LoadableResource> to &T
 #[allow(clippy::borrowed_box)] // i have no idea how can this be done better because here we box a
-                               // trait
-pub fn as_concrete<T: 'static + LoadableResource>(b: &Box<dyn LoadableResource>) -> anyhow::Result<&T> {
+// trait
+pub fn as_concrete<T: 'static + LoadableResource>(
+    b: &Box<dyn LoadableResource>,
+) -> anyhow::Result<&T> {
     let dyn_ref: &dyn LoadableResource = b.as_ref();
 
     let any_ref = dyn_ref as &dyn Any;

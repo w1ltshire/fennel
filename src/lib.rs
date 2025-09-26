@@ -1,5 +1,7 @@
 //! A small 2D game framework I'm building just-for-fun and to learn Rust a little bit deeper
 
+use std::sync::{Arc, Mutex};
+
 use sdl3::{
     keyboard::{Keycode, Mod, Scancode},
     mouse::{MouseButton, MouseState, MouseWheelDirection},
@@ -37,7 +39,7 @@ pub struct Game {
     /// Audio subsystem
     pub audio: Audio,
     /// Resource management
-    pub resource_manager: ResourceManager,
+    pub resource_manager: Arc<Mutex<ResourceManager>>,
 }
 
 impl Game {
@@ -50,14 +52,19 @@ impl Game {
     ///
     /// # Returns
     /// A [`Game`] instance ready to be used by an [`EventHandler`].
-    pub fn new(name: String, author: String, graphics: Graphics) -> Game {
+    pub fn new(
+        name: String,
+        author: String,
+        graphics: Graphics,
+        resource_manager: Arc<Mutex<ResourceManager>>,
+    ) -> Game {
         let audio = Audio::new();
         Game {
             name,
             author,
             graphics,
             audio,
-            resource_manager: ResourceManager::new(),
+            resource_manager,
         }
     }
 }
@@ -65,8 +72,6 @@ impl Game {
 /// Trait that must be implemented by user's game state struct
 /// - `update` is called to advance game state (physics, AI, input processing).
 /// - `draw` is called to render the current state using `game.graphics`.
-///
-/// Both return `anyhow::Result<()>`
 #[async_trait::async_trait]
 pub trait EventHandler {
     /// Updates the game state.
@@ -75,16 +80,36 @@ pub trait EventHandler {
     ///
     /// # Arguments
     ///
-    /// * `game` - A mutable reference to the game state.
+    /// - `game` - A mutable reference to the game state.
     ///
     /// # Returns
     ///
-    /// * `Result<()>` - `()` if everythings fine, otherwise you should return an error if
+    /// - `Result<()>` - `()` if everythings fine, otherwise you should return an error if
     /// something failed in your logics
     async fn update(&self, game: &mut Game) -> anyhow::Result<()>;
 
+    /// Draws the game
+    ///
+    /// This method should contain the logic for drawing on the game's canvas
+    ///
+    /// # Arguments
+    ///
+    /// - `game` - A mutable reference to the game state.
+    ///
+    /// # Returns
+    ///
+    /// - `Result<()>` - `()` if everythings fine, otherwise you should return an error if
+    /// something failed in your logics
     async fn draw(&self, game: &mut Game) -> anyhow::Result<()>;
 
+    /// Handles a key‑down event.
+    ///
+    /// # Parameters
+    /// - `game` – Mutable `Game` reference.
+    /// - `timestamp` – Event timestamp.
+    /// - `window_id` – Window identifier.
+    /// - `keycode` – Optional keycode of the pressed key.
+    /// - `scancode` – Optional scancode of the pressed key.
     fn key_down_event(
         &self,
         _game: &mut Game,
@@ -100,6 +125,7 @@ pub trait EventHandler {
         Ok(())
     }
 
+    /// Handles a key‑up event. Parameters mirror `key_down_event`
     fn key_up_event(
         &self,
         _game: &mut Game,
@@ -115,6 +141,14 @@ pub trait EventHandler {
         Ok(())
     }
 
+    /// Handles mouse‑motion events.
+    ///
+    /// # Parameters
+    /// - `game` – Mutable `Game` reference.
+    /// - `timestamp` – Event timestamp.
+    /// - `window_id` – Window identifier.
+    /// - `x`, `y` – Absolute cursor coordinates.
+    /// - `xrel`, `yrel` – Relative motion since the previous event.
     fn mouse_motion_event(
         &self,
         _game: &mut Game,
@@ -130,6 +164,15 @@ pub trait EventHandler {
         Ok(())
     }
 
+    /// Handles a mouse‑button‑down event.
+    ///
+    /// # Parameters
+    /// - `game` – Mutable `Game` reference.
+    /// - `timestamp` – Event timestamp.
+    /// - `window_id` – Window identifier.
+    /// - `mouse_btn` – Button that was pressed.
+    /// - `clicks` – Number of consecutive clicks.
+    /// - `x`, `y` – Cursor position at the time of the press.
     fn mouse_button_down_event(
         &self,
         _game: &mut Game,
@@ -144,6 +187,8 @@ pub trait EventHandler {
         Ok(())
     }
 
+    /// Handles a mouse‑button‑up event. Parameters mirror
+    /// `mouse_button_down_event`
     fn mouse_button_up_event(
         &self,
         _game: &mut Game,
@@ -158,6 +203,15 @@ pub trait EventHandler {
         Ok(())
     }
 
+    /// Handles a mouse‑wheel (scroll) event.
+    ///
+    /// # Parameters
+    /// - `game` – Mutable `Game` reference.
+    /// - `timestamp` – Event timestamp.
+    /// - `window_id` – Window identifier.
+    /// - `x`, `y` – Scroll amount along each axis.
+    /// - `direction` – Scroll direction probably i don't know.
+    /// - `mouse_x`, `mouse_y` – Cursor position when the wheel event occurred.
     fn mouse_wheel_event(
         &self,
         _game: &mut Game,

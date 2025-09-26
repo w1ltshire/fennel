@@ -1,9 +1,6 @@
 use anyhow::bail;
 use image::ImageReader;
-use sdl3::{
-    pixels::PixelFormat,
-    render::Texture, surface::Surface
-};
+use sdl3::{pixels::PixelFormat, render::Texture, surface::Surface};
 use std::{
     cell::{Ref, RefCell},
     path::PathBuf,
@@ -42,11 +39,13 @@ impl Image {
     pub fn load_from_surface(
         name: String,
         graphics: &mut Graphics,
-        surface: Surface
+        surface: Surface,
     ) -> anyhow::Result<Box<dyn LoadableResource>> {
         let texture = unsafe {
             std::mem::transmute::<sdl3::render::Texture<'_>, sdl3::render::Texture<'static>>(
-                graphics.texture_creator.create_texture_from_surface(&surface)?,
+                graphics
+                    .texture_creator
+                    .create_texture_from_surface(&surface)?,
             )
         };
 
@@ -55,7 +54,7 @@ impl Image {
             buffer: Rc::new(RefCell::new(vec![])), // wtf
             texture: Rc::new(texture),
             width: surface.width(),
-            height: surface.height()
+            height: surface.height(),
         }))
     }
 }
@@ -65,7 +64,7 @@ impl LoadableResource for Image {
     fn load(
         path: PathBuf,
         graphics: &mut Graphics,
-        _size: Option<f32>
+        _size: Option<f32>,
     ) -> anyhow::Result<Box<dyn LoadableResource>> {
         let img = ImageReader::open(&path)?.decode()?;
         let mut buffer = img.to_rgba8().into_raw();
@@ -79,7 +78,9 @@ impl LoadableResource for Image {
 
         let texture = unsafe {
             std::mem::transmute::<sdl3::render::Texture<'_>, sdl3::render::Texture<'static>>(
-                graphics.texture_creator.create_texture_from_surface(surface)?,
+                graphics
+                    .texture_creator
+                    .create_texture_from_surface(surface)?,
             )
         };
 
@@ -111,12 +112,13 @@ impl LoadableResource for Image {
 
 impl LoadableResource for Font {
     fn load(
-            path: PathBuf,
-            graphics: &mut Graphics,
-            size: Option<f32>
-        ) -> anyhow::Result<Box<dyn LoadableResource>>
-        where
-            Self: Sized {
+        path: PathBuf,
+        graphics: &mut Graphics,
+        size: Option<f32>,
+    ) -> anyhow::Result<Box<dyn LoadableResource>>
+    where
+        Self: Sized,
+    {
         if size.is_none() {
             bail!("no font size was provided");
         }
@@ -124,13 +126,15 @@ impl LoadableResource for Font {
         let font = graphics.ttf_context.load_font(&path, size.unwrap())?;
         Ok(Box::new(Self {
             path,
-            family_name: font.face_family_name().expect("failed to get font family name"),
+            family_name: font
+                .face_family_name()
+                .expect("failed to get font family name"),
             size: size.unwrap(),
-            buffer: Rc::new(font)
+            buffer: Rc::new(font),
         }))
     }
 
     fn name(&self) -> String {
-        format!("{} {}", self.family_name, self.size)
+        format!("{}|{}", self.path.to_string_lossy(), self.size)
     }
 }

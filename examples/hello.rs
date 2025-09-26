@@ -1,6 +1,9 @@
-use std::path::{Path, PathBuf};
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
-use fennel_engine::{events, graphics::{self, Graphics}, resources::{loadable::Font, LoadableResource, ResourceManager}, EventHandler, Game};
+use fennel_engine::{EventHandler, Game, events, graphics, resources::ResourceManager};
 use sdl3::pixels::Color;
 use tokio::runtime::Handle;
 
@@ -16,13 +19,22 @@ impl EventHandler for State {
         game.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
         game.graphics.canvas.clear();
         game.graphics
-            .draw_image(
-                "examples/example.png".to_string(),
-                (0.0, 0.0),
-                &mut game.resource_manager,
-            )
+            .draw_image("examples/example.png".to_string(), (0.0, 0.0))
             .expect("failed to draw an image");
-        game.graphics.draw_text("hi".to_string(), (64.0, 64.0), "Terminus (TTF) 32".to_string(), Color::RGBA(255, 0, 0, 0), &mut game.resource_manager)?;
+        game.graphics.draw_text(
+            String::from("hi"),
+            (64.0, 64.0),
+            String::from("examples/terminus.ttf"),
+            Color::RGBA(255, 0, 0, 0),
+            16.0,
+        )?;
+        game.graphics.draw_text(
+            String::from("hi"),
+            (64.0, 150.0),
+            String::from("examples/terminus.ttf"),
+            Color::RGBA(255, 0, 0, 0),
+            128.0,
+        )?;
         game.graphics.canvas.present();
         Ok(())
     }
@@ -52,19 +64,19 @@ impl EventHandler for State {
     }
 }
 
-fn load_font(path: PathBuf, resource_manager: &mut ResourceManager, graphics: &mut Graphics, size: f32) {
-    let font = Font::load(path, graphics, Some(size));
-    resource_manager.cache_asset(font.unwrap()).unwrap();
-}
-
 #[tokio::main]
 async fn main() {
-    let graphics = graphics::Graphics::new(String::from("my cool game"), (500, 500));
+    let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
+    let graphics = graphics::Graphics::new(
+        String::from("my cool game"),
+        (500, 500),
+        resource_manager.clone(),
+    );
     let mut game = fennel_engine::Game::new(
         String::from("my cool game"),
         String::from("wiltshire"),
         graphics.unwrap(),
+        resource_manager,
     );
-    load_font("examples/terminus.ttf".into(), &mut game.resource_manager, &mut game.graphics, 32.0);
     events::run(&mut game, Box::new(State {})).await;
 }

@@ -7,11 +7,14 @@
 
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
-use sdl3::pixels::{Color, PixelFormat};
 use sdl3::Sdl;
+use sdl3::pixels::{Color, PixelFormat};
 use sdl3::render::{Canvas, FRect};
 use sdl3::video::Window;
+
+use quick_error::ResultExt;
 
 use crate::resources::loadable::{Font, Image};
 use crate::resources::{self, LoadableResource, ResourceManager, loadable};
@@ -29,6 +32,8 @@ pub struct Graphics {
     pub texture_creator: Rc<sdl3::render::TextureCreator<sdl3::video::WindowContext>>,
     /// SDL3 TTF context required for text rendering
     pub ttf_context: sdl3::ttf::Sdl3TtfContext,
+    /// Reference to [`resources::ResourceManager`]
+    resource_manager: Arc<Mutex<ResourceManager>>,
 }
 
 impl Graphics {
@@ -50,6 +55,7 @@ impl Graphics {
     pub fn new(
         name: String,
         dimensions: (u32, u32),
+        resource_manager: Arc<Mutex<ResourceManager>>,
     ) -> Result<Graphics, Box<dyn std::error::Error>> {
         // TODO: allow the user to uh customize video_subsystem configuration 'cuz man this is ass why
         // do we position_centered() and resizable() it by default
@@ -71,7 +77,8 @@ impl Graphics {
             canvas,
             sdl_context,
             texture_creator: Rc::new(texture_creator),
-            ttf_context
+            ttf_context,
+            resource_manager,
         })
     }
 
@@ -89,12 +96,13 @@ impl Graphics {
     /// ```ignore
     /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0)).await;
     /// ```
-    pub fn draw_image(
-        &mut self,
-        path: String,
-        position: (f32, f32),
-        manager: &mut ResourceManager,
-    ) -> anyhow::Result<()> {
+    pub fn draw_image(&mut self, path: String, position: (f32, f32)) -> anyhow::Result<()> {
+        let manager = self.resource_manager.clone();
+        let mut manager = manager
+            .try_lock()
+            .context("failed to lock resource_manager")
+            .unwrap();
+
         if !manager.is_cached(path.clone()) {
             // rust programmers when they have to .clone()
             let texture = loadable::Image::load(PathBuf::from(path.clone()), self, None);
@@ -125,7 +133,7 @@ impl Graphics {
     }
 
     /// Create a texture from font + text and render it on the canvas
-    /// 
+    ///
     /// This does not cache the font, so you have the load all the fonts you'll be using in your
     /// initiaization function (like `main`). This does cache the texture created from supplied
     /// font and text.
@@ -133,18 +141,37 @@ impl Graphics {
         &mut self,
         text: String,
         position: (f32, f32),
-        font_family: String,
+        font_path: String,
         color: Color,
-        manager: &mut ResourceManager
+        size: f32,
     ) -> anyhow::Result<()> {
-        let cache_key = format!("{}|{}|{:x?}", font_family, text, color.to_u32(&PixelFormat::RGBA32));
+        let manager = self.resource_manager.clone();
+        let mut manager = manager
+            .try_lock()
+            .context("failed to lock resource_manager")
+            .unwrap();
+
+        // dumbass solution
+        let cache_key = format!(
+            "{}|{}|{}|{:x?}",
+            font_path,
+            text,
+            size,
+            color.to_u32(&PixelFormat::RGBA32)
+        );
+        let font_key = format!("{font_path}|{size}");
         let font: &Font = {
-            let asset = manager.get_asset(font_family)?;
+            if !manager.is_cached(font_key.clone()) {
+                let asset = loadable::Font::load(font_path.clone().into(), self, Some(size));
+                manager.cache_asset(asset?)?;
+            }
+            let asset = manager.get_asset(font_key)?;
             resources::as_concrete(asset)?
         };
 
         if !manager.is_cached(cache_key.clone()) {
-            let surface = font.buffer
+            let surface = font
+                .buffer
                 .render(&text)
                 .blended(color)
                 .map_err(|e| anyhow::anyhow!("render error: {e}"))?;
@@ -152,7 +179,7 @@ impl Graphics {
             manager.cache_asset(image?)?;
         }
         let texture: &Image = resources::as_concrete(manager.get_asset(cache_key)?)?;
-        
+
         let dst_rect = FRect::new(
             position.0,
             position.1,
