@@ -1,20 +1,34 @@
+use std::sync::{Arc, Mutex};
 #[cfg(test)]
+use std::path::PathBuf;
+
+use crate::resources::ResourceManager;
+
+fn make_game() -> crate::Game {
+    static SDL_INIT: std::sync::Once = std::sync::Once::new();
+    SDL_INIT.call_once(|| unsafe { std::env::set_var("SDL_VIDEODRIVER", "dummy") });
+
+    let resouce_manager = Arc::new(Mutex::new(ResourceManager::new()));
+    let gfx = crate::graphics::Graphics::new(
+        "my cool game".into(),
+        (500, 500),
+        resouce_manager.clone()
+    )
+    .unwrap();
+    crate::Game::new(
+        "my cool game".into(),
+        "wiltshire".into(),
+        gfx,
+        resouce_manager.clone()
+    )
+}
+
 #[tokio::test]
 async fn font_load() {
-    use crate::{Game, graphics, resources::LoadableResource, resources::loadable};
-    use std::path::PathBuf;
+    use crate::{resources::loadable, resources::as_concrete};
+    use crate::resources::LoadableResource;
 
-    static INIT: std::sync::Once = std::sync::Once::new();
-    INIT.call_once(|| {
-        unsafe { std::env::set_var("SDL_VIDEODRIVER", "dummy") };
-    });
-
-    let graphics = graphics::Graphics::new(String::from("my cool game"), (500, 500));
-    let mut game = Game::new(
-        String::from("my cool game"),
-        String::from("wiltshire"),
-        graphics.unwrap(),
-    );
+    let mut game = make_game();
 
     let asset = loadable::Font::load(
         PathBuf::from("examples/terminus.ttf"),
@@ -22,41 +36,24 @@ async fn font_load() {
         Some(16.0),
     )
     .expect("failed to load font");
-    game.resource_manager.cache_asset(asset).unwrap();
-    game.resource_manager
-        .resources
-        .iter()
-        .for_each(|e| println!("{}", e.0));
+    let mut manager = game.resource_manager.lock().unwrap();
 
-    let cached_asset = game
-        .resource_manager
-        .get_asset(String::from("Terminus (TTF) 16"));
+    manager.cache_asset(asset).unwrap();
 
-    // check is:
-    // 1. asset cached successfully
-    // 2. name generated successfully
-    assert!(cached_asset.is_ok());
+    let cached = manager
+        .get_asset("examples/terminus.ttf|16".to_string())
+        .expect("font not cached");
 
-    let font: &loadable::Font = crate::resources::as_concrete(cached_asset.unwrap()).unwrap();
+    let font: &loadable::Font = as_concrete(cached).unwrap();
     assert_eq!(font.size, 16.0);
 }
 
 #[tokio::test]
 async fn image_load() {
-    use crate::{Game, graphics, resources::LoadableResource, resources::loadable};
-    use std::path::PathBuf;
+    use crate::{resources::loadable, resources::as_concrete};
+    use crate::resources::LoadableResource;
 
-    static INIT: std::sync::Once = std::sync::Once::new();
-    INIT.call_once(|| {
-        unsafe { std::env::set_var("SDL_VIDEODRIVER", "dummy") };
-    });
-
-    let graphics = graphics::Graphics::new(String::from("my cool game"), (500, 500));
-    let mut game = Game::new(
-        String::from("my cool game"),
-        String::from("wiltshire"),
-        graphics.unwrap(),
-    );
+    let mut game = make_game();
 
     let asset = loadable::Image::load(
         PathBuf::from("examples/example.png"),
@@ -64,26 +61,19 @@ async fn image_load() {
         None,
     )
     .expect("failed to load image");
-    game.resource_manager.cache_asset(asset).unwrap();
-    game.resource_manager
-        .resources
-        .iter()
-        .for_each(|e| println!("{}", e.0));
 
-    let cached_asset = game
-        .resource_manager
-        .get_asset(String::from("examples/example.png"));
+    let mut manager = game.resource_manager.lock().unwrap();
 
-    // check is:
-    // 1. asset cached successfully
-    // 2. name generated successfully
-    assert!(cached_asset.is_ok());
+    manager.cache_asset(asset).unwrap();
 
-    let image: &loadable::Image = crate::resources::as_concrete(cached_asset.unwrap()).unwrap();
+    let cached = manager
+        .get_asset("examples/example.png".to_string())
+        .expect("image not cached");
 
-    // the example image dimensions is 128 x 128, unless some fuck replaces it this will pass
-    assert_eq!(image.width, 128);
-    assert_eq!(image.height, 128);
-    assert_eq!(image.width, image.texture.width());
-    assert_eq!(image.height, image.texture.height());
+    let img: &loadable::Image = as_concrete(cached).unwrap();
+
+    assert_eq!(img.width, 128);
+    assert_eq!(img.height, 128);
+    assert_eq!(img.width, img.texture.width());
+    assert_eq!(img.height, img.texture.height());
 }
