@@ -1,9 +1,56 @@
 //! `sdl3::event::Event`-driven main loop.
 
-use sdl3::event::Event;
+use sdl3::{
+    event::Event,
+    keyboard::{Keycode, Mod, Scancode},
+    mouse::{MouseButton, MouseState, MouseWheelDirection},
+};
 use std::time::{Duration, Instant};
 
 use crate::{EventHandler, Game};
+
+pub struct KeyboardEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub keycode: Option<Keycode>,
+    pub scancode: Option<Scancode>,
+    pub keymod: Mod,
+    pub repeat: bool,
+    pub which: u32,
+    pub raw: u16,
+}
+
+pub struct MouseMotionEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub which: u32,
+    pub mousestate: MouseState,
+    pub x: f32,
+    pub y: f32,
+    pub xrel: f32,
+    pub yrel: f32,
+}
+
+pub struct MouseClickEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub which: u32,
+    pub mouse_btn: MouseButton,
+    pub clicks: u8,
+    pub x: f32,
+    pub y: f32,
+}
+
+pub struct MouseWheelEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub which: u32,
+    pub x: f32,
+    pub y: f32,
+    pub direction: MouseWheelDirection,
+    pub mouse_x: f32,
+    pub mouse_y: f32,
+}
 
 /// Run the main loop.
 ///
@@ -44,14 +91,16 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                 } => state
                     .key_down_event(
                         game,
-                        timestamp,
-                        window_id,
-                        Some(keycode),
-                        Some(scancode),
-                        keymod,
-                        repeat,
-                        which,
-                        raw,
+                        KeyboardEvent {
+                            timestamp,
+                            window_id,
+                            keycode: Some(keycode),
+                            scancode: Some(scancode),
+                            keymod,
+                            repeat,
+                            which,
+                            raw,
+                        },
                     )
                     .unwrap(),
 
@@ -67,14 +116,16 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                 } => state
                     .key_up_event(
                         game,
-                        timestamp,
-                        window_id,
-                        Some(keycode),
-                        Some(scancode),
-                        keymod,
-                        repeat,
-                        which,
-                        raw,
+                        KeyboardEvent {
+                            timestamp,
+                            window_id,
+                            keycode: Some(keycode),
+                            scancode: Some(scancode),
+                            keymod,
+                            repeat,
+                            which,
+                            raw,
+                        },
                     )
                     .unwrap(),
 
@@ -89,7 +140,17 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     yrel,
                 } => state
                     .mouse_motion_event(
-                        game, timestamp, window_id, which, mousestate, x, y, xrel, yrel,
+                        game,
+                        MouseMotionEvent {
+                            timestamp,
+                            window_id,
+                            which,
+                            mousestate,
+                            x,
+                            y,
+                            xrel,
+                            yrel,
+                        },
                     )
                     .unwrap(),
 
@@ -103,7 +164,16 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     y,
                 } => state
                     .mouse_button_down_event(
-                        game, timestamp, window_id, which, mouse_btn, clicks, x, y,
+                        game,
+                        MouseClickEvent {
+                            timestamp,
+                            window_id,
+                            which,
+                            mouse_btn,
+                            clicks,
+                            x,
+                            y,
+                        },
                     )
                     .unwrap(),
 
@@ -117,7 +187,16 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     y,
                 } => state
                     .mouse_button_up_event(
-                        game, timestamp, window_id, which, mouse_btn, clicks, x, y,
+                        game,
+                        MouseClickEvent {
+                            timestamp,
+                            window_id,
+                            which,
+                            mouse_btn,
+                            clicks,
+                            x,
+                            y,
+                        },
                     )
                     .unwrap(),
 
@@ -132,7 +211,17 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     mouse_y,
                 } => state
                     .mouse_wheel_event(
-                        game, timestamp, window_id, which, x, y, direction, mouse_x, mouse_y,
+                        game,
+                        MouseWheelEvent {
+                            timestamp,
+                            window_id,
+                            which,
+                            x,
+                            y,
+                            direction,
+                            mouse_x,
+                            mouse_y,
+                        },
                     )
                     .unwrap(),
                 _ => {}

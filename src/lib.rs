@@ -1,18 +1,17 @@
 //! A small 2D game framework I'm building just-for-fun and to learn Rust a little bit deeper
-
 use std::sync::{Arc, Mutex};
 
-use sdl3::{
-    keyboard::{Keycode, Mod, Scancode},
-    mouse::{MouseButton, MouseState, MouseWheelDirection},
-};
+use specs::{World, WorldExt};
 
-use crate::{audio::Audio, graphics::Graphics, resources::ResourceManager};
+use crate::{
+    audio::Audio,
+    events::{KeyboardEvent, MouseClickEvent, MouseMotionEvent, MouseWheelEvent},
+    graphics::Graphics,
+    resources::ResourceManager,
+};
 
 /// Audio playback
 pub mod audio;
-/// Entity-component-system
-pub mod ecs;
 /// Handling keyboard, window, mouse and other events
 pub mod events;
 /// Rendering layer and all the related things
@@ -40,6 +39,8 @@ pub struct Game {
     pub audio: Audio,
     /// Resource management
     pub resource_manager: Arc<Mutex<ResourceManager>>,
+    /// ECS world
+    pub world: World,
 }
 
 impl Game {
@@ -58,18 +59,18 @@ impl Game {
         graphics: Graphics,
         resource_manager: Arc<Mutex<ResourceManager>>,
     ) -> Game {
-        let audio = Audio::new();
         Game {
             name,
             author,
             graphics,
-            audio,
+            audio: Audio::new(),
             resource_manager,
+            world: World::new(),
         }
     }
 }
 
-/// Trait that must be implemented by user's game state struct
+/// Trait that must be implemented by your game state struct
 /// - `update` is called to advance game state (physics, AI, input processing).
 /// - `draw` is called to render the current state using `game.graphics`.
 #[async_trait::async_trait]
@@ -110,34 +111,12 @@ pub trait EventHandler {
     /// - `window_id` – Window identifier.
     /// - `keycode` – Optional keycode of the pressed key.
     /// - `scancode` – Optional scancode of the pressed key.
-    fn key_down_event(
-        &self,
-        _game: &mut Game,
-        _timestamp: u64,
-        _window_id: u32,
-        _keycode: Option<Keycode>,
-        _scancode: Option<Scancode>,
-        _keymod: Mod,
-        _repeat: bool,
-        _which: u32,
-        _raw: u16,
-    ) -> anyhow::Result<()> {
+    fn key_down_event(&self, _game: &mut Game, _event: KeyboardEvent) -> anyhow::Result<()> {
         Ok(())
     }
 
     /// Handles a key‑up event. Parameters mirror `key_down_event`
-    fn key_up_event(
-        &self,
-        _game: &mut Game,
-        _timestamp: u64,
-        _window_id: u32,
-        _keycode: Option<Keycode>,
-        _scancode: Option<Scancode>,
-        _keymod: Mod,
-        _repeat: bool,
-        _which: u32,
-        _raw: u16,
-    ) -> anyhow::Result<()> {
+    fn key_up_event(&self, _game: &mut Game, _event: KeyboardEvent) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -149,18 +128,7 @@ pub trait EventHandler {
     /// - `window_id` – Window identifier.
     /// - `x`, `y` – Absolute cursor coordinates.
     /// - `xrel`, `yrel` – Relative motion since the previous event.
-    fn mouse_motion_event(
-        &self,
-        _game: &mut Game,
-        _timestamp: u64,
-        _window_id: u32,
-        _which: u32,
-        _mousestate: MouseState,
-        _x: f32,
-        _y: f32,
-        _xrel: f32,
-        _yrel: f32,
-    ) -> anyhow::Result<()> {
+    fn mouse_motion_event(&self, _game: &mut Game, _event: MouseMotionEvent) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -176,13 +144,7 @@ pub trait EventHandler {
     fn mouse_button_down_event(
         &self,
         _game: &mut Game,
-        _timestamp: u64,
-        _window_id: u32,
-        _which: u32,
-        _mouse_btn: MouseButton,
-        _clicks: u8,
-        _x: f32,
-        _y: f32,
+        _event: MouseClickEvent,
     ) -> anyhow::Result<()> {
         Ok(())
     }
@@ -192,13 +154,7 @@ pub trait EventHandler {
     fn mouse_button_up_event(
         &self,
         _game: &mut Game,
-        _timestamp: u64,
-        _window_id: u32,
-        _which: u32,
-        _mouse_btn: MouseButton,
-        _clicks: u8,
-        _x: f32,
-        _y: f32,
+        _event: MouseClickEvent,
     ) -> anyhow::Result<()> {
         Ok(())
     }
@@ -212,18 +168,7 @@ pub trait EventHandler {
     /// - `x`, `y` – Scroll amount along each axis.
     /// - `direction` – Scroll direction probably i don't know.
     /// - `mouse_x`, `mouse_y` – Cursor position when the wheel event occurred.
-    fn mouse_wheel_event(
-        &self,
-        _game: &mut Game,
-        _timestamp: u64,
-        _window_id: u32,
-        _which: u32,
-        _x: f32,
-        _y: f32,
-        _direction: MouseWheelDirection,
-        _mouse_x: f32,
-        _mouse_y: f32,
-    ) -> anyhow::Result<()> {
+    fn mouse_wheel_event(&self, _game: &mut Game, _event: MouseWheelEvent) -> anyhow::Result<()> {
         Ok(())
     }
 }

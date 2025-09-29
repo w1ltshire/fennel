@@ -1,6 +1,6 @@
 [package]
 name = "fennel-engine"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2024"
 repository = "https://github.com/w1ltshire/fennel.git"
 license = "MIT"
@@ -17,4 +17,5 @@ quick-error = "2.0.1"
 rand = "0.9.2"
 rodio = "0.21.1"
 sdl3 = { version = "0.15.1", features = ["test-mode", "ttf"] } 
+specs = "0.20.0"
 tokio = { version = "1.47.1", features = ["full"] }
