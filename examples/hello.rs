@@ -3,7 +3,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use fennel_engine::{EventHandler, Game, events, graphics, resources::ResourceManager};
+use fennel_engine::{
+    EventHandler, Game,
+    events::{self, KeyboardEvent},
+    graphics,
+    resources::ResourceManager,
+};
 use sdl3::pixels::Color;
 use tokio::runtime::Handle;
 
@@ -39,19 +44,8 @@ impl EventHandler for State {
         Ok(())
     }
 
-    fn key_down_event(
-        &self,
-        game: &mut Game,
-        _timestamp: u64,
-        _window_id: u32,
-        keycode: Option<sdl3::keyboard::Keycode>,
-        _scancode: Option<sdl3::keyboard::Scancode>,
-        _keymod: sdl3::keyboard::Mod,
-        _repeat: bool,
-        _which: u32,
-        _raw: u16,
-    ) -> anyhow::Result<()> {
-        println!("{:?}", keycode);
+    fn key_down_event(&self, game: &mut Game, event: KeyboardEvent) -> anyhow::Result<()> {
+        println!("{:?}", event.keycode);
         tokio::task::block_in_place(move || {
             Handle::current().block_on(async move {
                 game.audio
