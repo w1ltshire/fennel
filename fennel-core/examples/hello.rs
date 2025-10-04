@@ -4,7 +4,7 @@ use std::{
 };
 
 use fennel_core::{
-    EventHandler, Game,
+    EventHandler, Window,
     events::{self, KeyboardEvent},
     graphics,
     resources::ResourceManager,
@@ -16,39 +16,39 @@ struct State {}
 
 #[async_trait::async_trait]
 impl EventHandler for State {
-    async fn update(&self, _game: &mut Game) -> anyhow::Result<()> {
+    async fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
-    async fn draw(&self, game: &mut Game) -> anyhow::Result<()> {
-        game.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
-        game.graphics.canvas.clear();
-        game.graphics
+    async fn draw(&self, window: &mut Window) -> anyhow::Result<()> {
+        window.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
+        window.graphics.canvas.clear();
+        window.graphics
             .draw_image("fennel-core/examples/example.png".to_string(), (0.0, 0.0))
             .expect("failed to draw an image");
-        game.graphics.draw_text(
+        window.graphics.draw_text(
             String::from("hi"),
             (64.0, 64.0),
             String::from("fennel-core/examples/terminus.ttf"),
             Color::RGBA(255, 0, 0, 0),
             16.0,
         )?;
-        game.graphics.draw_text(
+        window.graphics.draw_text(
             String::from("hi"),
             (64.0, 150.0),
             String::from("fennel-core/examples/terminus.ttf"),
             Color::RGBA(255, 0, 0, 0),
             128.0,
         )?;
-        game.graphics.canvas.present();
+        window.graphics.canvas.present();
         Ok(())
     }
 
-    fn key_down_event(&self, game: &mut Game, event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_down_event(&self, window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
         println!("{:?}", event.keycode);
         tokio::task::block_in_place(move || {
             Handle::current().block_on(async move {
-                game.audio
+                window.audio
                     .play_audio(Path::new("fennel-core/examples/music.ogg"), false)
                     .await
                     .unwrap();
@@ -62,15 +62,14 @@ impl EventHandler for State {
 async fn main() {
     let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
     let graphics = graphics::Graphics::new(
-        String::from("my cool game"),
+        String::from("my cool window"),
         (500, 500),
         resource_manager.clone(),
     );
-    let mut game = Game::new(
-        String::from("my cool game"),
-        String::from("wiltshire"),
+    let mut window = Window::new(
+        String::from("my cool window"),
         graphics.unwrap(),
         resource_manager,
     );
-    events::run(&mut game, Box::new(State {})).await;
+    events::run(&mut window, Box::new(State {})).await;
 }

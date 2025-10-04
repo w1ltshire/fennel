@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::resources::ResourceManager;
 
-fn make_game() -> crate::Game {
+fn create_window() -> crate::Window {
     static SDL_INIT: std::sync::Once = std::sync::Once::new();
     SDL_INIT.call_once(|| unsafe { std::env::set_var("SDL_VIDEODRIVER", "dummy") });
 
@@ -12,9 +12,8 @@ fn make_game() -> crate::Game {
     let gfx =
         crate::graphics::Graphics::new("my cool game".into(), (500, 500), resouce_manager.clone())
             .unwrap();
-    crate::Game::new(
+    crate::Window::new(
         "my cool game".into(),
-        "wiltshire".into(),
         gfx,
         resouce_manager.clone(),
     )
@@ -25,7 +24,7 @@ async fn font_load() {
     use crate::resources::LoadableResource;
     use crate::{resources::as_concrete, resources::loadable};
 
-    let mut game = make_game();
+    let mut game = create_window();
 
     let asset = loadable::Font::load(
         PathBuf::from("examples/terminus.ttf"),
@@ -50,7 +49,7 @@ async fn image_load() {
     use crate::resources::LoadableResource;
     use crate::{resources::as_concrete, resources::loadable};
 
-    let mut game = make_game();
+    let mut game = create_window();
 
     let asset = loadable::Image::load(
         PathBuf::from("examples/example.png"),

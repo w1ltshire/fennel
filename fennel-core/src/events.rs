@@ -7,7 +7,7 @@ use sdl3::{
 };
 use std::time::{Duration, Instant};
 
-use crate::{EventHandler, Game};
+use crate::{EventHandler, Window};
 
 pub struct KeyboardEvent {
     pub timestamp: u64,
@@ -55,21 +55,21 @@ pub struct MouseWheelEvent {
 /// Run the main loop.
 ///
 /// Parameters:
-/// - `game`: mutable reference to your `Game`. required because [`Game`] contains required
+/// - `window`: mutable reference to your `Window`. required because [`Window`] contains required
 ///   gfx variables
 /// - `state`: boxed implementation of [`EventHandler`] that receives update/draw calls
 ///
 /// Behavior:
 /// - Polls SDL events each frame and breaks the loop on `Event::Quit`.
-/// - Calls `state.update(game)` then `state.draw(game)` each frame.
+/// - Calls `state.update(window)` then `state.draw(game)` each frame.
 ///
 /// Example:
 /// ```ignore
-/// let mut game = Game::new("cool title".into(), "cool author".into(), graphics);
-/// events::run(&mut game, Box::new(my_handler));
+/// let mut window = Window::new("cool title".into(), "cool author".into(), graphics);
+/// events::run(&mut window, Box::new(my_handler));
 /// ```
-pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
-    let mut event_pump = game.graphics.sdl_context.event_pump().unwrap();
+pub async fn run(window: &mut Window, state: Box<dyn EventHandler>) {
+    let mut event_pump = window.graphics.sdl_context.event_pump().unwrap();
 
     'running: loop {
         let now = Instant::now();
@@ -90,7 +90,7 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     raw,
                 } => state
                     .key_down_event(
-                        game,
+                        window,
                         KeyboardEvent {
                             timestamp,
                             window_id,
@@ -115,7 +115,7 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     raw,
                 } => state
                     .key_up_event(
-                        game,
+                        window,
                         KeyboardEvent {
                             timestamp,
                             window_id,
@@ -140,7 +140,7 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     yrel,
                 } => state
                     .mouse_motion_event(
-                        game,
+                        window,
                         MouseMotionEvent {
                             timestamp,
                             window_id,
@@ -164,7 +164,7 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     y,
                 } => state
                     .mouse_button_down_event(
-                        game,
+                        window,
                         MouseClickEvent {
                             timestamp,
                             window_id,
@@ -187,7 +187,7 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     y,
                 } => state
                     .mouse_button_up_event(
-                        game,
+                        window,
                         MouseClickEvent {
                             timestamp,
                             window_id,
@@ -211,7 +211,7 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
                     mouse_y,
                 } => state
                     .mouse_wheel_event(
-                        game,
+                        window,
                         MouseWheelEvent {
                             timestamp,
                             window_id,
@@ -228,9 +228,9 @@ pub async fn run(game: &mut Game, state: Box<dyn EventHandler>) {
             }
         }
 
-        // Update game logic and render.
-        let _ = state.update(game).await;
-        let _ = state.draw(game).await;
+        // Update window logic and render.
+        let _ = state.update(window).await;
+        let _ = state.draw(window).await;
 
         // Simple frame limiter: aim for ~1 millisecond minimum frame time.
         let elapsed = Instant::now().duration_since(now).as_nanos() as u64;

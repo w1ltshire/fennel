@@ -133,10 +133,6 @@ impl Graphics {
     }
 
     /// Create a texture from font + text and render it on the canvas
-    ///
-    /// This does not cache the font, so you have the load all the fonts you'll be using in your
-    /// initiaization function (like `main`). This does cache the texture created from supplied
-    /// font and text.
     pub fn draw_text(
         &mut self,
         text: String,
@@ -151,7 +147,9 @@ impl Graphics {
             .context("failed to lock resource_manager")
             .unwrap();
 
-        // dumbass solution
+        // dumbass solution. either way, i see no other solution to this.
+        // as sdl3 requires us to create a texture from font to draw text,
+        // we will be caching it as an [`resources::loadable::Image`] under this key
         let cache_key = format!(
             "{}|{}|{}|{:x?}",
             font_path,
