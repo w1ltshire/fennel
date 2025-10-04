@@ -42,7 +42,6 @@ impl Window {
     ///
     /// # Parameters
     /// - `name`: title of the window
-    /// - `author`: author/owner name
     /// - `graphics`: initialized graphics subsystem
     ///
     /// # Returns

@@ -2,7 +2,7 @@ use std::{any::Any, cell::Ref, collections::HashMap, path::PathBuf};
 
 use crate::graphics::Graphics;
 
-/// Module containing implementations of [`LoadableResource`] such as [`Image`]
+/// Module containing implementations of [`LoadableResource`] such as [`loadable::Image`]
 pub mod loadable;
 
 /// Manages a collection of loadable resources indexed by their name
@@ -51,7 +51,7 @@ pub trait LoadableResource: Any {
     }
 }
 
-/// evil &Box<dyn LoadableResource> to &T
+/// evil &Box\<dyn LoadableResource> to &T
 #[allow(clippy::borrowed_box)] // i have no idea how can this be done better because here we box a
 // trait
 pub fn as_concrete<T: 'static + LoadableResource>(
