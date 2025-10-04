@@ -24,19 +24,19 @@ impl EventHandler for State {
         window.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
         window.graphics.canvas.clear();
         window.graphics
-            .draw_image("fennel-core/examples/example.png".to_string(), (0.0, 0.0))
+            .draw_image("assets/example.png".to_string(), (0.0, 0.0))
             .expect("failed to draw an image");
         window.graphics.draw_text(
             String::from("hi"),
             (64.0, 64.0),
-            String::from("fennel-core/examples/terminus.ttf"),
+            String::from("assets/terminus.ttf"),
             Color::RGBA(255, 0, 0, 0),
             16.0,
         )?;
         window.graphics.draw_text(
             String::from("hi"),
             (64.0, 150.0),
-            String::from("fennel-core/examples/terminus.ttf"),
+            String::from("assets/terminus.ttf"),
             Color::RGBA(255, 0, 0, 0),
             128.0,
         )?;
@@ -49,7 +49,7 @@ impl EventHandler for State {
         tokio::task::block_in_place(move || {
             Handle::current().block_on(async move {
                 window.audio
-                    .play_audio(Path::new("fennel-core/examples/music.ogg"), false)
+                    .play_audio(Path::new("assets/music.ogg"), false)
                     .await
                     .unwrap();
             })
@@ -67,7 +67,6 @@ async fn main() {
         resource_manager.clone(),
     );
     let mut window = Window::new(
-        String::from("my cool window"),
         graphics.unwrap(),
         resource_manager,
     );

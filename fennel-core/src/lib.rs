@@ -27,8 +27,6 @@ unsafe impl Sync for Window {}
 /// Holds basic metadata and a reference to the graphics subsystem.
 /// User must create a [`Window`] in order to feed it to the EventHandler
 pub struct Window {
-    /// Human-readable window title.
-    pub name: String,
     /// Graphics subsystem used to render frames.
     pub graphics: Graphics,
     /// Audio subsystem
@@ -47,12 +45,10 @@ impl Window {
     /// # Returns
     /// A [`Window`] instance ready to be used by an [`EventHandler`].
     pub fn new(
-        name: String,
         graphics: Graphics,
         resource_manager: Arc<Mutex<ResourceManager>>,
     ) -> Window {
         Window {
-            name,
             graphics,
             audio: Audio::new(),
             resource_manager,

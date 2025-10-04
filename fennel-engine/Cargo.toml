@@ -5,5 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.100"
+async-trait = "0.1.89"
 fennel-core = { path = "../fennel-core" }
+specs = "0.20.0"
 tokio = { version = "1.47.1", features = ["full"] }

@@ -1,13 +1,22 @@
 use std::sync::{Arc, Mutex};
 
+use specs::WorldExt;
+
 pub struct Runtime {
-    pub window: fennel_core::Window 
+    pub window: fennel_core::Window,
+    pub world: specs::World
 }
 
 #[derive(Default, Debug)]
 pub struct RuntimeBuilder {
     name: &'static str,
     dimensions: (u32, u32)
+}
+
+impl Runtime {
+    pub fn run(&mut self) {
+
+    }
 }
 
 impl RuntimeBuilder {
@@ -35,10 +44,11 @@ impl RuntimeBuilder {
             self.dimensions,
             resource_manager.clone(),
         );
-        let window = fennel_core::Window::new(self.name.to_string(), graphics.expect("failed to initialize graphics"), resource_manager);
+        let window = fennel_core::Window::new(graphics.expect("failed to initialize graphics"), resource_manager);
 
         Ok(Runtime {
-            window
+            window,
+            world: specs::World::new()
         })
     }
 }

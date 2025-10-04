@@ -566,13 +566,19 @@ dependencies = [
  "rand 0.9.2",
  "rodio",
  "sdl3",
- "specs",
  "tokio",
 ]
 
 [[package]]
 name = "fennel-engine"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "fennel-core",
+ "specs",
+ "tokio",
+]
 
 [[package]]
 name = "find-msvc-tools"

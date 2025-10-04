@@ -13,7 +13,6 @@ fn create_window() -> crate::Window {
         crate::graphics::Graphics::new("my cool game".into(), (500, 500), resouce_manager.clone())
             .unwrap();
     crate::Window::new(
-        "my cool game".into(),
         gfx,
         resouce_manager.clone(),
     )
