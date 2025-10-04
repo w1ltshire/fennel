@@ -1,6 +1,6 @@
-use std::sync::{Arc, Mutex};
 #[cfg(test)]
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 use crate::resources::ResourceManager;
 
@@ -9,24 +9,21 @@ fn make_game() -> crate::Game {
     SDL_INIT.call_once(|| unsafe { std::env::set_var("SDL_VIDEODRIVER", "dummy") });
 
     let resouce_manager = Arc::new(Mutex::new(ResourceManager::new()));
-    let gfx = crate::graphics::Graphics::new(
-        "my cool game".into(),
-        (500, 500),
-        resouce_manager.clone()
-    )
-    .unwrap();
+    let gfx =
+        crate::graphics::Graphics::new("my cool game".into(), (500, 500), resouce_manager.clone())
+            .unwrap();
     crate::Game::new(
         "my cool game".into(),
         "wiltshire".into(),
         gfx,
-        resouce_manager.clone()
+        resouce_manager.clone(),
     )
 }
 
 #[tokio::test]
 async fn font_load() {
-    use crate::{resources::loadable, resources::as_concrete};
     use crate::resources::LoadableResource;
+    use crate::{resources::as_concrete, resources::loadable};
 
     let mut game = make_game();
 
@@ -50,8 +47,8 @@ async fn font_load() {
 
 #[tokio::test]
 async fn image_load() {
-    use crate::{resources::loadable, resources::as_concrete};
     use crate::resources::LoadableResource;
+    use crate::{resources::as_concrete, resources::loadable};
 
     let mut game = make_game();
 

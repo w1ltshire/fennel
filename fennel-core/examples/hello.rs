@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use fennel_engine::{
+use fennel_core::{
     EventHandler, Game,
     events::{self, KeyboardEvent},
     graphics,
@@ -66,7 +66,7 @@ async fn main() {
         (500, 500),
         resource_manager.clone(),
     );
-    let mut game = fennel_engine::Game::new(
+    let mut game = Game::new(
         String::from("my cool game"),
         String::from("wiltshire"),
         graphics.unwrap(),

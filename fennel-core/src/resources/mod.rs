@@ -11,6 +11,9 @@ pub struct ResourceManager {
     pub resources: HashMap<String, Box<dyn LoadableResource>>,
 }
 
+unsafe impl Send for ResourceManager {}
+unsafe impl Sync for ResourceManager {}
+
 /// Trait that all loadable assets must implement
 pub trait LoadableResource: Any {
     /// Load a resource from `path` and return it boxed

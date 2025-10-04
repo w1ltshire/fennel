@@ -31,11 +31,6 @@ pub enum AudioCommand {
 
 impl Audio {
     /// Creates a new [`Audio`] instance and spawns the background audio thread
-    ///
-    /// Workflow:
-    /// 1. Opens a default `rodio` output stream.
-    /// 2. Listens on an mpsc channel for `AudioCommand`s.
-    /// 3. On `Play`, stops any existing sink and starts a new one.
     pub fn new() -> Audio {
         let (tx, mut rx) = mpsc::channel::<AudioCommand>(16);
 
@@ -78,7 +73,7 @@ impl Audio {
         path: &Path,
         _interrupt_current_playback: bool,
     ) -> anyhow::Result<()> {
-        // TODO: use [`ResourceManager`]
+        // TODO: use [`ResourceManager`], respect `_interrupt_current_playback`
         self.channel
             .send(AudioCommand::Play(path.to_path_buf()))
             .await?;
