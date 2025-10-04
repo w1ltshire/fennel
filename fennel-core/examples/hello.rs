@@ -24,19 +24,19 @@ impl EventHandler for State {
         game.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
         game.graphics.canvas.clear();
         game.graphics
-            .draw_image("examples/example.png".to_string(), (0.0, 0.0))
+            .draw_image("fennel-core/examples/example.png".to_string(), (0.0, 0.0))
             .expect("failed to draw an image");
         game.graphics.draw_text(
             String::from("hi"),
             (64.0, 64.0),
-            String::from("examples/terminus.ttf"),
+            String::from("fennel-core/examples/terminus.ttf"),
             Color::RGBA(255, 0, 0, 0),
             16.0,
         )?;
         game.graphics.draw_text(
             String::from("hi"),
             (64.0, 150.0),
-            String::from("examples/terminus.ttf"),
+            String::from("fennel-core/examples/terminus.ttf"),
             Color::RGBA(255, 0, 0, 0),
             128.0,
         )?;
@@ -49,7 +49,7 @@ impl EventHandler for State {
         tokio::task::block_in_place(move || {
             Handle::current().block_on(async move {
                 game.audio
-                    .play_audio(Path::new("examples/music.ogg"), false)
+                    .play_audio(Path::new("fennel-core/examples/music.ogg"), false)
                     .await
                     .unwrap();
             })
