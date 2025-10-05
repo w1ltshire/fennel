@@ -13,6 +13,7 @@ unsafe impl Send for Image {}
 unsafe impl Sync for Image {}
 
 /// Simple image asset that stores its file location.
+#[derive(Clone)]
 pub struct Image {
     /// Resource name (can be filesystem path to the image or something else)
     pub name: String,
@@ -54,7 +55,7 @@ impl Image {
 
         Ok(Box::new(Self {
             name,
-            buffer: Arc::new(RefCell::new(vec![])), // wtf
+            buffer: Arc::new(RefCell::new(vec![])),
             texture: Arc::new(texture),
             width: surface.width(),
             height: surface.height(),
