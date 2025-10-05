@@ -4,19 +4,22 @@ use sdl3::{pixels::PixelFormat, render::Texture, surface::Surface};
 use std::{
     cell::{Ref, RefCell},
     path::PathBuf,
-    rc::Rc,
+    rc::Rc, sync::Arc,
 };
 
 use crate::{graphics::Graphics, resources::LoadableResource};
+
+unsafe impl Send for Image {}
+unsafe impl Sync for Image {}
 
 /// Simple image asset that stores its file location.
 pub struct Image {
     /// Resource name (can be filesystem path to the image or something else)
     pub name: String,
     /// Vector of bytes containing the image pixels
-    pub buffer: Rc<RefCell<Vec<u8>>>,
+    pub buffer: Arc<RefCell<Vec<u8>>>,
     /// SDL3 texture for caching
-    pub texture: Rc<Texture<'static>>,
+    pub texture: Arc<Texture<'static>>,
     /// Image width
     pub width: u32,
     /// Image heiht
@@ -51,8 +54,8 @@ impl Image {
 
         Ok(Box::new(Self {
             name,
-            buffer: Rc::new(RefCell::new(vec![])), // wtf
-            texture: Rc::new(texture),
+            buffer: Arc::new(RefCell::new(vec![])), // wtf
+            texture: Arc::new(texture),
             width: surface.width(),
             height: surface.height(),
         }))
@@ -86,8 +89,8 @@ impl LoadableResource for Image {
 
         Ok(Box::new(Self {
             name: path.to_string_lossy().to_string(),
-            buffer: Rc::new(RefCell::new(buffer)),
-            texture: Rc::new(texture),
+            buffer: Arc::new(RefCell::new(buffer)),
+            texture: Arc::new(texture),
             width: img.width(),
             height: img.height(),
         }))
