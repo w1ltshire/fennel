@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Update packages cache
+      run: sudo apt update
     - name: Install build dependencies
       run: sudo apt install -y libsdl3-dev libsdl3-ttf-dev
     - name: Build
