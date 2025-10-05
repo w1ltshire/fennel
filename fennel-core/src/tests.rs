@@ -23,17 +23,16 @@ async fn font_load() {
     let mut game = create_window();
 
     let asset = loadable::Font::load(
-        PathBuf::from("examples/terminus.ttf"),
+        PathBuf::from("../assets/terminus.ttf"),
         &mut game.graphics,
         Some(16.0),
-    )
-    .expect("failed to load font");
+    ).expect("failed to load font");
     let mut manager = game.resource_manager.lock().unwrap();
 
     manager.cache_asset(asset).unwrap();
 
     let cached = manager
-        .get_asset("examples/terminus.ttf|16".to_string())
+        .get_asset("../assets/terminus.ttf|16".to_string())
         .expect("font not cached");
 
     let font: &loadable::Font = as_concrete(cached).unwrap();
@@ -48,7 +47,7 @@ async fn image_load() {
     let mut game = create_window();
 
     let asset = loadable::Image::load(
-        PathBuf::from("examples/example.png"),
+        PathBuf::from("../assets/example.png"),
         &mut game.graphics,
         None,
     )
@@ -59,7 +58,7 @@ async fn image_load() {
     manager.cache_asset(asset).unwrap();
 
     let cached = manager
-        .get_asset("examples/example.png".to_string())
+        .get_asset("../assets/example.png".to_string())
         .expect("image not cached");
 
     let img: &loadable::Image = as_concrete(cached).unwrap();
