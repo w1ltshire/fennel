@@ -19,6 +19,8 @@ cargo run --example hello
 - [x] Basic audio subsystem
 - [ ] More advanced audio
 - [x] Resource management
-- [ ] ECS
+- [x] ECS (using `specs`)
 - [ ] Scripting
 - [ ] Editor
+- [ ] Scenes
+- [ ] Virtual FS for resource management
