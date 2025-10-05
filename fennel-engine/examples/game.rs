@@ -1,4 +1,4 @@
-use fennel_core::{events::{self, KeyboardEvent}, EventHandler, Window};
+use fennel_core::{events::KeyboardEvent, EventHandler, Window};
 use fennel_engine::runtime::RuntimeBuilder;
 use specs::{Component, VecStorage, WorldExt, Builder};
 
@@ -33,7 +33,7 @@ impl Component for Pos {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     let mut runtime = RuntimeBuilder::new()
         .name("game")
         .dimensions((500, 500))
@@ -41,6 +41,6 @@ async fn main() {
         .unwrap();
     runtime.world.register::<Pos>();
     runtime.world.create_entity().with(Pos(2.0)).build();
-
-    events::run(&mut runtime.window, Box::new(MyGame {})).await;
+    runtime.run(Box::new(MyGame)).await?;
+    Ok(())
 }

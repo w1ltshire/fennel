@@ -77,7 +77,6 @@ pub async fn run(window: &mut Window, state: Box<dyn EventHandler>) {
         // event_PUMP???? HOLY FUCK IS THAT A REFERENCE TO PSYCHOPOMP
         for event in event_pump.poll_iter() {
             match event {
-                // TODO: let the user register their own handlers
                 Event::Quit { .. } => break 'running,
                 Event::KeyDown {
                     timestamp,

@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+use fennel_core::{events, EventHandler};
 use specs::WorldExt;
 
 pub struct Runtime {
@@ -14,8 +15,9 @@ pub struct RuntimeBuilder {
 }
 
 impl Runtime {
-    pub fn run(&mut self) {
-
+    pub async fn run(&mut self, game_state: Box<dyn EventHandler>) -> anyhow::Result<()> {
+        events::run(&mut self.window, game_state).await;
+        Ok(())
     }
 }
 
