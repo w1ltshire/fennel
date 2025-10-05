@@ -12,7 +12,7 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: debian:stable
 
     steps:
     - uses: actions/checkout@v4
