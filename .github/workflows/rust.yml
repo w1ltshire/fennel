@@ -11,8 +11,8 @@ env:
 
 jobs:
   build:
-
-    runs-on: ubuntu-plucky
+    runs-on: ubuntu-latest
+    container: debian:stable
 
     steps:
     - uses: actions/checkout@v4
