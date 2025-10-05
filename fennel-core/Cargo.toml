@@ -1,6 +1,6 @@
 [package]
 name = "fennel-core"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 repository = "https://github.com/w1ltshire/fennel.git"
 license = "MIT"
@@ -18,3 +18,4 @@ rand = "0.9.2"
 rodio = "0.21.1"
 sdl3 = { version = "0.15.1", features = ["test-mode", "ttf"] } 
 tokio = { version = "1.47.1", features = ["full"] }
+fennel-common = { path = "../fennel-common/" }

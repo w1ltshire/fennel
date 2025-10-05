@@ -3,27 +3,25 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use fennel_core::{
-    EventHandler, Window,
-    events::{self, KeyboardEvent},
-    graphics,
-    resources::ResourceManager,
-};
+use fennel_common::events::{KeyboardEvent, WindowEventHandler};
+use fennel_core::{Window, events, graphics, resources::ResourceManager};
 use sdl3::pixels::Color;
 use tokio::runtime::Handle;
 
-struct State {}
+struct State;
 
 #[async_trait::async_trait]
-impl EventHandler for State {
-    async fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
+impl WindowEventHandler for State {
+    type Host = Window;
+    fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
-    async fn draw(&self, window: &mut Window) -> anyhow::Result<()> {
+    fn draw(&self, window: &mut Window) -> anyhow::Result<()> {
         window.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
         window.graphics.canvas.clear();
-        window.graphics
+        window
+            .graphics
             .draw_image("assets/example.png".to_string(), (0.0, 0.0))
             .expect("failed to draw an image");
         window.graphics.draw_text(
@@ -48,7 +46,8 @@ impl EventHandler for State {
         println!("{:?}", event.keycode);
         tokio::task::block_in_place(move || {
             Handle::current().block_on(async move {
-                window.audio
+                window
+                    .audio
                     .play_audio(Path::new("assets/music.ogg"), false)
                     .await
                     .unwrap();
@@ -66,9 +65,6 @@ async fn main() {
         (500, 500),
         resource_manager.clone(),
     );
-    let mut window = Window::new(
-        graphics.unwrap(),
-        resource_manager,
-    );
-    events::run(&mut window, Box::new(State {})).await;
+    let mut window = Window::new(graphics.unwrap(), resource_manager);
+    events::run(&mut window, State).await;
 }

@@ -553,12 +553,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "fennel-core"
+name = "fennel-common"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "sdl3",
+]
+
+[[package]]
+name = "fennel-core"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
  "env_logger",
+ "fennel-common",
  "image",
  "imgui",
  "imgui-sdl3",
@@ -571,10 +581,11 @@ dependencies = [
 
 [[package]]
 name = "fennel-engine"
-version = "0.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "fennel-common",
  "fennel-core",
  "specs",
  "tokio",

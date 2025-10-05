@@ -12,10 +12,7 @@ fn create_window() -> crate::Window {
     let gfx =
         crate::graphics::Graphics::new("my cool game".into(), (500, 500), resouce_manager.clone())
             .unwrap();
-    crate::Window::new(
-        gfx,
-        resouce_manager.clone(),
-    )
+    crate::Window::new(gfx, resouce_manager.clone())
 }
 
 #[tokio::test]

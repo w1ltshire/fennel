@@ -1,35 +1,32 @@
-use fennel_core::{events::KeyboardEvent, EventHandler, Window};
-use fennel_engine::runtime::RuntimeBuilder;
-use specs::{Component, VecStorage, WorldExt, Builder};
+use fennel_common::events::{KeyboardEvent, WindowEventHandler};
+use fennel_core::{
+    resources::{LoadableResource, loadable::Image},
+};
+use fennel_engine::{
+    components::sprite::Sprite,
+    runtime::{Runtime, RuntimeBuilder},
+};
+use specs::{Builder, WorldExt};
 
 struct MyGame;
 
 #[async_trait::async_trait]
-impl EventHandler for MyGame {
-    async fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
+impl WindowEventHandler for MyGame {
+    type Host = Runtime;
+    fn update(&self, _runtime: &mut Runtime) -> anyhow::Result<()> {
         Ok(())
     }
 
-    async fn draw(&self, window: &mut Window) -> anyhow::Result<()> {
-        window.graphics.canvas.clear();
-        window.graphics
-            .draw_image("assets/example.png".to_string(), (0.0, 0.0))
-            .expect("failed to draw an image");
-        window.graphics.canvas.present();
+    fn draw(&self, runtime: &mut Runtime) -> anyhow::Result<()> {
+        runtime.window.graphics.canvas.clear();
+        runtime.window.graphics.canvas.present();
         Ok(())
     }
 
-    fn key_down_event(&self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_down_event(&self, _runtime: &mut Runtime, event: KeyboardEvent) -> anyhow::Result<()> {
         println!("{:?}", event.keycode);
         Ok(())
     }
-}
-
-#[derive(Debug)]
-struct Pos(f32);
-
-impl Component for Pos {
-    type Storage = VecStorage<Self>;
 }
 
 #[tokio::main]
@@ -39,8 +36,18 @@ async fn main() -> anyhow::Result<()> {
         .dimensions((500, 500))
         .build()
         .unwrap();
-    runtime.world.register::<Pos>();
-    runtime.world.create_entity().with(Pos(2.0)).build();
-    runtime.run(Box::new(MyGame)).await?;
+    let sprite = Image::load(
+        "assets/example.png".into(),
+        &mut runtime.window.graphics,
+        None,
+    )?;
+    let sprite: &Image = fennel_core::resources::as_concrete(&sprite).unwrap();
+    runtime
+        .world
+        .create_entity()
+        .with(Sprite(sprite.clone()))
+        .build();
+    runtime.dispatcher.dispatch(&runtime.world);
+    runtime.run(MyGame).await?;
     Ok(())
 }

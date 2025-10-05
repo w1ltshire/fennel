@@ -4,7 +4,8 @@ use sdl3::{pixels::PixelFormat, render::Texture, surface::Surface};
 use std::{
     cell::{Ref, RefCell},
     path::PathBuf,
-    rc::Rc, sync::Arc,
+    rc::Rc,
+    sync::Arc,
 };
 
 use crate::{graphics::Graphics, resources::LoadableResource};

@@ -19,6 +19,10 @@ use quick_error::ResultExt;
 use crate::resources::loadable::{Font, Image};
 use crate::resources::{self, LoadableResource, ResourceManager, loadable};
 
+pub trait HasWindow {
+    fn window_mut(&mut self) -> &mut crate::Window;
+}
+
 /// Owned SDL variables used for rendering
 ///
 /// - `canvas`: the drawing surface for the window
