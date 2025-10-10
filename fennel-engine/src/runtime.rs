@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use fennel_core::graphics::HasWindow;
 use specs::{Dispatcher, DispatcherBuilder, WorldExt};
 
-use crate::components::sprite::{RenderingSystem, Sprite};
+use crate::components::sprite::{HostPtr, RenderingSystem, Sprite};
 
 pub struct Runtime {
     pub window: fennel_core::Window,
@@ -30,6 +30,14 @@ impl Runtime {
     {
         fennel_core::events::run(self, game_state).await;
         Ok(())
+    }
+
+    pub fn frame_tick(&mut self) {
+        let host_ptr = HostPtr(self as *mut Runtime);
+        self.world.insert(host_ptr);
+        self.dispatcher.dispatch(&self.world);
+        self.world.maintain();
+        self.world.remove::<HostPtr>();
     }
 }
 
@@ -64,10 +72,10 @@ impl RuntimeBuilder {
         );
         let mut world = specs::World::new();
         let mut dispatcher = DispatcherBuilder::new()
-            .with(RenderingSystem, "rendering_system", &[])
+            .with_thread_local(RenderingSystem)
             .build();
-        dispatcher.setup(&mut world);
         world.register::<Sprite>();
+        dispatcher.setup(&mut world);
 
         Ok(Runtime {
             window,

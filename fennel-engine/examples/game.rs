@@ -1,7 +1,4 @@
 use fennel_common::events::{KeyboardEvent, WindowEventHandler};
-use fennel_core::{
-    resources::{LoadableResource, loadable::Image},
-};
 use fennel_engine::{
     components::sprite::Sprite,
     runtime::{Runtime, RuntimeBuilder},
@@ -19,6 +16,7 @@ impl WindowEventHandler for MyGame {
 
     fn draw(&self, runtime: &mut Runtime) -> anyhow::Result<()> {
         runtime.window.graphics.canvas.clear();
+        runtime.frame_tick();
         runtime.window.graphics.canvas.present();
         Ok(())
     }
@@ -36,18 +34,23 @@ async fn main() -> anyhow::Result<()> {
         .dimensions((500, 500))
         .build()
         .unwrap();
-    let sprite = Image::load(
-        "assets/example.png".into(),
-        &mut runtime.window.graphics,
-        None,
-    )?;
-    let sprite: &Image = fennel_core::resources::as_concrete(&sprite).unwrap();
+
     runtime
         .world
         .create_entity()
-        .with(Sprite(sprite.clone()))
+        .with(Sprite {
+            image: String::from("assets/example.png"),
+            position: (100.0, 100.0)
+        })
         .build();
-    runtime.dispatcher.dispatch(&runtime.world);
+    runtime
+        .world
+        .create_entity()
+        .with(Sprite {
+            image: String::from("assets/example.png"),
+            position: (256.0, 100.0)
+        })
+        .build();
     runtime.run(MyGame).await?;
     Ok(())
 }

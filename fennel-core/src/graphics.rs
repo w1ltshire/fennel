@@ -113,7 +113,7 @@ impl Graphics {
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
 
-        let image: &Image = resources::as_concrete(manager.get_asset(path).unwrap())?;
+        let image: &Image = resources::downcast_ref(manager.get_asset(path).unwrap())?;
 
         let dst_rect = FRect::new(
             position.0,
@@ -168,7 +168,7 @@ impl Graphics {
                 manager.cache_asset(asset?)?;
             }
             let asset = manager.get_asset(font_key)?;
-            resources::as_concrete(asset)?
+            resources::downcast_ref(asset)?
         };
 
         if !manager.is_cached(cache_key.clone()) {
@@ -180,7 +180,7 @@ impl Graphics {
             let image = Image::load_from_surface(cache_key.clone(), self, surface);
             manager.cache_asset(image?)?;
         }
-        let texture: &Image = resources::as_concrete(manager.get_asset(cache_key)?)?;
+        let texture: &Image = resources::downcast_ref(manager.get_asset(cache_key)?)?;
 
         let dst_rect = FRect::new(
             position.0,
