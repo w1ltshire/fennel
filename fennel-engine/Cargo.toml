@@ -10,6 +10,7 @@ description = "Main package of Fennel game engine providing higher level API"
 anyhow = "1.0.100"
 async-trait = "0.1.89"
 fennel-common = { version = "0.1.0", path = "../fennel-common/" }
-fennel-core = { version = "0.2.0", path = "../fennel-core" }
+fennel-core = { version = "0.3.0", path = "../fennel-core" }
+sdl3 = "0.15.1"
 specs = "0.20.0"
 tokio = { version = "1.47.1", features = ["full"] }

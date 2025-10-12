@@ -1,7 +1,6 @@
 use fennel_common::events::{KeyboardEvent, WindowEventHandler};
 use fennel_engine::{
-    components::sprite::Sprite,
-    runtime::{Runtime, RuntimeBuilder},
+    components::sprite::Sprite, events::KeyEvents, runtime::{Runtime, RuntimeBuilder}
 };
 use specs::{Builder, WorldExt};
 
@@ -21,8 +20,9 @@ impl WindowEventHandler for MyGame {
         Ok(())
     }
 
-    fn key_down_event(&self, _runtime: &mut Runtime, event: KeyboardEvent) -> anyhow::Result<()> {
-        println!("{:?}", event.keycode);
+    fn key_down_event(&self, runtime: &mut Runtime, event: KeyboardEvent) -> anyhow::Result<()> {
+        let mut events = runtime.world.write_resource::<KeyEvents>();
+        events.0.push(event);
         Ok(())
     }
 }
@@ -31,7 +31,7 @@ impl WindowEventHandler for MyGame {
 async fn main() -> anyhow::Result<()> {
     let mut runtime = RuntimeBuilder::new()
         .name("game")
-        .dimensions((500, 500))
+        .dimensions((800, 800))
         .build()
         .unwrap();
 
@@ -43,14 +43,7 @@ async fn main() -> anyhow::Result<()> {
             position: (100.0, 100.0)
         })
         .build();
-    runtime
-        .world
-        .create_entity()
-        .with(Sprite {
-            image: String::from("assets/example.png"),
-            position: (256.0, 100.0)
-        })
-        .build();
+
     runtime.run(MyGame).await?;
     Ok(())
 }

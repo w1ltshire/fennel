@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use fennel_core::graphics::HasWindow;
 use specs::{Dispatcher, DispatcherBuilder, WorldExt};
 
-use crate::components::sprite::{HostPtr, RenderingSystem, Sprite};
+use crate::{components::{input::InputSystem, sprite::{HostPtr, RenderingSystem, Sprite}}, events::KeyEvents};
 
 pub struct Runtime {
     pub window: fennel_core::Window,
@@ -73,8 +73,10 @@ impl RuntimeBuilder {
         let mut world = specs::World::new();
         let mut dispatcher = DispatcherBuilder::new()
             .with_thread_local(RenderingSystem)
+            .with(InputSystem, "input_system", &[])
             .build();
         world.register::<Sprite>();
+        world.insert(KeyEvents::default());
         dispatcher.setup(&mut world);
 
         Ok(Runtime {

@@ -563,7 +563,7 @@ dependencies = [
 
 [[package]]
 name = "fennel-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -587,6 +587,7 @@ dependencies = [
  "async-trait",
  "fennel-common",
  "fennel-core",
+ "sdl3",
  "specs",
  "tokio",
 ]
