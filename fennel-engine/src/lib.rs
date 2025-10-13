@@ -1,3 +1,4 @@
-pub mod components;
+pub mod app;
+pub mod ecs;
 pub mod events;
-pub mod runtime;
+pub mod tests;

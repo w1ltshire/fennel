@@ -1,11 +1,7 @@
 //! Core window-related API for Fennel engine
 use std::sync::{Arc, Mutex};
 
-use fennel_common::events::{
-    KeyboardEvent, MouseClickEvent, MouseMotionEvent, MouseWheelEvent, WindowEventHandler,
-};
-
-use crate::{audio::Audio, graphics::{Graphics, HasWindow}, resources::ResourceManager};
+use crate::{audio::Audio, events::{KeyboardEvent, MouseClickEvent, MouseMotionEvent, MouseWheelEvent, WindowEventHandler}, graphics::{Graphics, HasWindow}, resources::ResourceManager};
 
 /// Audio playback
 pub mod audio;
@@ -61,13 +57,11 @@ impl HasWindow for Window {
 pub struct CoreHandler;
 #[async_trait::async_trait]
 impl WindowEventHandler for CoreHandler {
-    type Host = Window;
-
     fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
-    fn draw(&self, _window: &mut Window) -> anyhow::Result<()> {
+    fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -111,5 +105,3 @@ impl WindowEventHandler for CoreHandler {
         Ok(())
     }
 }
-
-pub type BoxedCoreHandler = Box<dyn WindowEventHandler<Host = Window> + Send + Sync>;

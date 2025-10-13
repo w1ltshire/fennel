@@ -1,12 +1,98 @@
 //! `sdl3::event::Event`-driven main loop.
 
-use fennel_common::events::{
-    KeyboardEvent, MouseClickEvent, MouseMotionEvent, MouseWheelEvent, WindowEventHandler,
-};
 use sdl3::event::Event;
 use std::time::{Duration, Instant};
 
-use crate::graphics::HasWindow;
+use crate::Window;
+
+use sdl3::{
+    keyboard::{Keycode, Mod, Scancode},
+    mouse::{MouseButton, MouseState, MouseWheelDirection},
+};
+
+pub struct KeyboardEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub keycode: Option<Keycode>,
+    pub scancode: Option<Scancode>,
+    pub keymod: Mod,
+    pub repeat: bool,
+    pub which: u32,
+    pub raw: u16,
+}
+
+pub struct MouseMotionEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub which: u32,
+    pub mousestate: MouseState,
+    pub x: f32,
+    pub y: f32,
+    pub xrel: f32,
+    pub yrel: f32,
+}
+
+pub struct MouseClickEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub which: u32,
+    pub mouse_btn: MouseButton,
+    pub clicks: u8,
+    pub x: f32,
+    pub y: f32,
+}
+
+pub struct MouseWheelEvent {
+    pub timestamp: u64,
+    pub window_id: u32,
+    pub which: u32,
+    pub x: f32,
+    pub y: f32,
+    pub direction: MouseWheelDirection,
+    pub mouse_x: f32,
+    pub mouse_y: f32,
+}
+
+#[async_trait::async_trait]
+pub trait WindowEventHandler: Send + Sync {
+    fn update(&self, _window: &mut Window) -> anyhow::Result<()>;
+    fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()>;
+
+    fn key_down_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
+        Ok(())
+    }
+    fn key_up_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
+        Ok(())
+    }
+    fn mouse_motion_event(
+        &self,
+        _window: &mut Window,
+        _event: MouseMotionEvent,
+    ) -> anyhow::Result<()> {
+        Ok(())
+    }
+    fn mouse_button_down_event(
+        &self,
+        _window: &mut Window,
+        _event: MouseClickEvent,
+    ) -> anyhow::Result<()> {
+        Ok(())
+    }
+    fn mouse_button_up_event(
+        &self,
+        _window: &mut Window,
+        _event: MouseClickEvent,
+    ) -> anyhow::Result<()> {
+        Ok(())
+    }
+    fn mouse_wheel_event(
+        &self,
+        _window: &mut Window,
+        _event: MouseWheelEvent,
+    ) -> anyhow::Result<()> {
+        Ok(())
+    }
+}
 
 /// Run the main loop.
 ///
@@ -24,12 +110,8 @@ use crate::graphics::HasWindow;
 /// let mut window = Window::new("cool title".into(), "cool author".into(), graphics);
 /// events::run(&mut window, Box::new(my_handler));
 /// ```
-pub async fn run<H, Host>(host: &mut Host, state: H)
-where
-    H: WindowEventHandler<Host = Host> + Send + Sync + 'static,
-    Host: HasWindow,
-{
-    let mut event_pump = host.window_mut().graphics.sdl_context.event_pump().unwrap();
+pub async fn run(window: &mut Window, state:  &'static mut dyn WindowEventHandler) {
+    let mut event_pump = window.graphics.sdl_context.event_pump().unwrap();
 
     'running: loop {
         let now = Instant::now();
@@ -49,7 +131,7 @@ where
                     raw,
                 } => state
                     .key_down_event(
-                        host,
+                        window,
                         KeyboardEvent {
                             timestamp,
                             window_id,
@@ -74,7 +156,7 @@ where
                     raw,
                 } => state
                     .key_up_event(
-                        host,
+                        window,
                         KeyboardEvent {
                             timestamp,
                             window_id,
@@ -99,7 +181,7 @@ where
                     yrel,
                 } => state
                     .mouse_motion_event(
-                        host,
+                        window,
                         MouseMotionEvent {
                             timestamp,
                             window_id,
@@ -123,7 +205,7 @@ where
                     y,
                 } => state
                     .mouse_button_down_event(
-                        host,
+                        window,
                         MouseClickEvent {
                             timestamp,
                             window_id,
@@ -146,7 +228,7 @@ where
                     y,
                 } => state
                     .mouse_button_up_event(
-                        host,
+                        window,
                         MouseClickEvent {
                             timestamp,
                             window_id,
@@ -170,7 +252,7 @@ where
                     mouse_y,
                 } => state
                     .mouse_wheel_event(
-                        host,
+                        window,
                         MouseWheelEvent {
                             timestamp,
                             window_id,
@@ -186,10 +268,9 @@ where
                 _ => {}
             }
         }
-
         // Update window logic and render.
-        let _ = state.update(host);
-        let _ = state.draw(host);
+        let _ = state.update(window);
+        let _ = state.draw(window);
 
         // Simple frame limiter: aim for ~1 millisecond minimum frame time.
         let elapsed = Instant::now().duration_since(now).as_nanos() as u64;

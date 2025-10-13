@@ -3,8 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use fennel_common::events::{KeyboardEvent, WindowEventHandler};
-use fennel_core::{Window, events, graphics, resources::ResourceManager};
+use fennel_core::{events::{self, KeyboardEvent, WindowEventHandler}, graphics, resources::ResourceManager, Window};
 use sdl3::pixels::Color;
 use tokio::runtime::Handle;
 
@@ -12,12 +11,11 @@ struct State;
 
 #[async_trait::async_trait]
 impl WindowEventHandler for State {
-    type Host = Window;
     fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
-    fn draw(&self, window: &mut Window) -> anyhow::Result<()> {
+    fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
         window.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
         window.graphics.canvas.clear();
         window

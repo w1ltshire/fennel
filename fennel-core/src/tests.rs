@@ -18,7 +18,7 @@ fn create_window() -> crate::Window {
 #[tokio::test]
 async fn font_load() {
     use crate::resources::LoadableResource;
-    use crate::{resources::as_concrete, resources::loadable};
+    use crate::{resources::downcast_ref, resources::loadable};
 
     let mut game = create_window();
 
@@ -35,14 +35,14 @@ async fn font_load() {
         .get_asset("../assets/terminus.ttf|16".to_string())
         .expect("font not cached");
 
-    let font: &loadable::Font = as_concrete(cached).unwrap();
+    let font: &loadable::Font = downcast_ref(cached).unwrap();
     assert_eq!(font.size, 16.0);
 }
 
 #[tokio::test]
 async fn image_load() {
     use crate::resources::LoadableResource;
-    use crate::{resources::as_concrete, resources::loadable};
+    use crate::{resources::downcast_ref, resources::loadable};
 
     let mut game = create_window();
 
@@ -61,7 +61,7 @@ async fn image_load() {
         .get_asset("../assets/example.png".to_string())
         .expect("image not cached");
 
-    let img: &loadable::Image = as_concrete(cached).unwrap();
+    let img: &loadable::Image = downcast_ref(cached).unwrap();
 
     assert_eq!(img.width, 128);
     assert_eq!(img.height, 128);

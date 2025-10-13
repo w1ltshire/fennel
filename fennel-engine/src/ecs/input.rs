@@ -1,7 +1,7 @@
 use sdl3::keyboard::Keycode;
 use specs::{ReadStorage, System, WriteExpect};
 
-use crate::{components::sprite::{HostPtr, Sprite}, events::KeyEvents};
+use crate::{ecs::sprite::{HostPtr, Sprite}, events::KeyEvents};
 
 pub struct InputSystem;
 impl<'a> System<'a> for InputSystem {
