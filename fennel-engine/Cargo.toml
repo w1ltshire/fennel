@@ -2,7 +2,7 @@
 name = "fennel-engine"
 version = "1.4.0"
 edition = "2024"
-repository = "https://github.com/w1ltshire/fennel.git"
+repository = "https://codeberg.org/wiltshire/fennel.git"
 license = "MIT"
 description = "Main package of Fennel game engine providing higher level API"
 
