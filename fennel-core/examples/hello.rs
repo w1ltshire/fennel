@@ -64,5 +64,13 @@ async fn main() {
         resource_manager.clone(),
     );
     let mut window = Window::new(graphics.unwrap(), resource_manager);
-    events::run(&mut window, State).await;
+
+    // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we
+    // need to do this seemingly weird thing (while `app.rs` in fennel-engine has an ass solution
+    // with raw pointers lmfao) 
+    let handler: &'static mut dyn WindowEventHandler = {
+        let boxed = Box::new(State);
+        Box::leak(boxed) as &'static mut dyn WindowEventHandler
+    };
+    events::run(&mut window, handler).await;
 }
