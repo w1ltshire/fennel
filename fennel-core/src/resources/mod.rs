@@ -1,6 +1,8 @@
-use std::{any::Any, cell::Ref, collections::HashMap, path::PathBuf};
+use std::{any::Any, cell::Ref, collections::HashMap, fs, path::PathBuf};
 
-use crate::graphics::Graphics;
+use serde::{Deserialize, Serialize};
+
+use crate::{graphics::Graphics, resources::loadable::Image};
 
 /// Module containing implementations of [`LoadableResource`] such as [`loadable::Image`]
 pub mod loadable;
@@ -13,6 +15,28 @@ pub struct ResourceManager {
 
 unsafe impl Send for ResourceManager {}
 unsafe impl Sync for ResourceManager {}
+
+#[derive(Deserialize, Serialize, Debug)]
+enum AssetType {
+    Image,
+    Audio,
+    Font
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+/// Manifest structure of an asset presented in manifest
+struct Asset {
+    name: String,
+    path: String,
+    #[serde(rename(deserialize = "type"))]
+    class: AssetType
+}
+
+#[derive(Deserialize, Debug)]
+/// Assets package manifest
+struct Manifest {
+    pub assets: Vec<Asset>
+}
 
 /// Trait that all loadable assets must implement
 pub trait LoadableResource: Any {
@@ -54,6 +78,7 @@ pub trait LoadableResource: Any {
 /// evil &Box\<dyn LoadableResource> to &T
 #[allow(clippy::borrowed_box)] // i have no idea how can this be done better because here we box a
 // trait
+/// Downcast a '&Box<dyn LoadableResource>' to a concrete type 
 pub fn downcast_ref<T: 'static + LoadableResource>(
     b: &Box<dyn LoadableResource>,
 ) -> anyhow::Result<&T> {
@@ -72,6 +97,27 @@ impl ResourceManager {
         Self {
             resources: HashMap::new(),
         }
+    }
+
+    /// Loads assets from a directory, which must contain a manifest
+    ///
+    /// # Errors
+    /// Returns an error if manifest does not exist in the target directory
+    pub fn load_dir(&mut self, path: PathBuf, graphics: &mut Graphics) -> anyhow::Result<()> {
+        let manifest_file = fs::read(path.join("manifest.toml"))?;
+        let manifest: Manifest = toml::from_slice(&manifest_file)?;
+        for asset in manifest.assets {
+            match asset.class {
+                AssetType::Image => {
+                    let path = path.join(asset.path);
+                    let image = Image::load(path.clone(), graphics, None);
+                    println!("test {:?}", image.unwrap().name());
+                },
+                AssetType::Audio => {},
+                _ => {}
+            }
+        }
+        Ok(())
     }
 
     /// Insert a loaded asset into the cache

@@ -56,11 +56,13 @@ impl Graphics {
     /// ```ignore
     /// let graphics = graphics::new(String::from("my cool game"), (500, 500))?;
     /// ```
-    pub fn new(
+    pub fn new<F>(
         name: String,
         dimensions: (u32, u32),
         resource_manager: Arc<Mutex<ResourceManager>>,
-    ) -> Result<Graphics, Box<dyn std::error::Error>> {
+        resource_initialization: F
+    ) -> Result<Graphics, Box<dyn std::error::Error>> where 
+        F: Fn(&mut Graphics) {
         // TODO: allow the user to uh customize video_subsystem configuration 'cuz man this is ass why
         // do we position_centered() and resizable() it by default
 
@@ -77,13 +79,17 @@ impl Graphics {
 
         let canvas = window.into_canvas();
         let texture_creator = canvas.texture_creator();
-        Ok(Graphics {
+        let mut graphics = Graphics {
             canvas,
             sdl_context,
             texture_creator: Rc::new(texture_creator),
             ttf_context,
             resource_manager,
-        })
+        };
+
+        resource_initialization(&mut graphics);
+
+        Ok(graphics)
     }
 
     /// Cache an image if it isn't cached and draw it on the canvas

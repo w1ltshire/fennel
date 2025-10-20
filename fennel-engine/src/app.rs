@@ -39,6 +39,7 @@ impl WindowEventHandler for App {
 }
 
 impl App {
+    /// Runs the event loop, must be called only once, UB otherwise
     pub async fn run(mut self) -> anyhow::Result<()> {
         // you know what? fuck you and your borrow checker.
         // i'm 100% sure this app is single-threaded and its 11 pm
@@ -83,6 +84,7 @@ impl AppBuilder {
             self.name.to_string(),
             self.dimensions,
             resource_manager.clone(),
+            |_| {}
         );
         let window = fennel_core::Window::new(
             graphics.expect("failed to initialize graphics"),

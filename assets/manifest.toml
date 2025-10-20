@@ -1,0 +1,9 @@
+[[assets]]
+name = "example"
+path = "./example.png"
+type = "Image"
+
+[[assets]]
+name = "music"
+path = "./music.ogg"
+type = "Audio"

@@ -10,7 +10,7 @@ fn create_window() -> crate::Window {
 
     let resouce_manager = Arc::new(Mutex::new(ResourceManager::new()));
     let gfx =
-        crate::graphics::Graphics::new("my cool game".into(), (500, 500), resouce_manager.clone())
+        crate::graphics::Graphics::new("my cool game".into(), (500, 500), resouce_manager.clone(), |_| {})
             .unwrap();
     crate::Window::new(gfx, resouce_manager.clone())
 }

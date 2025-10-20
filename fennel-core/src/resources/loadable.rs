@@ -2,10 +2,8 @@ use anyhow::bail;
 use image::ImageReader;
 use sdl3::{pixels::PixelFormat, render::Texture, surface::Surface};
 use std::{
-    cell::{Ref, RefCell},
     path::PathBuf,
     rc::Rc,
-    sync::Arc,
 };
 
 use crate::{graphics::Graphics, resources::LoadableResource};
@@ -13,15 +11,14 @@ use crate::{graphics::Graphics, resources::LoadableResource};
 unsafe impl Send for Image {}
 unsafe impl Sync for Image {}
 
-/// Simple image asset that stores its file location.
+/// Image asset that can be created either from sdl3's `Surface` for rendering fonts, or from a
+/// file for rendering pictures
 #[derive(Clone)]
 pub struct Image {
-    /// Resource name (can be filesystem path to the image or something else)
+    /// Resource name
     pub name: String,
-    /// Vector of bytes containing the image pixels
-    pub buffer: Arc<RefCell<Vec<u8>>>,
     /// SDL3 texture for caching
-    pub texture: Arc<Texture<'static>>,
+    pub texture: Rc<Texture<'static>>,
     /// Image width
     pub width: u32,
     /// Image heiht
@@ -56,8 +53,7 @@ impl Image {
 
         Ok(Box::new(Self {
             name,
-            buffer: Arc::new(RefCell::new(vec![])),
-            texture: Arc::new(texture),
+            texture: Rc::new(texture),
             width: surface.width(),
             height: surface.height(),
         }))
@@ -91,8 +87,7 @@ impl LoadableResource for Image {
 
         Ok(Box::new(Self {
             name: path.to_string_lossy().to_string(),
-            buffer: Arc::new(RefCell::new(buffer)),
-            texture: Arc::new(texture),
+            texture: Rc::new(texture),
             width: img.width(),
             height: img.height(),
         }))
@@ -100,18 +95,6 @@ impl LoadableResource for Image {
 
     fn name(&self) -> String {
         self.name.clone()
-    }
-
-    fn as_mut_slice(&self) -> Option<&mut [u8]> {
-        let mut mut_ref = self.buffer.borrow_mut();
-        // even more evil shit that PROBABLY :) should be safe because as we know in normal conditions only
-        // one thread should access (graphics, audio, ..) its respecting resources
-        // otherwise have a SEGFAULT >:3
-        unsafe { Some(&mut *(mut_ref.as_mut_slice() as *mut [u8])) }
-    }
-
-    fn as_slice(&self) -> Option<Ref<'_, [u8]>> {
-        Some(Ref::map(self.buffer.borrow(), |v| v.as_slice()))
     }
 }
 
