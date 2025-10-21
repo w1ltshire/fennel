@@ -1,4 +1,3 @@
-pub extern crate specs;
 pub mod app;
 pub mod ecs;
 pub mod events;
