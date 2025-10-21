@@ -2,10 +2,10 @@ use std::{any::Any, cell::Ref, collections::HashMap, fs, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{graphics::Graphics, resources::loadable::Image};
+use crate::{graphics::Graphics, resources::{font::DummyFont, image::Image}};
 
-/// Module containing implementations of [`LoadableResource`] such as [`loadable::Image`]
-pub mod loadable;
+pub mod image;
+pub mod font;
 
 /// Manages a collection of loadable resources indexed by their name
 pub struct ResourceManager {
@@ -51,8 +51,9 @@ pub trait LoadableResource: Any {
     /// Returns an error if the file cannot be read or parsed
     fn load(
         path: PathBuf,
+        name: String,
         graphics: &mut Graphics,
-        size: Option<f32>,
+        size: Option<f32>
     ) -> anyhow::Result<Box<dyn LoadableResource>>
     where
         Self: Sized;
@@ -110,11 +111,17 @@ impl ResourceManager {
             match asset.class {
                 AssetType::Image => {
                     let path = path.join(asset.path);
-                    let image = Image::load(path.clone(), graphics, None);
-                    println!("test {:?}", image.unwrap().name());
+                    let image = Image::load(path.clone(), path.to_str().unwrap().to_string(), graphics, None)?;
+                    println!("{:?}", image.name());
+                    self.cache_asset(image)?;
                 },
                 AssetType::Audio => {},
-                _ => {}
+                AssetType::Font => {
+                    let path = path.join(asset.path);
+                    let font = DummyFont::load(path, asset.name, graphics, None)?;
+                    println!("{:?}", font.name());
+                    self.cache_asset(font)?;
+                }
             }
         }
         Ok(())
@@ -134,7 +141,9 @@ impl ResourceManager {
     // reference to a pointer >:3 and also clippy is angry at me for doing this
     #[allow(clippy::borrowed_box)] // same reason as in `as_concrete`
     pub fn get_asset(&self, name: String) -> anyhow::Result<&Box<dyn LoadableResource>> {
-        let asset = self.resources.get(&name).unwrap();
+        let asset = self.resources.get(&name).unwrap_or_else(|| {
+            panic!("asset {name} not found")
+        });
         Ok(asset)
     }
 

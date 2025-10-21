@@ -1,5 +1,5 @@
 use std::{
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
@@ -25,16 +25,16 @@ impl WindowEventHandler for State {
         window.graphics.draw_text(
             String::from("hi"),
             (64.0, 64.0),
-            String::from("assets/terminus.ttf"),
+            String::from("Terminus"),
             Color::RGBA(255, 0, 0, 0),
             16.0,
         )?;
         window.graphics.draw_text(
             String::from("hi"),
-            (64.0, 150.0),
-            String::from("assets/terminus.ttf"),
+            (64.0, 64.0),
+            String::from("Terminus"),
             Color::RGBA(255, 0, 0, 0),
-            128.0,
+            64.0,
         )?;
         window.graphics.canvas.present();
         Ok(())
@@ -62,6 +62,12 @@ async fn main() {
         String::from("my cool window"),
         (500, 500),
         resource_manager.clone(),
+        |graphics| { // we bulk load resources here because either we'll have to deal with
+                     // ownership of `graphics` (the actual `let graphics`, not the closure
+                     // argument)
+                     // you may think of it like about just some initialization func
+            resource_manager.lock().unwrap().load_dir(PathBuf::from("assets"), graphics).unwrap();
+        }
     );
     let mut window = Window::new(graphics.unwrap(), resource_manager);
 

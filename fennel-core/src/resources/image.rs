@@ -1,12 +1,10 @@
-use anyhow::bail;
+use std::{path::PathBuf, rc::Rc};
+
 use image::ImageReader;
-use sdl3::{pixels::PixelFormat, render::Texture, surface::Surface};
-use std::{
-    path::PathBuf,
-    rc::Rc,
-};
+use sdl3::{render::Texture, pixels::PixelFormat, surface::Surface};
 
 use crate::{graphics::Graphics, resources::LoadableResource};
+
 
 unsafe impl Send for Image {}
 unsafe impl Sync for Image {}
@@ -23,18 +21,6 @@ pub struct Image {
     pub width: u32,
     /// Image heiht
     pub height: u32,
-}
-
-/// Simple font asset
-pub struct Font {
-    /// Filesystem path to the font.
-    pub path: PathBuf,
-    /// Font family name
-    pub family_name: String,
-    /// Point size
-    pub size: f32,
-    /// Vector of bytes containing the font data
-    pub buffer: Rc<sdl3::ttf::Font<'static>>,
 }
 
 impl Image {
@@ -64,6 +50,7 @@ impl LoadableResource for Image {
     /// Construct an `Image` from `path` and return it as a boxed trait object.
     fn load(
         path: PathBuf,
+        name: String,
         graphics: &mut Graphics,
         _size: Option<f32>,
     ) -> anyhow::Result<Box<dyn LoadableResource>> {
@@ -86,7 +73,7 @@ impl LoadableResource for Image {
         };
 
         Ok(Box::new(Self {
-            name: path.to_string_lossy().to_string(),
+            name,
             texture: Rc::new(texture),
             width: img.width(),
             height: img.height(),
@@ -95,34 +82,5 @@ impl LoadableResource for Image {
 
     fn name(&self) -> String {
         self.name.clone()
-    }
-}
-
-impl LoadableResource for Font {
-    fn load(
-        path: PathBuf,
-        graphics: &mut Graphics,
-        size: Option<f32>,
-    ) -> anyhow::Result<Box<dyn LoadableResource>>
-    where
-        Self: Sized,
-    {
-        if size.is_none() {
-            bail!("no font size was provided");
-        }
-
-        let font = graphics.ttf_context.load_font(&path, size.unwrap())?;
-        Ok(Box::new(Self {
-            path,
-            family_name: font
-                .face_family_name()
-                .expect("failed to get font family name"),
-            size: size.unwrap(),
-            buffer: Rc::new(font),
-        }))
-    }
-
-    fn name(&self) -> String {
-        format!("{}|{}", self.path.to_string_lossy(), self.size)
     }
 }

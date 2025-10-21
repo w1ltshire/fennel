@@ -1,9 +1,9 @@
 [[assets]]
 name = "example"
-path = "./example.png"
+path = "example.png"
 type = "Image"
 
 [[assets]]
-name = "music"
-path = "./music.ogg"
-type = "Audio"
+name = "Terminus"
+path = "terminus.ttf"
+type = "Font"

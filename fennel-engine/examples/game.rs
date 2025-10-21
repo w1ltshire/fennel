@@ -8,6 +8,7 @@ async fn main() -> anyhow::Result<()> {
     let mut app = AppBuilder::new()
         .name("game")
         .dimensions((800, 800))
+        .config("fennel-engine/examples/game.toml")
         .build()
         .unwrap();
 

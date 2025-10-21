@@ -614,7 +614,7 @@ dependencies = [
 
 [[package]]
 name = "fennel-engine"
-version = "1.4.0"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -624,6 +624,7 @@ dependencies = [
  "serde",
  "specs",
  "tokio",
+ "toml 0.9.8",
 ]
 
 [[package]]

@@ -16,8 +16,9 @@ use sdl3::video::Window;
 
 use quick_error::ResultExt;
 
-use crate::resources::loadable::{Font, Image};
-use crate::resources::{self, LoadableResource, ResourceManager, loadable};
+use crate::resources::font::{DummyFont, Font};
+use crate::resources::image::Image;
+use crate::resources::{self, LoadableResource, ResourceManager};
 
 pub trait HasWindow {
     fn window_mut(&mut self) -> &mut crate::Window;
@@ -115,7 +116,7 @@ impl Graphics {
 
         if !manager.is_cached(path.clone()) {
             // rust programmers when they have to .clone()
-            let texture = loadable::Image::load(PathBuf::from(path.clone()), self, None);
+            let texture = Image::load(PathBuf::from(path.clone()), "".to_string(), self, None);
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
 
@@ -147,7 +148,7 @@ impl Graphics {
         &mut self,
         text: String,
         position: (f32, f32),
-        font_path: String,
+        font: String,
         color: Color,
         size: f32,
     ) -> anyhow::Result<()> {
@@ -162,22 +163,25 @@ impl Graphics {
         // we will be caching it as an [`resources::loadable::Image`] under this key
         let cache_key = format!(
             "{}|{}|{}|{:x?}",
-            font_path,
+            font,
             text,
             size,
             color.to_u32(&PixelFormat::RGBA32)
         );
-        let font_key = format!("{font_path}|{size}");
-        let font: &Font = {
-            if !manager.is_cached(font_key.clone()) {
-                let asset = loadable::Font::load(font_path.clone().into(), self, Some(size));
-                manager.cache_asset(asset?)?;
-            }
-            let asset = manager.get_asset(font_key)?;
+        let font: &DummyFont = {
+            let asset = manager.get_asset(font)?;
             resources::downcast_ref(asset)?
         };
 
+        let font_key = format!("{}|{}", font.name(), size);
+
+        if !manager.is_cached(font_key.clone()) {
+            let asset = Font::load(font.path.clone(), font_key.clone(), self, Some(size));
+            manager.cache_asset(asset?)?;
+        }
+
         if !manager.is_cached(cache_key.clone()) {
+            let font = resources::downcast_ref::<Font>(manager.get_asset(font_key)?)?;
             let surface = font
                 .buffer
                 .render(&text)

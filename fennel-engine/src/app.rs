@@ -1,6 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{fs, sync::{Arc, Mutex}};
 
 use fennel_core::{events::{KeyboardEvent, WindowEventHandler}, Window};
+use serde::{Deserialize, Serialize};
 use specs::{Dispatcher, DispatcherBuilder, WorldExt};
 
 use crate::{ecs::{input::InputSystem, sprite::{HostPtr, RenderingSystem, Sprite}}, events::KeyEvents};
@@ -15,6 +16,12 @@ pub struct App {
 pub struct AppBuilder {
     name: &'static str,
     dimensions: (u32, u32),
+    config: &'static str
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct Config {
+    assets_path: String
 }
 
 unsafe impl Send for App {}
@@ -65,6 +72,7 @@ impl AppBuilder {
         AppBuilder {
             name: "",
             dimensions: (100, 100),
+            config: ""
         }
     }
 
@@ -78,13 +86,22 @@ impl AppBuilder {
         self
     }
 
+    pub fn config(mut self, path: &'static str) -> AppBuilder {
+        self.config = path;
+        self
+    }
+
     pub fn build(&self) -> anyhow::Result<App> {
         let resource_manager = Arc::new(Mutex::new(fennel_core::resources::ResourceManager::new()));
+        let config_reader = fs::read(self.config)?;
+        let config: Config = toml::from_slice(&config_reader)?;
         let graphics = fennel_core::graphics::Graphics::new(
             self.name.to_string(),
             self.dimensions,
             resource_manager.clone(),
-            |_| {}
+            |graphics| {
+                resource_manager.lock().unwrap().load_dir(config.assets_path.clone().into(), graphics).unwrap();
+            }
         );
         let window = fennel_core::Window::new(
             graphics.expect("failed to initialize graphics"),
@@ -97,6 +114,7 @@ impl AppBuilder {
             .build();
         world.register::<Sprite>();
         world.insert(KeyEvents::default());
+
         dispatcher.setup(&mut world);
 
         Ok(App {
