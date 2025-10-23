@@ -41,6 +41,18 @@ pub struct Graphics {
     resource_manager: Arc<Mutex<ResourceManager>>,
 }
 
+/// Config for [`Graphics::new`] and for [`GraphicsBuilder`]
+#[derive(Default, Debug)]
+pub struct WindowConfig {
+    /// Is the window resizable?
+    pub resizable: bool,
+    /// Is the window fullscreen?
+    pub fullscreen: bool,
+    /// Is the window centered by default?
+    pub centered: bool
+}
+
+/// Builder for creating a Graphics instance.
 pub struct GraphicsBuilder<F>
 where 
     F: Fn(&mut Graphics)
@@ -48,32 +60,50 @@ where
     resource_manager: Option<Arc<Mutex<ResourceManager>>>,
     dimensions: (u32, u32),
     name: String,
-    initializer: Option<F>
+    initializer: Option<F>,
+    config: WindowConfig
 }
 
 impl<F> GraphicsBuilder<F> 
 where 
     F: Fn(&mut Graphics)
 {
+    /// Create a new empty GraphicsBuilder
+    /// By default there is no resource manager or resource initializer, dimensions are 0, 0, name
+    /// is empty
     pub fn new() -> GraphicsBuilder<F> {
-        GraphicsBuilder { resource_manager: None, dimensions: (0, 0), name: "".to_string(), initializer: None }
+        GraphicsBuilder { 
+            resource_manager: None,
+            dimensions: (0, 0),
+            name: "".to_string(),
+            initializer: None,
+            config: WindowConfig {
+                resizable: false,
+                fullscreen: false,
+                centered: false
+            }
+        }
     }
 
+    /// Set the resource manager
     pub fn resource_manager(mut self, resource_manager: Arc<Mutex<ResourceManager>>) -> GraphicsBuilder<F> {
         self.resource_manager = Some(resource_manager);
         self
     }
 
+    /// Set the window dimensions
     pub fn dimensions(mut self, dimensions: (u32, u32)) -> GraphicsBuilder<F> {
         self.dimensions = dimensions;
         self
     }
 
+    /// Set the window name
     pub fn window_name(mut self, name: String) -> GraphicsBuilder<F> {
         self.name = name;
         self
     }
 
+    /// Set the resource initializer (closure)
     pub fn initializer(mut self, initializer: F) -> GraphicsBuilder<F> where 
         F: Fn(&mut Graphics)
     {
@@ -81,12 +111,35 @@ where
         self
     }
 
+    /// Will the window be resizable?
+    pub fn resizable(mut self, resizable: bool) -> GraphicsBuilder<F> {
+        self.config.resizable = resizable;
+        self
+    }
+
+    /// Will the window be fullscreen?
+    pub fn fullscreen(mut self, fullscreen: bool) -> GraphicsBuilder<F> {
+        self.config.fullscreen = fullscreen;
+        self
+    }
+    
+    /// Will the window be centered?
+    pub fn centered(mut self, centered: bool) -> GraphicsBuilder<F> {
+        self.config.centered = centered;
+        self
+    }
+
+    /// Build `Graphics`
+    ///
+    /// # Panic
+    /// Panics if no resource manager or initializer was provided
     pub fn build(self) -> anyhow::Result<Graphics> {
         Ok(Graphics::new(
             self.name, 
             self.dimensions, 
             self.resource_manager.expect("no resource manager provided"),
-            self.initializer.expect("no resource initializer provided")
+            self.initializer.expect("no resource initializer provided"),
+            self.config
         ).unwrap())
     }
 }
@@ -95,6 +148,7 @@ impl<F> Default for GraphicsBuilder<F>
 where 
     F: Fn(&mut Graphics)
 {
+    /// Default implementation delegates to `[GraphicsBuilder::new]`
     fn default() -> Self {
         Self::new()
     }
@@ -114,13 +168,14 @@ impl Graphics {
     ///
     /// # Example
     /// ```ignore
-    /// let graphics = graphics::new(String::from("my cool game"), (500, 500))?;
+    /// let graphics = graphics::new(String::from("my cool game"), (500, 500), resource_manager, |_| {}, config)?;
     /// ```
     pub fn new<F>(
         name: String,
         dimensions: (u32, u32),
         resource_manager: Arc<Mutex<ResourceManager>>,
-        resource_initialization: F
+        resource_initialization: F,
+        config: WindowConfig
     ) -> Result<Graphics, Box<dyn std::error::Error>> where 
         F: Fn(&mut Graphics) {
         // TODO: allow the user to uh customize video_subsystem configuration 'cuz man this is ass why
@@ -130,10 +185,14 @@ impl Graphics {
         let ttf_context = sdl3::ttf::init().map_err(|e| e.to_string())?;
         let video_subsystem = sdl_context.video()?;
 
-        let window = video_subsystem
-            .window(&name, dimensions.0, dimensions.1)
-            .position_centered()
-            .resizable()
+        let mut builder = video_subsystem
+            .window(&name, dimensions.0, dimensions.1);
+
+        let _ = if config.centered { builder.position_centered() } else { &mut builder };
+        let _ = if config.resizable { builder.resizable() } else { &mut builder };
+        let _ = if config.fullscreen { builder.fullscreen() } else { &mut builder };
+
+        let window = builder
             .build()
             .map_err(|e| e.to_string())?;
 
