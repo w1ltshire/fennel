@@ -17,7 +17,7 @@ quick-error = "2.0.1"
 rand = "0.9.2"
 rodio = "0.21.1"
 sdl3 = { version = "0.15.1", features = ["test-mode", "ttf"] } 
-serde = "1.0.228"
+serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.47.1", features = ["full"] }
 toml = "0.9.8"
 zip = "6.0.0"
