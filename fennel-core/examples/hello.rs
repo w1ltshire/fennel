@@ -58,17 +58,18 @@ impl WindowEventHandler for State {
 #[tokio::main]
 async fn main() {
     let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
-    let graphics = graphics::Graphics::new(
-        String::from("my cool window"),
-        (500, 500),
-        resource_manager.clone(),
-        |graphics| { // we bulk load resources here because either we'll have to deal with
-                     // ownership of `graphics` (the actual `let graphics`, not the closure
-                     // argument)
-                     // you may think of it like about just some initialization func
+    let graphics = graphics::GraphicsBuilder::new()
+        .window_name(String::from("game"))
+        .dimensions((500, 500))
+        .resource_manager(resource_manager.clone())
+        // we bulk load resources here because either we'll have to deal with
+        // ownership of `graphics` (the actual `let graphics`, not the closure
+        // argument)
+        // you may think of it like about just some initialization func
+        .initializer(|graphics| {
             resource_manager.lock().unwrap().load_dir(PathBuf::from("assets"), graphics).unwrap();
-        }
-    );
+        })
+        .build();
     let mut window = Window::new(graphics.unwrap(), resource_manager);
 
     // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we

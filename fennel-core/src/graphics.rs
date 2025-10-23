@@ -41,6 +41,65 @@ pub struct Graphics {
     resource_manager: Arc<Mutex<ResourceManager>>,
 }
 
+pub struct GraphicsBuilder<F>
+where 
+    F: Fn(&mut Graphics)
+{
+    resource_manager: Option<Arc<Mutex<ResourceManager>>>,
+    dimensions: (u32, u32),
+    name: String,
+    initializer: Option<F>
+}
+
+impl<F> GraphicsBuilder<F> 
+where 
+    F: Fn(&mut Graphics)
+{
+    pub fn new() -> GraphicsBuilder<F> {
+        GraphicsBuilder { resource_manager: None, dimensions: (0, 0), name: "".to_string(), initializer: None }
+    }
+
+    pub fn resource_manager(mut self, resource_manager: Arc<Mutex<ResourceManager>>) -> GraphicsBuilder<F> {
+        self.resource_manager = Some(resource_manager);
+        self
+    }
+
+    pub fn dimensions(mut self, dimensions: (u32, u32)) -> GraphicsBuilder<F> {
+        self.dimensions = dimensions;
+        self
+    }
+
+    pub fn window_name(mut self, name: String) -> GraphicsBuilder<F> {
+        self.name = name;
+        self
+    }
+
+    pub fn initializer(mut self, initializer: F) -> GraphicsBuilder<F> where 
+        F: Fn(&mut Graphics)
+    {
+        self.initializer = Some(initializer);
+        self
+    }
+
+    pub fn build(self) -> anyhow::Result<Graphics> {
+        Ok(Graphics::new(
+            self.name, 
+            self.dimensions, 
+            self.resource_manager.expect("no resource manager provided"),
+            self.initializer.expect("no resource initializer provided")
+        ).unwrap())
+    }
+}
+
+impl<F> Default for GraphicsBuilder<F>
+where 
+    F: Fn(&mut Graphics)
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Graphics {
     /// Initialize SDL3, create a centered, resizable window and return a [`Graphics`]
     /// container with the canvas and SDL context.
