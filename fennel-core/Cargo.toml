@@ -1,10 +1,11 @@
 [package]
 name = "fennel-core"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2024"
 repository = "https://codeberg.org/wiltshire/fennel.git"
 license = "MIT"
 description = "Core package of Fennel game engine providing rendering and audio"
+rust-version = "1.87.0"
 
 [dependencies]
 anyhow = "1.0.100"

@@ -1,10 +1,11 @@
 [package]
 name = "fennel-engine"
-version = "1.6.0"
+version = "1.6.1"
 edition = "2024"
 repository = "https://codeberg.org/wiltshire/fennel.git"
 license = "MIT"
 description = "Main package of Fennel game engine providing higher level API"
+rust-version = "1.87.0"
 
 [dependencies]
 anyhow = "1.0.100"
