@@ -1,7 +1,7 @@
 //! Core window-related API for Fennel engine
 use std::sync::{Arc, Mutex};
 
-use crate::{audio::Audio, events::{KeyboardEvent, MouseClickEvent, MouseMotionEvent, MouseWheelEvent, WindowEventHandler}, graphics::{Graphics, HasWindow}, resources::ResourceManager};
+use crate::{audio::Audio, graphics::{Graphics, HasWindow}, resources::ResourceManager};
 
 /// Audio playback
 pub mod audio;
@@ -51,57 +51,5 @@ impl Window {
 impl HasWindow for Window {
     fn window_mut(&mut self) -> &mut Self {
         self
-    }
-}
-
-pub struct CoreHandler;
-#[async_trait::async_trait]
-impl WindowEventHandler for CoreHandler {
-    fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn key_down_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn key_up_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn mouse_motion_event(
-        &self,
-        _window: &mut Window,
-        _event: MouseMotionEvent,
-    ) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn mouse_button_down_event(
-        &self,
-        _window: &mut Window,
-        _event: MouseClickEvent,
-    ) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn mouse_button_up_event(
-        &self,
-        _window: &mut Window,
-        _event: MouseClickEvent,
-    ) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn mouse_wheel_event(
-        &self,
-        _window: &mut Window,
-        _event: MouseWheelEvent,
-    ) -> anyhow::Result<()> {
-        Ok(())
     }
 }
