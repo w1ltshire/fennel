@@ -4,7 +4,7 @@ use fennel_core::{events::{KeyboardEvent, WindowEventHandler}, graphics::WindowC
 use serde::{Deserialize, Serialize};
 use specs::{Dispatcher, DispatcherBuilder, WorldExt};
 
-use crate::{ecs::{input::InputSystem, sprite::{HostPtr, RenderingSystem, Sprite}}, events::KeyEvents};
+use crate::{ecs::{input::InputSystem, sprite::{HostPtr, RenderingSystem, Sprite}}, events::KeyEvents, scenes::Scene};
 
 /// The application struct which contains [`fennel_core::Window`], [`specs::World`] and `specs`
 /// `Dispatcher`
@@ -15,6 +15,8 @@ pub struct App {
     pub world: specs::World,
     /// ECS dispatcher
     pub dispatcher: Dispatcher<'static, 'static>,
+    /// Application scenes
+    pub scenes: Vec<Scene>
 }
 
 /// Builder for [`App`]
@@ -26,9 +28,15 @@ pub struct AppBuilder {
     window_config: WindowConfig
 }
 
+/// Application config defined by user
 #[derive(Deserialize, Serialize, Debug)]
 struct Config {
-    assets_path: String
+    /// Path to assets directory
+    assets_path: String,
+    /// Path to scenes directory
+    scenes_path: String,
+    /// First scene to display
+    initial_scene: String
 }
 
 unsafe impl Send for App {}
@@ -131,6 +139,14 @@ impl AppBuilder {
             .with_thread_local(RenderingSystem)
             .with(InputSystem, "input_system", &[])
             .build();
+        let mut scenes: Vec<Scene> = vec![];
+
+        for entry in fs::read_dir(config.scenes_path).expect("meow") {
+            let scene_reader = fs::read(entry.unwrap().path()).expect("meow");
+            let scene: Scene = toml::from_slice(&scene_reader)?;
+            scenes.push(scene);
+        }
+
         world.register::<Sprite>();
         world.insert(KeyEvents::default());
 
@@ -140,6 +156,7 @@ impl AppBuilder {
             window,
             world,
             dispatcher,
+            scenes
         })
     }
 }
