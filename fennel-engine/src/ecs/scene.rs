@@ -14,8 +14,8 @@ impl<'a> System<'a> for SceneSystem {
     fn run(&mut self, (scenes, mut host_ptr): Self::SystemData) {
         let _runtime: &mut App = unsafe { &mut *host_ptr.0 };
 
-        for _scene in (scenes).join() {
-            // println!("{}", scene.name);
+        for scene in (scenes).join() {
+
         }
     }
 }

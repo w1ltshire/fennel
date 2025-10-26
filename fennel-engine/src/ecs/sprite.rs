@@ -17,7 +17,9 @@ unsafe impl Sync for HostPtr {}
 /// - position: tuple (x, y) position on screen
 #[derive(Deserialize, Debug)]
 pub struct Sprite {
+    /// Sprite asset id in the resource manager
     pub image: String,
+    /// Sprite position on the screen
     pub position: (f32, f32),
 }
 
@@ -25,6 +27,7 @@ impl specs::Component for Sprite {
     type Storage = specs::VecStorage<Self>;
 }
 
+/// Factory for [`Sprite`]
 pub struct SpriteFactory;
 
 impl ComponentFactory for SpriteFactory {

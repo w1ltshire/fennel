@@ -5,6 +5,7 @@ use std::collections::HashMap;
 /// All components must have a factory implementing this trait to be able created from a scene
 /// config
 pub trait ComponentFactory: Send + Sync {
+    /// Build a component from `value` and insert it into `entity` of `world`
     fn insert(&self, world: &mut World, entity: Entity, value: &Value);
 }
 

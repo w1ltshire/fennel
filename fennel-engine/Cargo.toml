@@ -1,6 +1,6 @@
 [package]
 name = "fennel-engine"
-version = "1.7.0"
+version = "1.7.1"
 edition = "2024"
 repository = "https://codeberg.org/wiltshire/fennel.git"
 license = "MIT"
