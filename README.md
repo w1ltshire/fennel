@@ -17,5 +17,5 @@ A small 2D game framework I'm building just-for-fun and to learn Rust a little b
 - [x] ECS (using `specs`)
 - [ ] Scripting
 - [ ] Editor
-- [ ] Scenes
+- [x] Scenes
 - [ ] Virtual FS for resource management
