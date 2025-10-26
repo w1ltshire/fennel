@@ -1,7 +1,8 @@
-use serde::{Deserialize, Serialize};
-use specs::{Join, ReadStorage, System, WriteExpect};
+use ron::Value;
+use serde::Deserialize;
+use specs::{Entity, Join, ReadStorage, System, World, WorldExt, WriteExpect};
 
-use crate::app::App;
+use crate::{app::App, registry::ComponentFactory};
 
 /// A raw pointer wrapper to the application
 pub struct HostPtr(pub *mut App);
@@ -14,14 +15,24 @@ unsafe impl Sync for HostPtr {}
 /// # Fields
 /// - image: identifier or path of the image to draw
 /// - position: tuple (x, y) position on screen
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Debug)]
 pub struct Sprite {
     pub image: String,
-    pub position: (f32, f32)
+    pub position: (f32, f32),
 }
 
 impl specs::Component for Sprite {
     type Storage = specs::VecStorage<Self>;
+}
+
+pub struct SpriteFactory;
+
+impl ComponentFactory for SpriteFactory {
+    fn insert(&self, world: &mut World, entity: Entity, value: &Value) {
+        let sprite = ron::value::Value::into_rust::<Sprite>(value.clone());
+        println!("{:#?}", sprite);
+        world.write_storage::<Sprite>().insert(entity, sprite.expect("failed to construct a sprite")).unwrap();
+    }
 }
 
 /// ECS system that renders Sprite components.
@@ -38,7 +49,10 @@ impl<'a> System<'a> for RenderingSystem {
         let window = &mut runtime.window;
 
         for sprite in (&sprites).join() {
-            window.graphics.draw_image(sprite.image.clone(), sprite.position).unwrap();
+            window
+                .graphics
+                .draw_image(sprite.image.clone(), sprite.position)
+                .unwrap();
         }
     }
 }

@@ -1,10 +1,26 @@
-use std::{fs, sync::{Arc, Mutex}};
+use std::{
+    fs,
+    sync::{Arc, Mutex},
+};
 
-use fennel_core::{events::{KeyboardEvent, WindowEventHandler}, graphics::WindowConfig, Window};
+use fennel_core::{
+    Window,
+    events::{KeyboardEvent, WindowEventHandler},
+    graphics::WindowConfig,
+};
 use serde::{Deserialize, Serialize};
-use specs::{Dispatcher, DispatcherBuilder, WorldExt};
+use specs::{Builder, Dispatcher, DispatcherBuilder, WorldExt};
 
-use crate::{ecs::{input::InputSystem, sprite::{HostPtr, RenderingSystem, Sprite}}, events::KeyEvents, scenes::Scene};
+use crate::{
+    ecs::{
+        input::InputSystem,
+        scene::SceneSystem,
+        sprite::{HostPtr, RenderingSystem, Sprite, SpriteFactory},
+    },
+    events::KeyEvents,
+    registry::ComponentRegistry,
+    scenes::Scene,
+};
 
 /// The application struct which contains [`fennel_core::Window`], [`specs::World`] and `specs`
 /// `Dispatcher`
@@ -16,7 +32,9 @@ pub struct App {
     /// ECS dispatcher
     pub dispatcher: Dispatcher<'static, 'static>,
     /// Application scenes
-    pub scenes: Vec<Scene>
+    pub scenes: Vec<Scene>,
+    /// Registry of component factories for scene drawing
+    pub component_registry: ComponentRegistry,
 }
 
 /// Builder for [`App`]
@@ -25,7 +43,7 @@ pub struct AppBuilder {
     name: &'static str,
     dimensions: (u32, u32),
     config: &'static str,
-    window_config: WindowConfig
+    window_config: WindowConfig,
 }
 
 /// Application config defined by user
@@ -36,7 +54,7 @@ struct Config {
     /// Path to scenes directory
     scenes_path: String,
     /// First scene to display
-    initial_scene: String
+    initial_scene: String,
 }
 
 unsafe impl Send for App {}
@@ -67,7 +85,7 @@ impl App {
         // i'm 100% sure this app is single-threaded and its 11 pm
         // at the moment so i'm not gonna solve this shit in some
         // safe way
-        // as long this works and doesn't SEGFAULTs i'll keep it 
+        // as long this works and doesn't SEGFAULTs i'll keep it
         let ptr: *mut App = &mut self as *mut App;
         fennel_core::events::run(&mut self.window, unsafe { &mut *ptr as &mut App }).await;
         Ok(())
@@ -93,8 +111,8 @@ impl AppBuilder {
             window_config: WindowConfig {
                 resizable: false,
                 fullscreen: false,
-                centered: false
-            }
+                centered: false,
+            },
         }
     }
 
@@ -134,21 +152,35 @@ impl AppBuilder {
             graphics.expect("failed to initialize graphics"),
             resource_manager,
         );
+        let mut component_registry = ComponentRegistry::new();
         let mut world = specs::World::new();
         let mut dispatcher = DispatcherBuilder::new()
             .with_thread_local(RenderingSystem)
+            .with(SceneSystem, "scene_system", &[])
             .with(InputSystem, "input_system", &[])
             .build();
         let mut scenes: Vec<Scene> = vec![];
 
-        for entry in fs::read_dir(config.scenes_path).expect("meow") {
-            let scene_reader = fs::read(entry.unwrap().path()).expect("meow");
-            let scene: Scene = toml::from_slice(&scene_reader)?;
-            scenes.push(scene);
-        }
-
+        component_registry.register("sprite", Box::new(SpriteFactory));
+        world.register::<Scene>();
         world.register::<Sprite>();
         world.insert(KeyEvents::default());
+
+        for entry in fs::read_dir(config.scenes_path).expect("meow") {
+            let scene_reader = fs::read(entry.unwrap().path()).expect("meow");
+            let scene: Scene = ron::de::from_bytes(&scene_reader)?; 
+            world.create_entity().with(scene.clone()).build();
+            scenes.push(scene.clone());
+
+            for entity in &scene.entities {
+                for component in &entity.components {
+                    let factory = component_registry.get(&component.id)
+                        .unwrap_or_else(|| { panic!("no factory {} found", component.id) });
+                    let entity = world.create_entity().build();
+                    factory.insert(&mut world, entity, &component.config);
+                }
+            }
+        }
 
         dispatcher.setup(&mut world);
 
@@ -156,7 +188,8 @@ impl AppBuilder {
             window,
             world,
             dispatcher,
-            scenes
+            scenes,
+            component_registry
         })
     }
 }
