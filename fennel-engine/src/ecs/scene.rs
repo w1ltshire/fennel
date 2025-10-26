@@ -21,7 +21,9 @@ impl<'a> System<'a> for SceneSystem {
                         println!("loading component {} with parameters {:?}", component.id, component.config);
                         let entity = entities.create();
                         let factory = runtime.component_registry.get(&component.id)
-                            .expect("no factory found");
+                            .unwrap_or_else(|| {
+                                panic!("factory {} not found", component.id)
+                            });
                         factory.insert_lazy(&lazy, entity, &component.config);
                     }
                 }
