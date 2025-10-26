@@ -3,7 +3,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use fennel_core::{events::{self, WindowEventHandler}, graphics::{self, Graphics}, resources::ResourceManager, Window};
+use fennel_core::{
+    Window,
+    events::{self, WindowEventHandler},
+    graphics::{self, Graphics},
+    resources::ResourceManager,
+};
 use sdl3::pixels::Color;
 
 struct State;
@@ -34,19 +39,25 @@ async fn main() {
         String::from("my cool window"),
         (500, 500),
         resource_manager.clone(),
-        |graphics| { // we bulk load resources here because either we'll have to deal with
-                     // ownership of `graphics` (the actual `let graphics`, not the closure
-                     // argument)
-                     // you may think of it like about just some initialization func
-            resource_manager.lock().unwrap().load_dir(PathBuf::from("assets"), graphics).unwrap();
-        }
-    ).unwrap();
-    
+        |graphics| {
+            // we bulk load resources here because either we'll have to deal with
+            // ownership of `graphics` (the actual `let graphics`, not the closure
+            // argument)
+            // you may think of it like about just some initialization func
+            resource_manager
+                .lock()
+                .unwrap()
+                .load_dir(PathBuf::from("assets"), graphics)
+                .unwrap();
+        },
+    )
+    .unwrap();
+
     let mut window = Window::new(graphics, resource_manager.clone());
 
     // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we
     // need to do this seemingly weird thing (while `app.rs` in fennel-engine has an ass solution
-    // with raw pointers lmfao) 
+    // with raw pointers lmfao)
     let handler: &'static mut dyn WindowEventHandler = {
         let boxed = Box::new(State);
         Box::leak(boxed) as &'static mut dyn WindowEventHandler

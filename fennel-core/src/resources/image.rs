@@ -1,10 +1,9 @@
 use std::{path::PathBuf, rc::Rc};
 
 use image::ImageReader;
-use sdl3::{render::Texture, pixels::PixelFormat, surface::Surface};
+use sdl3::{pixels::PixelFormat, render::Texture, surface::Surface};
 
 use crate::{graphics::Graphics, resources::LoadableResource};
-
 
 unsafe impl Send for Image {}
 unsafe impl Sync for Image {}

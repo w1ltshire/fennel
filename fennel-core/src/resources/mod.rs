@@ -2,10 +2,13 @@ use std::{any::Any, cell::Ref, collections::HashMap, fs, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{graphics::Graphics, resources::{font::DummyFont, image::Image}};
+use crate::{
+    graphics::Graphics,
+    resources::{font::DummyFont, image::Image},
+};
 
-pub mod image;
 pub mod font;
+pub mod image;
 
 /// Manages a collection of loadable resources indexed by their name
 pub struct ResourceManager {
@@ -20,7 +23,7 @@ unsafe impl Sync for ResourceManager {}
 enum AssetType {
     Image,
     Audio,
-    Font
+    Font,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -29,13 +32,13 @@ struct Asset {
     name: String,
     path: String,
     #[serde(rename(deserialize = "type"))]
-    class: AssetType
+    class: AssetType,
 }
 
 #[derive(Deserialize, Debug)]
 /// Assets package manifest
 struct Manifest {
-    pub assets: Vec<Asset>
+    pub assets: Vec<Asset>,
 }
 
 /// Trait that all loadable assets must implement
@@ -53,7 +56,7 @@ pub trait LoadableResource: Any {
         path: PathBuf,
         name: String,
         graphics: &mut Graphics,
-        size: Option<f32>
+        size: Option<f32>,
     ) -> anyhow::Result<Box<dyn LoadableResource>>
     where
         Self: Sized;
@@ -79,7 +82,7 @@ pub trait LoadableResource: Any {
 /// evil &Box\<dyn LoadableResource> to &T
 #[allow(clippy::borrowed_box)] // i have no idea how can this be done better because here we box a
 // trait
-/// Downcast a '&Box<dyn LoadableResource>' to a concrete type 
+/// Downcast a '&Box<dyn LoadableResource>' to a concrete type
 pub fn downcast_ref<T: 'static + LoadableResource>(
     b: &Box<dyn LoadableResource>,
 ) -> anyhow::Result<&T> {
@@ -111,11 +114,16 @@ impl ResourceManager {
             match asset.class {
                 AssetType::Image => {
                     let path = path.join(asset.path);
-                    let image = Image::load(path.clone(), path.to_str().unwrap().to_string(), graphics, None)?;
+                    let image = Image::load(
+                        path.clone(),
+                        path.to_str().unwrap().to_string(),
+                        graphics,
+                        None,
+                    )?;
                     println!("{:?}", image.name());
                     self.cache_asset(image)?;
-                },
-                AssetType::Audio => {},
+                }
+                AssetType::Audio => {}
                 AssetType::Font => {
                     let path = path.join(asset.path);
                     let font = DummyFont::load(path, asset.name, graphics, None)?;
@@ -141,9 +149,10 @@ impl ResourceManager {
     // reference to a pointer >:3 and also clippy is angry at me for doing this
     #[allow(clippy::borrowed_box)] // same reason as in `as_concrete`
     pub fn get_asset(&self, name: String) -> anyhow::Result<&Box<dyn LoadableResource>> {
-        let asset = self.resources.get(&name).unwrap_or_else(|| {
-            panic!("asset {name} not found")
-        });
+        let asset = self
+            .resources
+            .get(&name)
+            .unwrap_or_else(|| panic!("asset {name} not found"));
         Ok(asset)
     }
 

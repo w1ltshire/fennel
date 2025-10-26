@@ -9,15 +9,24 @@ fn create_window() -> crate::Window {
     SDL_INIT.call_once(|| unsafe { std::env::set_var("SDL_VIDEODRIVER", "dummy") });
 
     let resouce_manager = Arc::new(Mutex::new(ResourceManager::new()));
-    let gfx =
-        crate::graphics::Graphics::new("my cool game".into(), (500, 500), resouce_manager.clone(), |_| {}, crate::graphics::WindowConfig { resizable: false, fullscreen: false, centered: true })
-            .unwrap();
+    let gfx = crate::graphics::Graphics::new(
+        "my cool game".into(),
+        (500, 500),
+        resouce_manager.clone(),
+        |_| {},
+        crate::graphics::WindowConfig {
+            resizable: false,
+            fullscreen: false,
+            centered: true,
+        },
+    )
+    .unwrap();
     crate::Window::new(gfx, resouce_manager.clone())
 }
 
 #[tokio::test]
 async fn image_load() {
-    use crate::{resources::downcast_ref, resources::image::Image, resources::LoadableResource};
+    use crate::{resources::LoadableResource, resources::downcast_ref, resources::image::Image};
 
     let mut game = create_window();
 

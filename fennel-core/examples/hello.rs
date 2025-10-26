@@ -3,7 +3,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use fennel_core::{events::{self, KeyboardEvent, WindowEventHandler}, graphics, resources::ResourceManager, Window};
+use fennel_core::{
+    Window,
+    events::{self, KeyboardEvent, WindowEventHandler},
+    graphics,
+    resources::ResourceManager,
+};
 use sdl3::pixels::Color;
 use tokio::runtime::Handle;
 
@@ -67,14 +72,18 @@ async fn main() {
         // argument)
         // you may think of it like about just some initialization func
         .initializer(|graphics| {
-            resource_manager.lock().unwrap().load_dir(PathBuf::from("assets"), graphics).unwrap();
+            resource_manager
+                .lock()
+                .unwrap()
+                .load_dir(PathBuf::from("assets"), graphics)
+                .unwrap();
         })
         .build();
     let mut window = Window::new(graphics.unwrap(), resource_manager);
 
     // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we
     // need to do this seemingly weird thing (while `app.rs` in fennel-engine has an ass solution
-    // with raw pointers lmfao) 
+    // with raw pointers lmfao)
     let handler: &'static mut dyn WindowEventHandler = {
         let boxed = Box::new(State);
         Box::leak(boxed) as &'static mut dyn WindowEventHandler

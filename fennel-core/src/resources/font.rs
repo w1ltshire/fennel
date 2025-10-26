@@ -1,8 +1,5 @@
 use anyhow::bail;
-use std::{
-    path::PathBuf,
-    rc::Rc,
-};
+use std::{path::PathBuf, rc::Rc};
 
 use crate::{graphics::Graphics, resources::LoadableResource};
 
@@ -36,12 +33,9 @@ impl LoadableResource for DummyFont {
         _size: Option<f32>,
     ) -> anyhow::Result<Box<dyn LoadableResource>>
     where
-        Self: Sized, {
-
-        Ok(Box::new(Self {
-            path,
-            name,
-        }))
+        Self: Sized,
+    {
+        Ok(Box::new(Self { path, name }))
     }
 
     fn name(&self) -> String {

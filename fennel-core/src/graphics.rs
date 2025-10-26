@@ -49,30 +49,30 @@ pub struct WindowConfig {
     /// Is the window fullscreen?
     pub fullscreen: bool,
     /// Is the window centered by default?
-    pub centered: bool
+    pub centered: bool,
 }
 
 /// Builder for creating a Graphics instance.
 pub struct GraphicsBuilder<F>
-where 
-    F: Fn(&mut Graphics)
+where
+    F: Fn(&mut Graphics),
 {
     resource_manager: Option<Arc<Mutex<ResourceManager>>>,
     dimensions: (u32, u32),
     name: String,
     initializer: Option<F>,
-    config: WindowConfig
+    config: WindowConfig,
 }
 
-impl<F> GraphicsBuilder<F> 
-where 
-    F: Fn(&mut Graphics)
+impl<F> GraphicsBuilder<F>
+where
+    F: Fn(&mut Graphics),
 {
     /// Create a new empty GraphicsBuilder
     /// By default there is no resource manager or resource initializer, dimensions are 0, 0, name
     /// is empty
     pub fn new() -> GraphicsBuilder<F> {
-        GraphicsBuilder { 
+        GraphicsBuilder {
             resource_manager: None,
             dimensions: (0, 0),
             name: "".to_string(),
@@ -80,13 +80,16 @@ where
             config: WindowConfig {
                 resizable: false,
                 fullscreen: false,
-                centered: false
-            }
+                centered: false,
+            },
         }
     }
 
     /// Set the resource manager
-    pub fn resource_manager(mut self, resource_manager: Arc<Mutex<ResourceManager>>) -> GraphicsBuilder<F> {
+    pub fn resource_manager(
+        mut self,
+        resource_manager: Arc<Mutex<ResourceManager>>,
+    ) -> GraphicsBuilder<F> {
         self.resource_manager = Some(resource_manager);
         self
     }
@@ -104,8 +107,9 @@ where
     }
 
     /// Set the resource initializer (closure)
-    pub fn initializer(mut self, initializer: F) -> GraphicsBuilder<F> where 
-        F: Fn(&mut Graphics)
+    pub fn initializer(mut self, initializer: F) -> GraphicsBuilder<F>
+    where
+        F: Fn(&mut Graphics),
     {
         self.initializer = Some(initializer);
         self
@@ -122,7 +126,7 @@ where
         self.config.fullscreen = fullscreen;
         self
     }
-    
+
     /// Will the window be centered?
     pub fn centered(mut self, centered: bool) -> GraphicsBuilder<F> {
         self.config.centered = centered;
@@ -135,18 +139,19 @@ where
     /// Panics if no resource manager or initializer was provided
     pub fn build(self) -> anyhow::Result<Graphics> {
         Ok(Graphics::new(
-            self.name, 
-            self.dimensions, 
+            self.name,
+            self.dimensions,
             self.resource_manager.expect("no resource manager provided"),
             self.initializer.expect("no resource initializer provided"),
-            self.config
-        ).unwrap())
+            self.config,
+        )
+        .unwrap())
     }
 }
 
 impl<F> Default for GraphicsBuilder<F>
-where 
-    F: Fn(&mut Graphics)
+where
+    F: Fn(&mut Graphics),
 {
     /// Default implementation delegates to `[GraphicsBuilder::new]`
     fn default() -> Self {
@@ -175,9 +180,11 @@ impl Graphics {
         dimensions: (u32, u32),
         resource_manager: Arc<Mutex<ResourceManager>>,
         resource_initialization: F,
-        config: WindowConfig
-    ) -> Result<Graphics, Box<dyn std::error::Error>> where 
-        F: Fn(&mut Graphics) {
+        config: WindowConfig,
+    ) -> Result<Graphics, Box<dyn std::error::Error>>
+    where
+        F: Fn(&mut Graphics),
+    {
         // TODO: allow the user to uh customize video_subsystem configuration 'cuz man this is ass why
         // do we position_centered() and resizable() it by default
 
@@ -185,16 +192,25 @@ impl Graphics {
         let ttf_context = sdl3::ttf::init().map_err(|e| e.to_string())?;
         let video_subsystem = sdl_context.video()?;
 
-        let mut builder = video_subsystem
-            .window(&name, dimensions.0, dimensions.1);
+        let mut builder = video_subsystem.window(&name, dimensions.0, dimensions.1);
 
-        let _ = if config.centered { builder.position_centered() } else { &mut builder };
-        let _ = if config.resizable { builder.resizable() } else { &mut builder };
-        let _ = if config.fullscreen { builder.fullscreen() } else { &mut builder };
+        let _ = if config.centered {
+            builder.position_centered()
+        } else {
+            &mut builder
+        };
+        let _ = if config.resizable {
+            builder.resizable()
+        } else {
+            &mut builder
+        };
+        let _ = if config.fullscreen {
+            builder.fullscreen()
+        } else {
+            &mut builder
+        };
 
-        let window = builder
-            .build()
-            .map_err(|e| e.to_string())?;
+        let window = builder.build().map_err(|e| e.to_string())?;
 
         let canvas = window.into_canvas();
         let texture_creator = canvas.texture_creator();

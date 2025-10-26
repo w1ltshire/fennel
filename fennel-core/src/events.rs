@@ -110,7 +110,7 @@ pub trait WindowEventHandler: Send + Sync {
 /// let mut window = Window::new("cool title".into(), "cool author".into(), graphics);
 /// events::run(&mut window, Box::new(my_handler));
 /// ```
-pub async fn run(window: &mut Window, state:  &'static mut dyn WindowEventHandler) {
+pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler) {
     let mut event_pump = window.graphics.sdl_context.event_pump().unwrap();
 
     'running: loop {

@@ -1,7 +1,11 @@
 //! Core window-related API for Fennel engine
 use std::sync::{Arc, Mutex};
 
-use crate::{audio::Audio, graphics::{Graphics, HasWindow}, resources::ResourceManager};
+use crate::{
+    audio::Audio,
+    graphics::{Graphics, HasWindow},
+    resources::ResourceManager,
+};
 
 /// Audio playback
 pub mod audio;
