@@ -19,7 +19,7 @@ use crate::{
     },
     events::KeyEvents,
     registry::ComponentRegistry,
-    scenes::Scene,
+    scenes::{ActiveScene, Scene},
 };
 
 /// The application struct which contains [`fennel_core::Window`], [`specs::World`] and `specs`
@@ -35,6 +35,8 @@ pub struct App {
     pub scenes: Vec<Scene>,
     /// Registry of component factories for scene drawing
     pub component_registry: ComponentRegistry,
+    /// Current active scene
+    pub active_scene: ActiveScene
 }
 
 /// Builder for [`App`]
@@ -171,15 +173,6 @@ impl AppBuilder {
             let scene: Scene = ron::de::from_bytes(&scene_reader)?; 
             world.create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());
-
-            for entity in &scene.entities {
-                for component in &entity.components {
-                    let factory = component_registry.get(&component.id)
-                        .unwrap_or_else(|| { panic!("no factory {} found", component.id) });
-                    let entity = world.create_entity().build();
-                    factory.insert(&mut world, entity, &component.config);
-                }
-            }
         }
 
         dispatcher.setup(&mut world);
@@ -189,7 +182,9 @@ impl AppBuilder {
             world,
             dispatcher,
             scenes,
-            component_registry
+            component_registry,
+            // assuming the initial scene name is `main`
+            active_scene: ActiveScene { name: String::from("main"), loaded: false }
         })
     }
 }

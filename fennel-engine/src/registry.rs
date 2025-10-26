@@ -1,5 +1,5 @@
 use ron::Value;
-use specs::{Entity, World};
+use specs::{Entity, LazyUpdate, World};
 use std::collections::HashMap;
 
 /// All components must have a factory implementing this trait to be able created from a scene
@@ -7,6 +7,8 @@ use std::collections::HashMap;
 pub trait ComponentFactory: Send + Sync {
     /// Build a component from `value` and insert it into `entity` of `world`
     fn insert(&self, world: &mut World, entity: Entity, value: &Value);
+    /// Build a component from `value` and lazily insert it into `entity` of `world`
+    fn insert_lazy(&self, lazy: &LazyUpdate, entity: Entity, value: &Value);
 }
 
 /// Registry of component name - component factory

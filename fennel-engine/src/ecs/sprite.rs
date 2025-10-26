@@ -1,6 +1,6 @@
 use ron::Value;
 use serde::Deserialize;
-use specs::{Entity, Join, ReadStorage, System, World, WorldExt, WriteExpect};
+use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
 
 use crate::{app::App, registry::ComponentFactory};
 
@@ -35,6 +35,12 @@ impl ComponentFactory for SpriteFactory {
         let sprite = ron::value::Value::into_rust::<Sprite>(value.clone());
         println!("{:#?}", sprite);
         world.write_storage::<Sprite>().insert(entity, sprite.expect("failed to construct a sprite")).unwrap();
+    }
+
+    fn insert_lazy(&self, lazy: &LazyUpdate, entity: Entity, value: &Value) {
+        let sprite = ron::value::Value::into_rust::<Sprite>(value.clone())
+            .expect("failed to construct a sprite");
+        lazy.insert(entity, sprite);
     }
 }
 

@@ -31,3 +31,11 @@ pub struct ComponentDescriptor {
     /// Component configuration
     pub config: Value,
 }
+
+/// Struct holding active scene information
+pub struct ActiveScene {
+    /// Scene name in the config
+    pub name: String,
+    /// Have the scene been successfully loaded by [`crate::ecs::scene::SceneSystem`]?
+    pub loaded: bool,
+}
