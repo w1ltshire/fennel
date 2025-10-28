@@ -74,8 +74,7 @@ impl WindowEventHandler for App {
         Ok(())
     }
 
-    fn key_down_event(&self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
-        println!("{:?}", event.keycode);
+    fn key_down_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
         Ok(())
     }
 }
