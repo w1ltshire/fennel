@@ -7,7 +7,8 @@ A small 2D game framework I'm building just-for-fun and to learn Rust a little b
 <img alt="Crates.io Version" src="https://img.shields.io/crates/v/fennel-core?label=fennel-core">
 </p
 
-Crates won't be updated until I (hopefully) release a stable 2.0 version, as development involves lots of breaking changes and the project isn't feature full at the moment.
+Crates won't be updated until I (hopefully) release a stable 2.0 version, as development involves lots of breaking changes and the project isn't feature full at the moment. Also I'm insanely bad at writing docs.
+
 
 ## Roadmap
 - [x] Rendering
