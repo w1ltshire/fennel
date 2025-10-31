@@ -2,7 +2,7 @@ use ron::Value;
 use serde::Deserialize;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
 
-use crate::{app::App, registry::ComponentFactory};
+use crate::{app::App, ecs::transform::Transform, registry::ComponentFactory};
 
 /// A raw pointer wrapper to the application
 pub struct HostPtr(pub *mut App);
@@ -19,8 +19,8 @@ unsafe impl Sync for HostPtr {}
 pub struct Sprite {
     /// Sprite asset id in the resource manager
     pub image: String,
-    /// Sprite position on the screen
-    pub position: (f32, f32),
+    /// Representing sprite's transformation in the 2D world
+    pub transform: Transform
 }
 
 impl specs::Component for Sprite {
@@ -60,7 +60,13 @@ impl<'a> System<'a> for RenderingSystem {
         for sprite in (&sprites).join() {
             window
                 .graphics
-                .draw_image(sprite.image.clone(), sprite.position)
+                .draw_image(
+                    sprite.image.clone(),
+                    sprite.transform.position,
+                    sprite.transform.rotation,
+                    false,
+                    false
+                )
                 .unwrap();
         }
     }

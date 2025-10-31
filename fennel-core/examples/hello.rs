@@ -25,7 +25,7 @@ impl WindowEventHandler for State {
         window.graphics.canvas.clear();
         window
             .graphics
-            .draw_image("assets/example.png".to_string(), (0.0, 0.0))
+            .draw_image("assets/example.png".to_string(), (0.0, 0.0), 90.0, false, false)
             .expect("failed to draw an image");
         window.graphics.draw_text(
             String::from("hi"),

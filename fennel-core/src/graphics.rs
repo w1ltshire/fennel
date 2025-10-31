@@ -229,19 +229,22 @@ impl Graphics {
 
     /// Cache an image if it isn't cached and draw it on the canvas
     ///
-    /// # Parameters
-    /// - `path`: Path to the image
-    /// - `position`: Where to draw the image in the window (x,y) in pixels (f32).
-    ///
     /// # Returns
     /// - `Ok(())` on success.
     /// - `Err(Box<dyn std::error::Error>)` on failure
     ///
     /// # Example
     /// ```ignore
-    /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0)).await;
+    /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0), 0.0, false, false).await;
     /// ```
-    pub fn draw_image(&mut self, path: String, position: (f32, f32)) -> anyhow::Result<()> {
+    pub fn draw_image(
+        &mut self,
+        path: String,
+        position: (f32, f32),
+        rotation: f64,
+        flip_horizontal: bool,
+        flip_vertical: bool
+    ) -> anyhow::Result<()> {
         let manager = self.resource_manager.clone();
         let mut manager = manager
             .try_lock()
@@ -262,15 +265,16 @@ impl Graphics {
             image.width as f32,
             image.height as f32,
         );
+
         self.canvas
             .copy_ex(
                 &image.texture,
                 None,
                 Some(dst_rect),
-                0.0,
+                rotation,
                 None,
-                false,
-                false,
+                flip_horizontal,
+                flip_vertical,
             )
             .unwrap();
 

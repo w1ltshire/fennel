@@ -8,14 +8,22 @@
                   id: "sprite",
                   config: (
                     image: "assets/example.png",
-                    position: (0.0, 0.0)
+                    transform: (
+                      position: (0.0, 0.0),
+                      rotation: 0.0,
+                      scale: 0.0
+                    )
                   )
                 ),
                 (
                   id: "sprite",
                   config: (
                     image: "assets/example.png",
-                    position: (0.0, 500.0)
+                    transform: (
+                      position: (0.0, 500.0),
+                      rotation: 90.0,
+                      scale: 0.0
+                    )
                   )
                 ),
             ],
