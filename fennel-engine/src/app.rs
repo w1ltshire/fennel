@@ -13,7 +13,6 @@ use specs::{Builder, Dispatcher, DispatcherBuilder, WorldExt};
 
 use crate::{
     ecs::{
-        input::InputSystem,
         scene::SceneSystem,
         sprite::{HostPtr, RenderingSystem, Sprite, SpriteFactory},
     },
@@ -36,7 +35,7 @@ pub struct App {
     /// Registry of component factories for scene drawing
     pub component_registry: ComponentRegistry,
     /// Current active scene
-    pub active_scene: ActiveScene
+    pub active_scene: ActiveScene,
 }
 
 /// Builder for [`App`]
@@ -64,7 +63,7 @@ unsafe impl Sync for App {}
 
 #[async_trait::async_trait]
 impl WindowEventHandler for App {
-    fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
+    fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -74,7 +73,9 @@ impl WindowEventHandler for App {
         Ok(())
     }
 
-    fn key_down_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_down_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
+        println!("pushing ~~t3mprr~~ event into KeyEvents");
+        self.world.write_resource::<KeyEvents>().0.push(event);
         Ok(())
     }
 }
@@ -87,6 +88,8 @@ impl App {
         // at the moment so i'm not gonna solve this shit in some
         // safe way
         // as long this works and doesn't SEGFAULTs i'll keep it
+        //
+        // TODO: make it safe
         let ptr: *mut App = &mut self as *mut App;
         fennel_core::events::run(&mut self.window, unsafe { &mut *ptr as &mut App }).await;
         Ok(())
@@ -158,7 +161,6 @@ impl AppBuilder {
         let mut dispatcher = DispatcherBuilder::new()
             .with_thread_local(RenderingSystem)
             .with(SceneSystem, "scene_system", &[])
-            .with(InputSystem, "input_system", &[])
             .build();
         let mut scenes: Vec<Scene> = vec![];
 

@@ -16,7 +16,7 @@ struct State;
 
 #[async_trait::async_trait]
 impl WindowEventHandler for State {
-    fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
+    fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -45,7 +45,7 @@ impl WindowEventHandler for State {
         Ok(())
     }
 
-    fn key_down_event(&self, window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_down_event(&mut self, window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
         println!("{:?}", event.keycode);
         tokio::task::block_in_place(move || {
             Handle::current().block_on(async move {

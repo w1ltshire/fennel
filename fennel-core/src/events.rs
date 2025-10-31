@@ -55,38 +55,38 @@ pub struct MouseWheelEvent {
 
 #[async_trait::async_trait]
 pub trait WindowEventHandler: Send + Sync {
-    fn update(&self, _window: &mut Window) -> anyhow::Result<()>;
+    fn update(&mut self, _window: &mut Window) -> anyhow::Result<()>;
     fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()>;
 
-    fn key_down_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_down_event(&mut self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
         Ok(())
     }
-    fn key_up_event(&self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_up_event(&mut self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
         Ok(())
     }
     fn mouse_motion_event(
-        &self,
+        &mut self,
         _window: &mut Window,
         _event: MouseMotionEvent,
     ) -> anyhow::Result<()> {
         Ok(())
     }
     fn mouse_button_down_event(
-        &self,
+        &mut self,
         _window: &mut Window,
         _event: MouseClickEvent,
     ) -> anyhow::Result<()> {
         Ok(())
     }
     fn mouse_button_up_event(
-        &self,
+        &mut self,
         _window: &mut Window,
         _event: MouseClickEvent,
     ) -> anyhow::Result<()> {
         Ok(())
     }
     fn mouse_wheel_event(
-        &self,
+        &mut self,
         _window: &mut Window,
         _event: MouseWheelEvent,
     ) -> anyhow::Result<()> {
