@@ -243,7 +243,7 @@ impl Graphics {
         position: (f32, f32),
         rotation: f64,
         flip_horizontal: bool,
-        flip_vertical: bool
+        flip_vertical: bool,
     ) -> anyhow::Result<()> {
         let manager = self.resource_manager.clone();
         let mut manager = manager

@@ -20,7 +20,7 @@ pub struct Sprite {
     /// Sprite asset id in the resource manager
     pub image: String,
     /// Representing sprite's transformation in the 2D world
-    pub transform: Transform
+    pub transform: Transform,
 }
 
 impl specs::Component for Sprite {
@@ -34,7 +34,10 @@ impl ComponentFactory for SpriteFactory {
     fn insert(&self, world: &mut World, entity: Entity, value: &Value) {
         let sprite = ron::value::Value::into_rust::<Sprite>(value.clone());
         println!("{:#?}", sprite);
-        world.write_storage::<Sprite>().insert(entity, sprite.expect("failed to construct a sprite")).unwrap();
+        world
+            .write_storage::<Sprite>()
+            .insert(entity, sprite.expect("failed to construct a sprite"))
+            .unwrap();
     }
 
     fn insert_lazy(&self, lazy: &LazyUpdate, entity: Entity, value: &Value) {
@@ -65,7 +68,7 @@ impl<'a> System<'a> for RenderingSystem {
                     sprite.transform.position,
                     sprite.transform.rotation,
                     false,
-                    false
+                    false,
                 )
                 .unwrap();
         }

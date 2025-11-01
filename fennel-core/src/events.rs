@@ -58,7 +58,11 @@ pub trait WindowEventHandler: Send + Sync {
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()>;
     fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()>;
 
-    fn key_down_event(&mut self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_down_event(
+        &mut self,
+        _window: &mut Window,
+        _event: KeyboardEvent,
+    ) -> anyhow::Result<()> {
         Ok(())
     }
     fn key_up_event(&mut self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {

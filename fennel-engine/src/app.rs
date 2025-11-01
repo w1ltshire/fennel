@@ -46,7 +46,7 @@ pub struct AppBuilder {
     config: &'static str,
     window_config: WindowConfig,
     world: World,
-    component_registry: ComponentRegistry
+    component_registry: ComponentRegistry,
 }
 
 /// Application config defined by user
@@ -105,7 +105,6 @@ impl App {
         self.world.maintain();
         self.world.remove::<HostPtr>();
     }
-
 }
 
 impl AppBuilder {
@@ -121,7 +120,7 @@ impl AppBuilder {
                 centered: false,
             },
             world: World::new(),
-            component_registry: ComponentRegistry::new()
+            component_registry: ComponentRegistry::new(),
         }
     }
 
@@ -146,11 +145,14 @@ impl AppBuilder {
     pub fn with_component<C: Component, F: ComponentFactory + 'static>(
         mut self,
         name: &'static str,
-        component_factory: F
+        component_factory: F,
     ) -> AppBuilder
-    where <C as Component>::Storage: Default {
+    where
+        <C as Component>::Storage: Default,
+    {
         self.world.register::<C>();
-        self.component_registry.register(name, Box::new(component_factory));
+        self.component_registry
+            .register(name, Box::new(component_factory));
         self
     }
 
@@ -164,9 +166,13 @@ impl AppBuilder {
             self.dimensions,
             resource_manager.clone(),
             |graphics| {
-                resource_manager.lock().unwrap().load_dir(config.assets_path.clone().into(), graphics).unwrap();
+                resource_manager
+                    .lock()
+                    .unwrap()
+                    .load_dir(config.assets_path.clone().into(), graphics)
+                    .unwrap();
             },
-            self.window_config
+            self.window_config,
         );
         let window = fennel_core::Window::new(
             graphics.expect("failed to initialize graphics"),
@@ -186,7 +192,7 @@ impl AppBuilder {
 
         for entry in fs::read_dir(config.scenes_path).expect("meow") {
             let scene_reader = fs::read(entry.unwrap().path()).expect("meow");
-            let scene: Scene = ron::de::from_bytes(&scene_reader)?; 
+            let scene: Scene = ron::de::from_bytes(&scene_reader)?;
             self.world.create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());
         }
@@ -200,7 +206,10 @@ impl AppBuilder {
             scenes,
             component_registry,
             // assuming the initial scene name is `main`
-            active_scene: ActiveScene { name: String::from("main"), loaded: false }
+            active_scene: ActiveScene {
+                name: String::from("main"),
+                loaded: false,
+            },
         })
     }
 }

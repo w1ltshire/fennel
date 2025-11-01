@@ -24,7 +24,13 @@ impl WindowEventHandler for State {
         window.graphics.canvas.clear();
         window
             .graphics
-            .draw_image("assets/example.png".to_string(), (0.0, 0.0), 0.0, false, false)
+            .draw_image(
+                "assets/example.png".to_string(),
+                (0.0, 0.0),
+                0.0,
+                false,
+                false,
+            )
             .expect("failed to draw an image");
 
         window.graphics.canvas.present();
@@ -50,7 +56,11 @@ async fn main() {
                 .load_dir(PathBuf::from("assets"), graphics)
                 .unwrap();
         },
-        graphics::WindowConfig { resizable: false, fullscreen: false, centered: false }
+        graphics::WindowConfig {
+            resizable: false,
+            fullscreen: false,
+            centered: false,
+        },
     )
     .unwrap();
 
