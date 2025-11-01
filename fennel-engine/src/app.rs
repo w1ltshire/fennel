@@ -9,7 +9,7 @@ use fennel_core::{
     graphics::WindowConfig,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Builder, Dispatcher, DispatcherBuilder, WorldExt};
+use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use crate::{
     ecs::{
@@ -17,7 +17,7 @@ use crate::{
         sprite::{HostPtr, RenderingSystem, Sprite, SpriteFactory},
     },
     events::KeyEvents,
-    registry::ComponentRegistry,
+    registry::{ComponentFactory, ComponentRegistry},
     scenes::{ActiveScene, Scene},
 };
 
@@ -39,12 +39,14 @@ pub struct App {
 }
 
 /// Builder for [`App`]
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct AppBuilder {
     name: &'static str,
     dimensions: (u32, u32),
     config: &'static str,
     window_config: WindowConfig,
+    world: World,
+    component_registry: ComponentRegistry
 }
 
 /// Application config defined by user
@@ -103,6 +105,7 @@ impl App {
         self.world.maintain();
         self.world.remove::<HostPtr>();
     }
+
 }
 
 impl AppBuilder {
@@ -117,6 +120,8 @@ impl AppBuilder {
                 fullscreen: false,
                 centered: false,
             },
+            world: World::new(),
+            component_registry: ComponentRegistry::new()
         }
     }
 
@@ -138,8 +143,19 @@ impl AppBuilder {
         self
     }
 
+    pub fn with_component<C: Component, F: ComponentFactory + 'static>(
+        mut self,
+        name: &'static str,
+        component_factory: F
+    ) -> AppBuilder
+    where <C as Component>::Storage: Default {
+        self.world.register::<C>();
+        self.component_registry.register(name, Box::new(component_factory));
+        self
+    }
+
     /// Builds an [`App`]
-    pub fn build(self) -> anyhow::Result<App> {
+    pub fn build(mut self) -> anyhow::Result<App> {
         let resource_manager = Arc::new(Mutex::new(fennel_core::resources::ResourceManager::new()));
         let config_reader = fs::read(self.config)?;
         let config: Config = toml::from_slice(&config_reader)?;
@@ -157,7 +173,6 @@ impl AppBuilder {
             resource_manager,
         );
         let mut component_registry = ComponentRegistry::new();
-        let mut world = specs::World::new();
         let mut dispatcher = DispatcherBuilder::new()
             .with_thread_local(RenderingSystem)
             .with(SceneSystem, "scene_system", &[])
@@ -165,22 +180,22 @@ impl AppBuilder {
         let mut scenes: Vec<Scene> = vec![];
 
         component_registry.register("sprite", Box::new(SpriteFactory));
-        world.register::<Scene>();
-        world.register::<Sprite>();
-        world.insert(KeyEvents::default());
+        self.world.register::<Scene>();
+        self.world.register::<Sprite>();
+        self.world.insert(KeyEvents::default());
 
         for entry in fs::read_dir(config.scenes_path).expect("meow") {
             let scene_reader = fs::read(entry.unwrap().path()).expect("meow");
             let scene: Scene = ron::de::from_bytes(&scene_reader)?; 
-            world.create_entity().with(scene.clone()).build();
+            self.world.create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());
         }
 
-        dispatcher.setup(&mut world);
+        dispatcher.setup(&mut self.world);
 
         Ok(App {
             window,
-            world,
+            world: self.world,
             dispatcher,
             scenes,
             component_registry,
