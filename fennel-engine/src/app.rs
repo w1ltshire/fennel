@@ -178,17 +178,16 @@ impl AppBuilder {
             graphics.expect("failed to initialize graphics"),
             resource_manager,
         );
-        let mut component_registry = ComponentRegistry::new();
         let mut dispatcher = DispatcherBuilder::new()
             .with_thread_local(RenderingSystem)
             .with(SceneSystem, "scene_system", &[])
             .build();
         let mut scenes: Vec<Scene> = vec![];
 
-        component_registry.register("sprite", Box::new(SpriteFactory));
         self.world.register::<Scene>();
-        self.world.register::<Sprite>();
         self.world.insert(KeyEvents::default());
+
+        self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
 
         for entry in fs::read_dir(config.scenes_path).expect("meow") {
             let scene_reader = fs::read(entry.unwrap().path()).expect("meow");
@@ -204,7 +203,7 @@ impl AppBuilder {
             world: self.world,
             dispatcher,
             scenes,
-            component_registry,
+            component_registry: self.component_registry,
             // assuming the initial scene name is `main`
             active_scene: ActiveScene {
                 name: String::from("main"),

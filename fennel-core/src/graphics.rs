@@ -42,7 +42,7 @@ pub struct Graphics {
 }
 
 /// Config for [`Graphics::new`] and for [`GraphicsBuilder`]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct WindowConfig {
     /// Is the window resizable?
     pub resizable: bool,
