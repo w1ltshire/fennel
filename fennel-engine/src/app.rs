@@ -14,10 +14,11 @@ use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
 use crate::{
     ecs::{
         scene::SceneSystem,
-        sprite::{HostPtr, RenderingSystem, Sprite, SpriteFactory},
+        sprite::{HostPtr, Sprite, SpriteFactory, SpriteRenderingSystem},
     },
     events::KeyEvents,
     registry::{ComponentFactory, ComponentRegistry},
+    renderer::{QueuedRenderingSystem, RenderQueue},
     scenes::{ActiveScene, Scene},
 };
 
@@ -179,13 +180,15 @@ impl AppBuilder {
             resource_manager,
         );
         let mut dispatcher = DispatcherBuilder::new()
-            .with_thread_local(RenderingSystem)
+            .with_thread_local(QueuedRenderingSystem)
             .with(SceneSystem, "scene_system", &[])
+            .with(SpriteRenderingSystem, "sprite_rendering_system", &[])
             .build();
         let mut scenes: Vec<Scene> = vec![];
 
         self.world.register::<Scene>();
         self.world.insert(KeyEvents::default());
+        self.world.insert(RenderQueue::new());
 
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
 

@@ -7,5 +7,7 @@ pub mod ecs;
 pub mod events;
 /// Module providing component registry
 pub mod registry;
+/// Module providing advanced rendering functionality
+pub mod renderer;
 /// Module providing functionality of scenes
 pub mod scenes;

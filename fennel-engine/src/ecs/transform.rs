@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 /// Transform component, containing position in the window, scale and rotation
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Transform {
     /// Position in the window (x, y)
     pub position: (f32, f32),

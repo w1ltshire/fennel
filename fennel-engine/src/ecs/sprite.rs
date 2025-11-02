@@ -2,7 +2,9 @@ use ron::Value;
 use serde::Deserialize;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
 
-use crate::{app::App, ecs::transform::Transform, registry::ComponentFactory};
+use crate::{
+    app::App, ecs::transform::Transform, registry::ComponentFactory, renderer::RenderQueue,
+};
 
 /// A raw pointer wrapper to the application
 pub struct HostPtr(pub *mut App);
@@ -15,7 +17,7 @@ unsafe impl Sync for HostPtr {}
 /// # Fields
 /// - image: identifier or path of the image to draw
 /// - position: tuple (x, y) position on screen
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Sprite {
     /// Sprite asset id in the resource manager
     pub image: String,
@@ -47,30 +49,19 @@ impl ComponentFactory for SpriteFactory {
     }
 }
 
-/// ECS system that renders Sprite components.
+/// ECS system that queues [`Sprite`]s for rendering
 ///
 /// The system reads all Sprite components from the world and obtains a mutable
 /// reference to the host App through the HostPtr resource
-pub struct RenderingSystem;
+pub struct SpriteRenderingSystem;
 
-impl<'a> System<'a> for RenderingSystem {
-    type SystemData = (ReadStorage<'a, Sprite>, WriteExpect<'a, HostPtr>);
+impl<'a> System<'a> for SpriteRenderingSystem {
+    type SystemData = (ReadStorage<'a, Sprite>, WriteExpect<'a, RenderQueue>);
 
-    fn run(&mut self, (sprites, mut host_ptr): Self::SystemData) {
-        let runtime: &mut App = unsafe { &mut *host_ptr.0 };
-        let window = &mut runtime.window;
-
+    fn run(&mut self, (sprites, mut rq): Self::SystemData) {
         for sprite in (&sprites).join() {
-            window
-                .graphics
-                .draw_image(
-                    sprite.image.clone(),
-                    sprite.transform.position,
-                    sprite.transform.rotation,
-                    false,
-                    false,
-                )
-                .unwrap();
+            rq.queue
+                .push(crate::renderer::Drawable::Image(sprite.clone()));
         }
     }
 }

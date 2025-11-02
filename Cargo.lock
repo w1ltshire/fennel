@@ -629,6 +629,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "fennel-core",
+ "log",
  "rhai",
  "ron",
  "sdl3",
