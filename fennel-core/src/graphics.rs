@@ -9,6 +9,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
+use anyhow::anyhow;
 use sdl3::Sdl;
 use sdl3::pixels::{Color, PixelFormat};
 use sdl3::render::{Canvas, FRect};
@@ -225,6 +226,28 @@ impl Graphics {
         resource_initialization(&mut graphics);
 
         Ok(graphics)
+    }
+
+    /// Draw a rectangle on position (x, y) with dimensions (w, h)
+    pub fn draw_rect(
+        &mut self,
+        w: f32,
+        h: f32,
+        x: f32,
+        y: f32
+    ) -> anyhow::Result<()> {
+        self.canvas.draw_rect(FRect { x, y, w, h })?;
+        Ok(())
+    }
+
+    /// Draw a rectangle on position (x, y) with dimensions (w, h)
+    pub fn draw_line(
+        &mut self,
+        p1: (f32, f32),
+        p2: (f32, f32)
+    ) -> anyhow::Result<()> {
+        self.canvas.draw_line(p1, p2)?;
+        Ok(())
     }
 
     /// Cache an image if it isn't cached and draw it on the canvas

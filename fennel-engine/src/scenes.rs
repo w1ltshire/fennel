@@ -1,6 +1,7 @@
 //! Scenes are compositions of entities/components and scripts the user sees on their screen.
 //! A scene has a name, a list of scripts it uses (doesn't actually owns them, retrieves from
 //! resource manager) and a list of entities (same as with scripts)
+use log::debug;
 use ron::Value;
 use serde::Deserialize;
 use specs::{Component, DenseVecStorage};
@@ -63,7 +64,7 @@ impl<'a> System<'a> for SceneSystem {
             if !runtime.active_scene.loaded {
                 for ent_def in &scene.entities {
                     for component in &ent_def.components {
-                        println!(
+                        debug!(
                             "loading component {} with parameters {:?}",
                             component.id, component.config
                         );
