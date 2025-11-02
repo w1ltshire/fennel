@@ -8,18 +8,16 @@ use fennel_core::{
     events::{KeyboardEvent, WindowEventHandler},
     graphics::WindowConfig,
 };
+use log::debug;
 use serde::{Deserialize, Serialize};
 use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use crate::{
-    ecs::{
-        scene::SceneSystem,
-        sprite::{HostPtr, Sprite, SpriteFactory, SpriteRenderingSystem},
-    },
+    ecs::sprite::{HostPtr, Sprite, SpriteFactory, SpriteRenderingSystem},
     events::KeyEvents,
     registry::{ComponentFactory, ComponentRegistry},
     renderer::{QueuedRenderingSystem, RenderQueue},
-    scenes::{ActiveScene, Scene},
+    scenes::{ActiveScene, Scene, SceneSystem},
 };
 
 /// The application struct which contains [`fennel_core::Window`], [`specs::World`] and `specs`
@@ -77,7 +75,7 @@ impl WindowEventHandler for App {
     }
 
     fn key_down_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
-        println!("pushing ~~t3mprr~~ event into KeyEvents");
+        debug!("pushing event to resource KeyEvents");
         self.world.write_resource::<KeyEvents>().0.push(event);
         Ok(())
     }
