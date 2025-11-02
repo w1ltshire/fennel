@@ -42,7 +42,7 @@ impl Window {
     /// - `graphics`: initialized graphics subsystem
     ///
     /// # Returns
-    /// A [`Window`] instance ready to be used by an [`EventHandler`].
+    /// A [`Window`] instance ready to be used by an [`events::WindowEventHandler`].
     pub fn new(graphics: Graphics, resource_manager: Arc<Mutex<ResourceManager>>) -> Window {
         Window {
             graphics,
