@@ -9,7 +9,6 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
-use anyhow::anyhow;
 use sdl3::Sdl;
 use sdl3::pixels::{Color, PixelFormat};
 use sdl3::render::{Canvas, FRect};

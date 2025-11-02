@@ -103,7 +103,7 @@ pub trait WindowEventHandler: Send + Sync {
 /// Parameters:
 /// - `window`: mutable reference to your `Window`. required because [`Window`] contains required
 ///   gfx variables
-/// - `state`: boxed implementation of [`WindowEventHandler`] that receives update/draw calls
+/// - `state`: boxed implementation of [`EventHandler`] that receives update/draw calls
 ///
 /// Behavior:
 /// - Polls SDL events each frame and breaks the loop on `Event::Quit`.

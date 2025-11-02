@@ -46,8 +46,13 @@ impl<'a> System<'a> for QueuedRenderingSystem {
                             false,
                         )
                         .unwrap();
+                },
+                Drawable::Rect { w, h, x, y } => {
+                    window
+                        .graphics
+                        .draw_rect(w, h, x, y)
+                        .unwrap();
                 }
-                _ => todo!(),
             }
         }
     }
