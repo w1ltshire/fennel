@@ -94,5 +94,5 @@ async fn main() {
         let boxed = Box::new(State);
         Box::leak(boxed) as &'static mut dyn WindowEventHandler
     };
-    events::run(&mut window, handler).await;
+    events::run(&mut window, handler, vec![]).await;
 }

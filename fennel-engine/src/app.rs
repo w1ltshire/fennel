@@ -92,7 +92,7 @@ impl App {
         //
         // TODO: make it safe
         let ptr: *mut App = &mut self as *mut App;
-        fennel_core::events::run(&mut self.window, unsafe { &mut *ptr as &mut App }).await;
+        fennel_core::events::run(&mut self.window, unsafe { &mut *ptr as &mut App }, vec![]).await;
         Ok(())
     }
 

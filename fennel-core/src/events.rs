@@ -1,9 +1,10 @@
 //! `sdl3::event::Event`-driven main loop.
 
+use log::debug;
 use sdl3::event::Event;
 use std::time::{Duration, Instant};
 
-use crate::Window;
+use crate::{Window, hooks::Hook};
 
 use sdl3::{
     keyboard::{Keycode, Mod, Scancode},
@@ -114,14 +115,22 @@ pub trait WindowEventHandler: Send + Sync {
 /// let mut window = Window::new("cool title".into(), "cool author".into(), graphics);
 /// events::run(&mut window, Box::new(my_handler));
 /// ```
-pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler) {
+pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler, mut hooks: Vec<Box<dyn Hook>>) {
     let mut event_pump = window.graphics.sdl_context.event_pump().unwrap();
 
     'running: loop {
         let now = Instant::now();
 
+        for hook in &hooks {
+            debug!("preparing hook {}", hook.name());
+        }
+
         // event_PUMP???? HOLY FUCK IS THAT A REFERENCE TO PSYCHOPOMP
         for event in event_pump.poll_iter() {
+            for hook in &mut hooks {
+                hook.handle(&event);
+            }
+
             match event {
                 Event::Quit { .. } => break 'running,
                 Event::KeyDown {
@@ -275,6 +284,10 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
         // Update window logic and render.
         let _ = state.update(window);
         let _ = state.draw(window);
+
+        for hook in &mut hooks {
+            hook.update();
+        }
 
         // Simple frame limiter: aim for ~1 millisecond minimum frame time.
         let elapsed = Instant::now().duration_since(now).as_nanos() as u64;

@@ -15,6 +15,8 @@ pub mod events;
 pub mod graphics;
 /// Resource management
 pub mod resources;
+/// Hooks to inject into [`events::run`]
+pub mod hooks;
 /// Tests
 mod tests;
 
