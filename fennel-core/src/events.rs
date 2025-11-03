@@ -121,8 +121,9 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
     'running: loop {
         let now = Instant::now();
 
-        for hook in &hooks {
+        for hook in &mut hooks {
             debug!("preparing hook {}", hook.name());
+            hook.prepare();
         }
 
         // event_PUMP???? HOLY FUCK IS THAT A REFERENCE TO PSYCHOPOMP
