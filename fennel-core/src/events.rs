@@ -119,7 +119,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
     let mut event_pump = window.graphics.sdl_context.event_pump().unwrap();
     for hook in &mut hooks {
         debug!("preparing hook {}", hook.name());
-        hook.prepare();
+        hook.prepare(&mut event_pump, window);
     }
 
     'running: loop {
@@ -286,7 +286,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
         let _ = state.draw(window);
 
         for hook in &mut hooks {
-            hook.update();
+            hook.update(&mut event_pump, window);
         }
 
         // Simple frame limiter: aim for ~1 millisecond minimum frame time.
