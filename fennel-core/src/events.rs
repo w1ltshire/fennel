@@ -117,14 +117,13 @@ pub trait WindowEventHandler: Send + Sync {
 /// ```
 pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler, mut hooks: Vec<Box<dyn Hook>>) {
     let mut event_pump = window.graphics.sdl_context.event_pump().unwrap();
+    for hook in &mut hooks {
+        debug!("preparing hook {}", hook.name());
+        hook.prepare();
+    }
 
     'running: loop {
         let now = Instant::now();
-
-        for hook in &mut hooks {
-            debug!("preparing hook {}", hook.name());
-            hook.prepare();
-        }
 
         // event_PUMP???? HOLY FUCK IS THAT A REFERENCE TO PSYCHOPOMP
         for event in event_pump.poll_iter() {

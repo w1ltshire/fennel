@@ -5,8 +5,7 @@ use sdl3::event::Event;
 
 pub trait Hook {
     /// Do here any preparations for your hook that you need. 
-    /// Inside, this function is called in the very beginning of the loop (so continuosly called)
-    /// before iterating over events. 
+    /// Inside, this function is called before entering the main loop
     fn prepare(&mut self) {}
 
     /// Main function of your loop.
