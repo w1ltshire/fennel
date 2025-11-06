@@ -7,17 +7,17 @@
 /// game.audio.play_audio(Path::new("examples/music.ogg"), false).await?;
 /// ```
 use std::{
-    io::BufReader,
-    path::{Path, PathBuf},
+    collections::HashMap, io::BufReader, path::{Path, PathBuf}
 };
 
+use rodio::Sink;
 use tokio::sync::mpsc::{self, Sender};
 
 /// Holds the command channel
 #[derive(Debug, Clone)]
 pub struct Audio {
     /// Tokio mpsc sender used to communicate with the audio thread
-    pub channel: Sender<AudioCommand>,
+    channel: Sender<AudioCommand>,
 }
 
 /// Commands that can be sent to the audio thread.
@@ -26,7 +26,7 @@ pub enum AudioCommand {
     /// Play the file at the given path
     Play(PathBuf),
     /// Stop the current playback
-    Stop,
+    Stop(String),
 }
 
 impl Audio {
@@ -39,24 +39,20 @@ impl Audio {
             let stream_handle = rodio::OutputStreamBuilder::open_default_stream()
                 .expect("audio: failed to initialize stream handle");
             let mixer = stream_handle.mixer();
-            let mut current_sink: Option<rodio::Sink> = None;
+            let mut sinks: HashMap<String, Sink> = HashMap::new();
 
             while let Some(message) = rx.recv().await {
                 match message {
                     AudioCommand::Play(pathbuf) => {
-                        if let Some(sink) = current_sink.take() {
-                            sink.stop();
-                        }
-
                         let file =
                             std::fs::File::open(&pathbuf).expect("audio: failed to open file");
                         let sink = rodio::play(mixer, BufReader::new(file))
                             .expect("audio: failed to start playback");
                         sink.set_volume(1.0);
-                        current_sink = Some(sink);
+                        sinks.insert(pathbuf.to_string_lossy().to_string(), sink);
                     }
-                    AudioCommand::Stop => {
-                        if let Some(sink) = current_sink.take() {
+                    AudioCommand::Stop(sink_name) => {
+                        if let Some(sink) = sinks.get(&sink_name) {
                             sink.stop();
                         }
                     }

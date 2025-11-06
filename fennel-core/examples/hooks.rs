@@ -1,3 +1,8 @@
+// This example involves rendering ONLY the ImGui, because it uses GPU rendering, while
+// Fennel in its core graphics module utilizes rendering through a canvas.
+// You can't have ImGui or something that utilizes GPU rendering and draw something onto the canvas
+// at the same time.
+
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
@@ -7,7 +12,7 @@ use fennel_core::{
     events::{self, WindowEventHandler}, graphics, hooks::Hook, resources::ResourceManager, Window
 };
 use imgui_sdl3::ImGuiSdl3;
-use sdl3::{gpu::{ColorTargetInfo, Device, LoadOp, ShaderFormat, StoreOp}, pixels::Color, EventPump, Sdl, event::Event};
+use sdl3::{event::Event, gpu::{ColorTargetInfo, Device, LoadOp, ShaderFormat, StoreOp}, pixels::Color, EventPump};
 
 struct State;
 struct MyHook {
@@ -21,17 +26,7 @@ impl WindowEventHandler for State {
         Ok(())
     }
 
-    fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
-        window.graphics.canvas.set_draw_color(Color::RGB(0, 0, 0));
-        window.graphics.canvas.clear();
-        window.graphics.draw_text(
-            String::from("hi"),
-            (64.0, 64.0),
-            String::from("Terminus"),
-            Color::RGBA(255, 0, 0, 0),
-            16.0,
-        )?;
-        window.graphics.canvas.present();
+    fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 }
@@ -73,8 +68,8 @@ impl Hook for MyHook {
                 &mut command_buffer,
                 &color_targets,
                 |ui| {
-                    // create imgui UI here
                     ui.show_demo_window(&mut true);
+                    ui.text("hi!!! hello hi hiiiii!!! :3 :3 ;3");
                 },
             );
 

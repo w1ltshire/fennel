@@ -10,6 +10,7 @@ rust-version = "1.87.0"
 [dependencies]
 anyhow = "1.0.100"
 async-trait = "0.1.89"
+bytemuck = "1.24.0"
 image = "0.25.8"
 imgui = "0.12.0"
 imgui-sdl3 = "0.4.1"

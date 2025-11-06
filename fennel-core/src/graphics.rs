@@ -230,12 +230,12 @@ impl Graphics {
     /// Draw a rectangle on position (x, y) with dimensions (w, h)
     pub fn draw_rect(
         &mut self,
-        w: f32,
-        h: f32,
+        width: f32,
+        height: f32,
         x: f32,
         y: f32
     ) -> anyhow::Result<()> {
-        self.canvas.draw_rect(FRect { x, y, w, h })?;
+        self.canvas.draw_rect(FRect { x, y, w: width, h: height })?;
         Ok(())
     }
 

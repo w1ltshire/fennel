@@ -60,6 +60,11 @@ impl WindowEventHandler for State {
                     .play_audio(Path::new("assets/music.ogg"), false)
                     .await
                     .unwrap();
+                window
+                    .audio
+                    .play_audio(Path::new("assets/440.wav"), false)
+                    .await
+                    .unwrap();
             })
         });
         Ok(())
