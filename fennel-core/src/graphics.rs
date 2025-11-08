@@ -69,7 +69,7 @@ where
     F: Fn(&mut Graphics),
 {
     /// Create a new empty GraphicsBuilder
-    /// By default there is no resource manager or resource initializer, dimensions are 0, 0, name
+    /// By default there is no resource manager or resource initializer, dimensions are (0, 0), name
     /// is empty
     pub fn new() -> GraphicsBuilder<F> {
         GraphicsBuilder {
@@ -153,7 +153,7 @@ impl<F> Default for GraphicsBuilder<F>
 where
     F: Fn(&mut Graphics),
 {
-    /// Default implementation delegates to `[GraphicsBuilder::new]`
+    /// Default implementation delegates to [`GraphicsBuilder::new`]
     fn default() -> Self {
         Self::new()
     }
