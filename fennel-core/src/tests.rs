@@ -15,9 +15,9 @@ fn create_window() -> crate::Window {
         resouce_manager.clone(),
         |_| {},
         crate::graphics::WindowConfig {
-            resizable: false,
-            fullscreen: false,
-            centered: true,
+            is_resizable: false,
+            is_fullscreen: false,
+            is_centered: true,
         },
     )
     .unwrap();

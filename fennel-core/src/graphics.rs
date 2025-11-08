@@ -45,11 +45,11 @@ pub struct Graphics {
 #[derive(Default, Debug, Clone, Copy)]
 pub struct WindowConfig {
     /// Is the window resizable?
-    pub resizable: bool,
+    pub is_resizable: bool,
     /// Is the window fullscreen?
-    pub fullscreen: bool,
+    pub is_fullscreen: bool,
     /// Is the window centered by default?
-    pub centered: bool,
+    pub is_centered: bool,
 }
 
 /// Builder for creating a Graphics instance.
@@ -78,9 +78,9 @@ where
             name: "".to_string(),
             initializer: None,
             config: WindowConfig {
-                resizable: false,
-                fullscreen: false,
-                centered: false,
+                is_resizable: false,
+                is_fullscreen: false,
+                is_centered: false,
             },
         }
     }
@@ -117,19 +117,19 @@ where
 
     /// Will the window be resizable?
     pub fn resizable(mut self, resizable: bool) -> GraphicsBuilder<F> {
-        self.config.resizable = resizable;
+        self.config.is_resizable = resizable;
         self
     }
 
     /// Will the window be fullscreen?
     pub fn fullscreen(mut self, fullscreen: bool) -> GraphicsBuilder<F> {
-        self.config.fullscreen = fullscreen;
+        self.config.is_fullscreen = fullscreen;
         self
     }
 
     /// Will the window be centered?
     pub fn centered(mut self, centered: bool) -> GraphicsBuilder<F> {
-        self.config.centered = centered;
+        self.config.is_centered = centered;
         self
     }
 
@@ -194,17 +194,17 @@ impl Graphics {
 
         let mut builder = video_subsystem.window(&name, dimensions.0, dimensions.1);
 
-        let _ = if config.centered {
+        let _ = if config.is_centered {
             builder.position_centered()
         } else {
             &mut builder
         };
-        let _ = if config.resizable {
+        let _ = if config.is_resizable {
             builder.resizable()
         } else {
             &mut builder
         };
-        let _ = if config.fullscreen {
+        let _ = if config.is_fullscreen {
             builder.fullscreen()
         } else {
             &mut builder
