@@ -20,7 +20,6 @@ struct MyHook {
     imgui: Option<ImGuiSdl3>
 }
 
-#[async_trait::async_trait]
 impl WindowEventHandler for State {
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())

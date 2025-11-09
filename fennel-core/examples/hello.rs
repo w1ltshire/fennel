@@ -14,7 +14,6 @@ use tokio::runtime::Handle;
 
 struct State;
 
-#[async_trait::async_trait]
 impl WindowEventHandler for State {
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())

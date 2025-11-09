@@ -9,7 +9,6 @@ rust-version = "1.87.0"
 
 [dependencies]
 anyhow = "1.0.100"
-async-trait = "0.1.89"
 fennel-core = { version = "0.5.0", path = "../fennel-core" }
 log = "0.4.28"
 rhai = "1.23.6"

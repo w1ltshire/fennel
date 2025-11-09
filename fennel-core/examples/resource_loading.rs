@@ -13,9 +13,8 @@ use sdl3::pixels::Color;
 
 struct State;
 
-#[async_trait::async_trait]
 impl WindowEventHandler for State {
-    fn update(&self, _window: &mut Window) -> anyhow::Result<()> {
+    fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -56,11 +55,7 @@ async fn main() {
                 .load_dir(PathBuf::from("assets"), graphics)
                 .unwrap();
         },
-        graphics::WindowConfig {
-            resizable: false,
-            fullscreen: false,
-            centered: false,
-        },
+        graphics::WindowConfig::default()
     )
     .unwrap();
 

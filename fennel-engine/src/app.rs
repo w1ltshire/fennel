@@ -62,7 +62,6 @@ struct Config {
 unsafe impl Send for App {}
 unsafe impl Sync for App {}
 
-#[async_trait::async_trait]
 impl WindowEventHandler for App {
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())
@@ -113,11 +112,7 @@ impl AppBuilder {
             name: "",
             dimensions: (100, 100),
             config: "",
-            window_config: WindowConfig {
-                resizable: false,
-                fullscreen: false,
-                centered: false,
-            },
+            window_config: WindowConfig::default(),
             world: World::new(),
             component_registry: ComponentRegistry::new(),
         }
