@@ -59,9 +59,6 @@ struct Config {
     initial_scene: String,
 }
 
-unsafe impl Send for App {}
-unsafe impl Sync for App {}
-
 impl WindowEventHandler for App {
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
         Ok(())

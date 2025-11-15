@@ -54,7 +54,7 @@ pub struct MouseWheelEvent {
     pub mouse_y: f32,
 }
 
-pub trait WindowEventHandler: Send + Sync {
+pub trait WindowEventHandler {
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()>;
     fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()>;
 

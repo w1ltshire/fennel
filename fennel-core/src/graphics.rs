@@ -185,9 +185,6 @@ impl Graphics {
     where
         F: Fn(&mut Graphics),
     {
-        // TODO: allow the user to uh customize video_subsystem configuration 'cuz man this is ass why
-        // do we position_centered() and resizable() it by default
-
         let sdl_context = sdl3::init()?;
         let ttf_context = sdl3::ttf::init().map_err(|e| e.to_string())?;
         let video_subsystem = sdl_context.video()?;
