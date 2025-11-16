@@ -7,7 +7,7 @@ async fn main() -> anyhow::Result<()> {
         .dimensions((800, 800))
         .config("crates/fennel-engine/examples/game.toml")
         .build()
-        .unwrap();
+        .expect("failed to build an app");
 
     app.run().await?;
     Ok(())

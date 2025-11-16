@@ -39,7 +39,7 @@ impl ComponentFactory for SpriteFactory {
         world
             .write_storage::<Sprite>()
             .insert(entity, sprite.expect("failed to construct a sprite"))
-            .unwrap();
+            .expect("failed to insert sprite into world");
     }
 
     fn insert_lazy(&self, lazy: &LazyUpdate, entity: Entity, value: &Value) {

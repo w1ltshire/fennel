@@ -159,9 +159,9 @@ impl AppBuilder {
             |graphics| {
                 resource_manager
                     .lock()
-                    .unwrap()
+                    .expect("failed to acquire resource_manager lock")
                     .load_dir(config.assets_path.clone().into(), graphics)
-                    .unwrap();
+                    .expect("failed to load resources from directory");
             },
             self.window_config,
         );
@@ -183,7 +183,7 @@ impl AppBuilder {
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
 
         for entry in fs::read_dir(config.scenes_path).expect("meow") {
-            let scene_reader = fs::read(entry.unwrap().path()).expect("meow");
+            let scene_reader = fs::read(entry.expect("failed to read directory").path()).expect("meow");
             let scene: Scene = ron::de::from_bytes(&scene_reader)?;
             self.world.create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());

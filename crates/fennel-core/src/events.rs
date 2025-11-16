@@ -115,7 +115,7 @@ pub trait WindowEventHandler {
 /// events::run(&mut window, Box::new(my_handler));
 /// ```
 pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler, mut hooks: Vec<Box<dyn Hook>>) {
-    let mut event_pump = window.graphics.sdl_context.event_pump().unwrap();
+    let mut event_pump = window.graphics.sdl_context.event_pump().expect("failed to get event_pump");
     for hook in &mut hooks {
         debug!("preparing hook {}", hook.name());
         hook.prepare(&mut event_pump, window);
@@ -155,7 +155,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
                             raw,
                         },
                     )
-                    .unwrap(),
+                    .expect("failed to handle event"),
 
                 Event::KeyUp {
                     timestamp,
@@ -180,7 +180,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
                             raw,
                         },
                     )
-                    .unwrap(),
+                    .expect("failed to handle event"),
 
                 Event::MouseMotion {
                     timestamp,
@@ -205,7 +205,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
                             yrel,
                         },
                     )
-                    .unwrap(),
+                    .expect("failed to handle event"),
 
                 Event::MouseButtonDown {
                     timestamp,
@@ -228,7 +228,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
                             y,
                         },
                     )
-                    .unwrap(),
+                    .expect("failed to handle event"),
 
                 Event::MouseButtonUp {
                     timestamp,
@@ -251,7 +251,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
                             y,
                         },
                     )
-                    .unwrap(),
+                    .expect("failed to handle event"),
 
                 Event::MouseWheel {
                     timestamp,
@@ -276,7 +276,7 @@ pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler
                             mouse_y,
                         },
                     )
-                    .unwrap(),
+                    .expect("failed to handle event"),
                 _ => {}
             }
         }

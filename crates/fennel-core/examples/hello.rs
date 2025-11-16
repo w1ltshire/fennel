@@ -58,12 +58,12 @@ impl WindowEventHandler for State {
                     .audio
                     .play_audio(Path::new("assets/music.ogg"), false)
                     .await
-                    .unwrap();
+                    .expect("failed to play audio");
                 window
                     .audio
                     .play_audio(Path::new("assets/440.wav"), false)
                     .await
-                    .unwrap();
+                    .expect("failed to play audio");
             })
         });
         Ok(())
@@ -84,12 +84,12 @@ async fn main() {
         .initializer(|graphics| {
             resource_manager
                 .lock()
-                .unwrap()
+                .expect("failed to acquire resource_manager lock")
                 .load_dir(PathBuf::from("assets"), graphics)
-                .unwrap();
+                .expect("failed to load assets from directory");
         })
         .build();
-    let mut window = Window::new(graphics.unwrap(), resource_manager);
+    let mut window = Window::new(graphics.expect("failed to create graphics"), resource_manager);
 
     // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we
     // need to do this seemingly weird thing (while `app.rs` in fennel-engine has an ass solution

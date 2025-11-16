@@ -51,13 +51,13 @@ async fn main() {
             // you may think of it like about just some initialization func
             resource_manager
                 .lock()
-                .unwrap()
+                .expect("failed to acquire resource_manager lock")
                 .load_dir(PathBuf::from("assets"), graphics)
-                .unwrap();
+                .expect("failed to load assets from directory");
         },
         graphics::WindowConfig::default()
     )
-    .unwrap();
+    .expect("failed to create graphics");
 
     let mut window = Window::new(graphics, resource_manager.clone());
 

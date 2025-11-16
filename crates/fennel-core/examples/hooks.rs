@@ -99,12 +99,12 @@ async fn main() {
         .initializer(|graphics| {
             resource_manager
                 .lock()
-                .unwrap()
+                .expect("failed to acquire resource_manager lock")
                 .load_dir(PathBuf::from("assets"), graphics)
-                .unwrap();
+                .expect("failed to load assets from directory");
         })
         .build();
-    let mut window = Window::new(graphics.unwrap(), resource_manager);
+    let mut window = Window::new(graphics.expect("failed to create graphics"), resource_manager);
 
     let handler: &'static mut dyn WindowEventHandler = {
         let boxed = Box::new(State);

@@ -116,7 +116,7 @@ impl ResourceManager {
                     let path = path.join(asset.path);
                     let image = Image::load(
                         path.clone(),
-                        path.to_str().unwrap().to_string(),
+                        path.to_str().expect("failed to convert path to string").to_string(),
                         graphics,
                         None,
                     )?;

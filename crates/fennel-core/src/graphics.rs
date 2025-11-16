@@ -145,7 +145,7 @@ where
             self.initializer.expect("no resource initializer provided"),
             self.config,
         )
-        .unwrap())
+        .expect("failed to create Graphics"))
     }
 }
 
@@ -268,7 +268,7 @@ impl Graphics {
         let mut manager = manager
             .try_lock()
             .context("failed to lock resource_manager")
-            .unwrap();
+            .expect("failed to acquire resource_manager lock");
 
         if !manager.is_cached(path.clone()) {
             // rust programmers when they have to .clone()
@@ -276,7 +276,7 @@ impl Graphics {
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
 
-        let image: &Image = resources::downcast_ref(manager.get_asset(path).unwrap())?;
+        let image: &Image = resources::downcast_ref(manager.get_asset(path).expect("failed to downcast gathered asset"))?;
 
         let dst_rect = FRect::new(
             position.0,
@@ -295,7 +295,7 @@ impl Graphics {
                 flip_horizontal,
                 flip_vertical,
             )
-            .unwrap();
+            .expect("failed to copy texture onto canvas");
 
         Ok(())
     }
@@ -313,7 +313,7 @@ impl Graphics {
         let mut manager = manager
             .try_lock()
             .context("failed to lock resource_manager")
-            .unwrap();
+            .expect("failed to acquire resource_manager lock");
 
         // dumbass solution. either way, i see no other solution to this.
         // as sdl3 requires us to create a texture from font to draw text,
@@ -365,7 +365,7 @@ impl Graphics {
                 false,
                 false,
             )
-            .unwrap();
+            .expect("failed to copy texture onto canvas");
         Ok(())
     }
 }

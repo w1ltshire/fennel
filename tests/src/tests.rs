@@ -20,7 +20,7 @@ fn create_window() -> Window {
             is_centered: true,
         },
     )
-    .unwrap();
+    .expect("failed to create a window");
     Window::new(gfx, resouce_manager.clone())
 }
 
@@ -36,15 +36,15 @@ async fn image_load() {
     )
     .expect("failed to load image");
 
-    let mut manager = game.resource_manager.lock().unwrap();
+    let mut manager = game.resource_manager.lock().expect("failed to acquire resource_manager lock");
 
-    manager.cache_asset(asset).unwrap();
+    manager.cache_asset(asset).expect("failed to cache an asset");
 
     let cached = manager
         .get_asset("assets/example.png".to_string())
         .expect("image not cached");
 
-    let img: &Image = downcast_ref(cached).unwrap();
+    let img: &Image = downcast_ref(cached).expect("failed to downcast gathered asset");
 
     assert_eq!(img.width, 128);
     assert_eq!(img.height, 128);
