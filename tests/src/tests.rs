@@ -2,32 +2,30 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use crate::resources::ResourceManager;
+use fennel_core::{graphics::{Graphics, WindowConfig}, resources::{downcast_ref, image::Image, LoadableResource, ResourceManager}, Window};
 
-fn create_window() -> crate::Window {
+fn create_window() -> Window {
     static SDL_INIT: std::sync::Once = std::sync::Once::new();
     SDL_INIT.call_once(|| unsafe { std::env::set_var("SDL_VIDEODRIVER", "dummy") });
 
     let resouce_manager = Arc::new(Mutex::new(ResourceManager::new()));
-    let gfx = crate::graphics::Graphics::new(
+    let gfx = Graphics::new(
         "my cool game".into(),
         (500, 500),
         resouce_manager.clone(),
         |_| {},
-        crate::graphics::WindowConfig {
+        WindowConfig {
             is_resizable: false,
             is_fullscreen: false,
             is_centered: true,
         },
     )
     .unwrap();
-    crate::Window::new(gfx, resouce_manager.clone())
+    Window::new(gfx, resouce_manager.clone())
 }
 
 #[tokio::test]
 async fn image_load() {
-    use crate::{resources::LoadableResource, resources::downcast_ref, resources::image::Image};
-
     let mut game = create_window();
 
     let asset = Image::load(

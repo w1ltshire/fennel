@@ -17,8 +17,6 @@ pub mod graphics;
 pub mod resources;
 /// Hooks to inject into [`events::run`]
 pub mod hooks;
-/// Tests
-mod tests;
 
 unsafe impl Send for Window {}
 unsafe impl Sync for Window {}

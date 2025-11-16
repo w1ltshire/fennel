@@ -317,7 +317,7 @@ impl Graphics {
 
         // dumbass solution. either way, i see no other solution to this.
         // as sdl3 requires us to create a texture from font to draw text,
-        // we will be caching it as an [`resources::loadable::Image`] under this key
+        // we will be caching it as an [`resources::image::Image`] under this key
         let cache_key = format!(
             "{}|{}|{}|{:x?}",
             font,
