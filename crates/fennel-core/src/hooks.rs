@@ -1,12 +1,12 @@
-use sdl3::{event::Event, EventPump};
+use sdl3::{EventPump, event::Event};
 
 use crate::Window;
 
-// i'm feeling kinda jolly rn 
+// i'm feeling kinda jolly rn
 // oohhh i'm faaaalliiing ohhhhh i'm faaadiiiing ohhh have i lost it a-aaaallll
 
 pub trait Hook {
-    /// Do here any preparations for your hook that you need. 
+    /// Do here any preparations for your hook that you need.
     /// Inside, this function is called before entering the main loop
     fn prepare(&mut self, _event_pump: &mut EventPump, _window: &mut Window) {}
 

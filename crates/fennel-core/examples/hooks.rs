@@ -9,15 +9,24 @@ use std::{
 };
 
 use fennel_core::{
-    events::{self, WindowEventHandler}, graphics, hooks::Hook, resources::ResourceManager, Window
+    Window,
+    events::{self, WindowEventHandler},
+    graphics,
+    hooks::Hook,
+    resources::ResourceManager,
 };
 use imgui_sdl3::ImGuiSdl3;
-use sdl3::{event::Event, gpu::{ColorTargetInfo, Device, LoadOp, ShaderFormat, StoreOp}, pixels::Color, EventPump};
+use sdl3::{
+    EventPump,
+    event::Event,
+    gpu::{ColorTargetInfo, Device, LoadOp, ShaderFormat, StoreOp},
+    pixels::Color,
+};
 
 struct State;
 struct MyHook {
     device: Option<Device>,
-    imgui: Option<ImGuiSdl3>
+    imgui: Option<ImGuiSdl3>,
 }
 
 impl WindowEventHandler for State {
@@ -40,19 +49,31 @@ impl Hook for MyHook {
         self.device = Some(dev);
 
         let device_ref = self.device.as_ref().unwrap();
-        self.imgui = Some(ImGuiSdl3::new(device_ref, window.graphics.canvas.window(), |ctx| {
-            ctx.set_ini_filename(None);
-            ctx.set_log_filename(None);
-            ctx.fonts()
-                .add_font(&[imgui::FontSource::DefaultFontData { config: None }]);
-        }));
+        self.imgui = Some(ImGuiSdl3::new(
+            device_ref,
+            window.graphics.canvas.window(),
+            |ctx| {
+                ctx.set_ini_filename(None);
+                ctx.set_log_filename(None);
+                ctx.fonts()
+                    .add_font(&[imgui::FontSource::DefaultFontData { config: None }]);
+            },
+        ));
     }
 
     fn update(&mut self, event_pump: &mut EventPump, window: &mut Window) {
-        let device = self.device.as_mut().expect("device not initialized (oddly af)");
-        let imgui = self.imgui.as_mut().expect("imgui not initialized (oddly af)");
+        let device = self
+            .device
+            .as_mut()
+            .expect("device not initialized (oddly af)");
+        let imgui = self
+            .imgui
+            .as_mut()
+            .expect("imgui not initialized (oddly af)");
         let mut command_buffer = device.acquire_command_buffer().unwrap();
-        if let Ok(swapchain) = command_buffer.wait_and_acquire_swapchain_texture(window.graphics.canvas.window()) {
+        if let Ok(swapchain) =
+            command_buffer.wait_and_acquire_swapchain_texture(window.graphics.canvas.window())
+        {
             let color_targets = [ColorTargetInfo::default()
                 .with_texture(&swapchain)
                 .with_load_op(LoadOp::CLEAR)
@@ -80,7 +101,10 @@ impl Hook for MyHook {
     }
 
     fn handle(&mut self, event: &Event) {
-        let imgui = self.imgui.as_mut().expect("imgui not initialized (oddly af)");
+        let imgui = self
+            .imgui
+            .as_mut()
+            .expect("imgui not initialized (oddly af)");
         imgui.handle_event(event);
     }
 
@@ -104,12 +128,23 @@ async fn main() {
                 .expect("failed to load assets from directory");
         })
         .build();
-    let mut window = Window::new(graphics.expect("failed to create graphics"), resource_manager);
+    let mut window = Window::new(
+        graphics.expect("failed to create graphics"),
+        resource_manager,
+    );
 
     let handler: &'static mut dyn WindowEventHandler = {
         let boxed = Box::new(State);
         Box::leak(boxed) as &'static mut dyn WindowEventHandler
     };
-    
-    events::run(&mut window, handler, vec![Box::new(MyHook { device: None, imgui: None })]).await;
+
+    events::run(
+        &mut window,
+        handler,
+        vec![Box::new(MyHook {
+            device: None,
+            imgui: None,
+        })],
+    )
+    .await;
 }

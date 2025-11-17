@@ -225,23 +225,18 @@ impl Graphics {
     }
 
     /// Draw a rectangle on position (x, y) with dimensions (w, h)
-    pub fn draw_rect(
-        &mut self,
-        width: f32,
-        height: f32,
-        x: f32,
-        y: f32
-    ) -> anyhow::Result<()> {
-        self.canvas.draw_rect(FRect { x, y, w: width, h: height })?;
+    pub fn draw_rect(&mut self, width: f32, height: f32, x: f32, y: f32) -> anyhow::Result<()> {
+        self.canvas.draw_rect(FRect {
+            x,
+            y,
+            w: width,
+            h: height,
+        })?;
         Ok(())
     }
 
     /// Draw a rectangle on position (x, y) with dimensions (w, h)
-    pub fn draw_line(
-        &mut self,
-        p1: (f32, f32),
-        p2: (f32, f32)
-    ) -> anyhow::Result<()> {
+    pub fn draw_line(&mut self, p1: (f32, f32), p2: (f32, f32)) -> anyhow::Result<()> {
         self.canvas.draw_line(p1, p2)?;
         Ok(())
     }
@@ -276,7 +271,11 @@ impl Graphics {
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
 
-        let image: &Image = resources::downcast_ref(manager.get_asset(path).expect("failed to downcast gathered asset"))?;
+        let image: &Image = resources::downcast_ref(
+            manager
+                .get_asset(path)
+                .expect("failed to downcast gathered asset"),
+        )?;
 
         let dst_rect = FRect::new(
             position.0,

@@ -55,7 +55,7 @@ async fn main() {
                 .load_dir(PathBuf::from("assets"), graphics)
                 .expect("failed to load assets from directory");
         },
-        graphics::WindowConfig::default()
+        graphics::WindowConfig::default(),
     )
     .expect("failed to create graphics");
 

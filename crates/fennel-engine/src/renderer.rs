@@ -46,13 +46,13 @@ impl<'a> System<'a> for QueuedRenderingSystem {
                             false,
                             false,
                         )
-                        .unwrap_or_else(|e| { warn!("failed to draw an image: {e}") });
-                },
+                        .unwrap_or_else(|e| warn!("failed to draw an image: {e}"));
+                }
                 Drawable::Rect { w, h, x, y } => {
                     window
                         .graphics
                         .draw_rect(w, h, x, y)
-                        .unwrap_or_else(|e| { warn!("failed to draw a rectangle: {e}") });
+                        .unwrap_or_else(|e| warn!("failed to draw a rectangle: {e}"));
                 }
             }
         }

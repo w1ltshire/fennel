@@ -7,7 +7,9 @@
 /// game.audio.play_audio(Path::new("examples/music.ogg"), false).await?;
 /// ```
 use std::{
-    collections::HashMap, io::BufReader, path::{Path, PathBuf}
+    collections::HashMap,
+    io::BufReader,
+    path::{Path, PathBuf},
 };
 
 use rodio::Sink;

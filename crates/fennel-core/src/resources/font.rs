@@ -56,7 +56,9 @@ impl LoadableResource for Font {
         if size.is_none() {
             bail!("no font size was provided");
         }
-        let font = graphics.ttf_context.load_font(&path, size.expect("no size was provided"))?;
+        let font = graphics
+            .ttf_context
+            .load_font(&path, size.expect("no size was provided"))?;
         Ok(Box::new(Self {
             path,
             family_name: font

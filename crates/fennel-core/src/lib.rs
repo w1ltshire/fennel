@@ -13,10 +13,10 @@ pub mod audio;
 pub mod events;
 /// Rendering layer and all the related things
 pub mod graphics;
-/// Resource management
-pub mod resources;
 /// Hooks to inject into [`events::run`]
 pub mod hooks;
+/// Resource management
+pub mod resources;
 
 unsafe impl Send for Window {}
 unsafe impl Sync for Window {}

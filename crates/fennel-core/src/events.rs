@@ -114,8 +114,16 @@ pub trait WindowEventHandler {
 /// let mut window = Window::new("cool title".into(), "cool author".into(), graphics);
 /// events::run(&mut window, Box::new(my_handler));
 /// ```
-pub async fn run(window: &mut Window, state: &'static mut dyn WindowEventHandler, mut hooks: Vec<Box<dyn Hook>>) {
-    let mut event_pump = window.graphics.sdl_context.event_pump().expect("failed to get event_pump");
+pub async fn run(
+    window: &mut Window,
+    state: &'static mut dyn WindowEventHandler,
+    mut hooks: Vec<Box<dyn Hook>>,
+) {
+    let mut event_pump = window
+        .graphics
+        .sdl_context
+        .event_pump()
+        .expect("failed to get event_pump");
     for hook in &mut hooks {
         debug!("preparing hook {}", hook.name());
         hook.prepare(&mut event_pump, window);

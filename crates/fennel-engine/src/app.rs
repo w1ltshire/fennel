@@ -10,7 +10,7 @@ use fennel_core::{
 };
 use log::debug;
 use serde::{Deserialize, Serialize};
-use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
+use specs::{AsyncDispatcher, Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use crate::{
     ecs::sprite::{HostPtr, Sprite, SpriteFactory, SpriteRenderingSystem},
@@ -25,10 +25,10 @@ use crate::{
 pub struct App {
     /// Responsible for GFX and audio
     pub window: fennel_core::Window,
-    /// ECS world
-    pub world: specs::World,
+    /* /// ECS world
+    pub world: specs::World, */
     /// ECS dispatcher
-    pub dispatcher: Dispatcher<'static, 'static>,
+    pub dispatcher: AsyncDispatcher<'static, World>,
     /// Application scenes
     pub scenes: Vec<Scene>,
     /// Registry of component factories for scene drawing
@@ -36,6 +36,11 @@ pub struct App {
     /// Current active scene
     pub active_scene: ActiveScene,
 }
+
+type Reg = Box<
+    dyn FnOnce(&mut DispatcherBuilder<'static, 'static>) -> DispatcherBuilder<'static, 'static>
+        + Send,
+>;
 
 /// Builder for [`App`]
 #[derive(Default)]
@@ -46,6 +51,7 @@ pub struct AppBuilder {
     window_config: WindowConfig,
     world: World,
     component_registry: ComponentRegistry,
+    dispatcher_config: Vec<Reg>,
 }
 
 /// Application config defined by user
@@ -72,7 +78,7 @@ impl WindowEventHandler for App {
 
     fn key_down_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
         debug!("pushing event to resource KeyEvents");
-        self.world.write_resource::<KeyEvents>().0.push(event);
+        self.dispatcher.world_mut().write_resource::<KeyEvents>().0.push(event);
         Ok(())
     }
 }
@@ -95,10 +101,11 @@ impl App {
     /// Evaluate systems
     pub fn frame_tick(&mut self) {
         let host_ptr = HostPtr(self as *mut App);
-        self.world.insert(host_ptr);
-        self.dispatcher.dispatch(&self.world);
-        self.world.maintain();
-        self.world.remove::<HostPtr>();
+        self.dispatcher.world_mut().insert(host_ptr);
+        self.dispatcher.dispatch();
+        self.dispatcher.wait();
+        self.dispatcher.world_mut().maintain();
+        self.dispatcher.world_mut().remove::<HostPtr>();
     }
 }
 
@@ -112,6 +119,7 @@ impl AppBuilder {
             window_config: WindowConfig::default(),
             world: World::new(),
             component_registry: ComponentRegistry::new(),
+            dispatcher_config: vec![],
         }
     }
 
@@ -133,6 +141,25 @@ impl AppBuilder {
         self
     }
 
+    pub fn register_system<S>(
+        mut self,
+        sys: S,
+        name: &'static str,
+        dep: &'static [&'static str],
+    ) -> Self
+    where
+        for<'a> S: specs::System<'a> + Send + 'static,
+    {
+        let reg: Reg = Box::new(|builder: &mut DispatcherBuilder<'static, 'static>| {
+            let b = std::mem::take(builder);
+            b.with(sys, name, dep)
+        });
+
+        self.dispatcher_config.push(reg);
+        self
+    }
+
+    /// Register a component in the ECS
     pub fn with_component<C: Component, F: ComponentFactory + 'static>(
         mut self,
         name: &'static str,
@@ -169,31 +196,37 @@ impl AppBuilder {
             graphics.expect("failed to initialize graphics"),
             resource_manager,
         );
-        let mut dispatcher = DispatcherBuilder::new()
+        let mut dispatcher_builder = DispatcherBuilder::new()
             .with_thread_local(QueuedRenderingSystem)
             .with(SceneSystem, "scene_system", &[])
-            .with(SpriteRenderingSystem, "sprite_rendering_system", &[])
-            .build();
-        let mut scenes: Vec<Scene> = vec![];
+            .with(SpriteRenderingSystem, "sprite_rendering_system", &[]);
+
+        for reg in self.dispatcher_config.drain(..) {
+            dispatcher_builder = reg(&mut dispatcher_builder);
+        }
 
         self.world.register::<Scene>();
         self.world.insert(KeyEvents::default());
         self.world.insert(RenderQueue::new());
-
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
 
+        let mut dispatcher = dispatcher_builder.build_async(self.world);
+
+        let mut scenes: Vec<Scene> = vec![];
+
         for entry in fs::read_dir(config.scenes_path).expect("meow") {
-            let scene_reader = fs::read(entry.expect("failed to read directory").path()).expect("meow");
+            let scene_reader =
+                fs::read(entry.expect("failed to read directory").path()).expect("meow");
             let scene: Scene = ron::de::from_bytes(&scene_reader)?;
-            self.world.create_entity().with(scene.clone()).build();
+            dispatcher.world_mut().create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());
         }
 
-        dispatcher.setup(&mut self.world);
+        dispatcher.setup();
 
         Ok(App {
             window,
-            world: self.world,
+            // world: self.world,
             dispatcher,
             scenes,
             component_registry: self.component_registry,

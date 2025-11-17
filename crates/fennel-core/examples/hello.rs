@@ -89,7 +89,10 @@ async fn main() {
                 .expect("failed to load assets from directory");
         })
         .build();
-    let mut window = Window::new(graphics.expect("failed to create graphics"), resource_manager);
+    let mut window = Window::new(
+        graphics.expect("failed to create graphics"),
+        resource_manager,
+    );
 
     // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we
     // need to do this seemingly weird thing (while `app.rs` in fennel-engine has an ass solution
