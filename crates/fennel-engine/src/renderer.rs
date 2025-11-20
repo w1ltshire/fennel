@@ -1,7 +1,10 @@
 use log::warn;
 use specs::{System, WriteExpect};
-use crate::app::App;
-use crate::ecs::sprite::{HostPtr, Sprite};
+
+use crate::{
+    app::App,
+    ecs::sprite::{HostPtr, Sprite},
+};
 
 /// A drawable primitive that can be queued for rendering
 ///

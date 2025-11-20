@@ -1,3 +1,5 @@
+use std::{thread::sleep, time::Duration};
+
 use fennel_engine::app::AppBuilder;
 use specs::System;
 
@@ -6,7 +8,10 @@ struct SysA;
 impl<'a> System<'a> for SysA {
     type SystemData = ();
 
-    fn run(&mut self, _data: ()) {}
+    fn run(&mut self, _data: ()) {
+        sleep(Duration::from_secs(1));
+        println!("nya");
+    }
 }
 
 #[tokio::main]

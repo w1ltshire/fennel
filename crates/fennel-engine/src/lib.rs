@@ -11,4 +11,3 @@ pub mod registry;
 pub mod renderer;
 /// Module providing functionality of scenes
 pub mod scenes;
-mod threads;
