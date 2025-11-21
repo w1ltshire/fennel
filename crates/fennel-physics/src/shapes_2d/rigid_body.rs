@@ -1,5 +1,5 @@
+use nalgebra::Vector2;
 use crate::shapes_2d::position::Position;
-use crate::shapes_2d::velocity::Velocity;
 
 /// A struct representing a 2D rigid body
 pub struct RigidBody {
@@ -8,7 +8,9 @@ pub struct RigidBody {
     /// Body's mass in kg
     mass: f32,
     /// Body's velocity
-    velocity: Velocity
+    velocity: Vector2<f32>,
+    /// Body's force in Newtons
+    force: f32
 }
 
 #[cfg(feature = "specs")]
