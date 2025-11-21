@@ -1,10 +1,7 @@
 use log::warn;
 use specs::{System, WriteExpect};
-
-use crate::{
-    app::App,
-    ecs::sprite::{HostPtr, Sprite},
-};
+use tokio::sync::mpsc::UnboundedSender;
+use crate::ecs::sprite::Sprite;
 
 /// A drawable primitive that can be queued for rendering
 ///
@@ -29,33 +26,14 @@ pub struct RenderQueue {
 pub struct QueuedRenderingSystem;
 
 impl<'a> System<'a> for QueuedRenderingSystem {
-    type SystemData = (WriteExpect<'a, RenderQueue>, WriteExpect<'a, HostPtr>);
+    type SystemData = (WriteExpect<'a, RenderQueue>, WriteExpect<'a, UnboundedSender<Drawable>>);
 
-    fn run(&mut self, (mut rq, mut host_ptr): Self::SystemData) {
-        let runtime: &mut App = unsafe { &mut *host_ptr.0 };
-        let window = &mut runtime.window;
-        for drawable in rq.queue.drain(..) {
-            match drawable {
-                Drawable::Image(sprite) => {
-                    window
-                        .graphics
-                        .draw_image(
-                            sprite.image,
-                            sprite.transform.position,
-                            sprite.transform.rotation,
-                            false,
-                            false,
-                        )
-                        .unwrap_or_else(|e| warn!("failed to draw an image: {e}"));
-                }
-                Drawable::Rect { w, h, x, y } => {
-                    window
-                        .graphics
-                        .draw_rect(w, h, x, y)
-                        .unwrap_or_else(|e| warn!("failed to draw a rectangle: {e}"));
-                }
-            }
-        }
+    fn run(&mut self, (mut rq, sender): Self::SystemData) {
+        rq.queue.drain(..).for_each(|drawable| {
+            sender.send(drawable).unwrap_or_else(|e| {
+                warn!("failed to send drawable: {e}");
+            });
+        });
     }
 }
 

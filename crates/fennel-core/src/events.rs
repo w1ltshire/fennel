@@ -11,6 +11,7 @@ use sdl3::{
     mouse::{MouseButton, MouseState, MouseWheelDirection},
 };
 
+#[derive(Debug)]
 pub struct KeyboardEvent {
     pub timestamp: u64,
     pub window_id: u32,

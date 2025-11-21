@@ -2,39 +2,36 @@ use std::{
     fs,
     sync::{Arc, Mutex},
 };
-
+use std::thread::sleep;
+use std::time::Duration;
 use fennel_core::{
     Window,
     events::{KeyboardEvent, WindowEventHandler},
     graphics::WindowConfig,
 };
-use log::debug;
+use log::warn;
 use serde::{Deserialize, Serialize};
-use specs::{AsyncDispatcher, Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
-
+use specs::{Builder, Component, DispatcherBuilder, World, WorldExt};
+use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 use crate::{
-    ecs::sprite::{HostPtr, Sprite, SpriteFactory, SpriteRenderingSystem},
+    ecs::sprite::{Sprite, SpriteFactory, SpriteRenderingSystem},
     events::KeyEvents,
     registry::{ComponentFactory, ComponentRegistry},
     renderer::{QueuedRenderingSystem, RenderQueue},
     scenes::{ActiveScene, Scene, SceneSystem},
 };
+use crate::renderer::Drawable;
 
-/// The application struct which contains [`fennel_core::Window`], [`specs::World`] and `specs`
+/// The application struct which contains [`Window`], [`World`] and `specs`
 /// `Dispatcher`
 pub struct App {
     /// Responsible for GFX and audio
-    pub window: fennel_core::Window,
-    /* /// ECS world
-    pub world: specs::World, */
-    /// ECS dispatcher
-    pub dispatcher: AsyncDispatcher<'static, World>,
-    /// Application scenes
-    pub scenes: Vec<Scene>,
-    /// Registry of component factories for scene drawing
-    pub component_registry: ComponentRegistry,
-    /// Current active scene
-    pub active_scene: ActiveScene,
+    pub window: Window,
+    /// ECS world
+    world: WorldWrapper,
+    /// ECS dispatcher builder
+    dispatcher_builder: DispatcherBuilderWrapper,
+    render_receiver: UnboundedReceiver<Drawable>
 }
 
 type Reg = Box<
@@ -71,17 +68,37 @@ impl WindowEventHandler for App {
     }
 
     fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
-        self.frame_tick();
+        if let Ok(drawable) = self.render_receiver.try_recv() {
+            match drawable {
+                Drawable::Image(sprite) => {
+                    window.graphics.draw_image(
+                        sprite.image,
+                        sprite.transform.position,
+                        sprite.transform.rotation,
+                        false,
+                        false
+                    ).unwrap_or_else(|e| { warn!("failed to draw image: {e}"); });
+                },
+                Drawable::Rect {w, h, x, y} => {
+                    window.graphics.draw_rect(w, h, x, y)
+                        .unwrap_or_else(|e| { warn!("failed to draw rect: {e}"); });
+                }
+            }
+        }
         window.graphics.canvas.present();
         Ok(())
     }
 
     fn key_down_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
-        debug!("pushing event to resource KeyEvents");
-        self.dispatcher.world_mut().write_resource::<KeyEvents>().0.push(event);
+        self.world.0.write_resource::<KeyEvents>().0.push(event);
         Ok(())
     }
 }
+
+struct DispatcherBuilderWrapper(DispatcherBuilder<'static, 'static>);
+unsafe impl Send for DispatcherBuilderWrapper {}
+struct WorldWrapper(World);
+unsafe impl Send for WorldWrapper {}
 
 impl App {
     /// Runs the event loop, must be called only once, UB otherwise
@@ -94,18 +111,21 @@ impl App {
         //
         // TODO: make it safe
         let ptr: *mut App = &mut self as *mut App;
-        fennel_core::events::run(&mut self.window, unsafe { &mut *ptr as &mut App }, vec![]).await;
-        Ok(())
-    }
 
-    /// Evaluate systems
-    pub fn frame_tick(&mut self) {
-        let host_ptr = HostPtr(self as *mut App);
-        self.dispatcher.world_mut().insert(host_ptr);
-        self.dispatcher.dispatch();
-        self.dispatcher.wait();
-        self.dispatcher.world_mut().maintain();
-        self.dispatcher.world_mut().remove::<HostPtr>();
+        // if this doesn't work then don't blame me, blame single-event upset, the sun and the earth's magnetic field >:3
+        std::thread::spawn(move || {
+            let dispatcher_builder = self.dispatcher_builder;
+            let mut dispatcher = dispatcher_builder.0.build();
+            let mut world = self.world.0;
+            loop {
+                sleep(Duration::from_millis(16));
+                dispatcher.dispatch(&world);
+                world.maintain();
+            }
+        });
+
+        fennel_core::events::run(&mut self.window, unsafe { &mut *ptr }, vec![]).await;
+        Ok(())
     }
 }
 
@@ -141,6 +161,7 @@ impl AppBuilder {
         self
     }
 
+    /// Register a system to insert into the dispatcher
     pub fn register_system<S>(
         mut self,
         sys: S,
@@ -192,12 +213,12 @@ impl AppBuilder {
             },
             self.window_config,
         );
-        let window = fennel_core::Window::new(
+        let window = Window::new(
             graphics.expect("failed to initialize graphics"),
             resource_manager,
         );
         let mut dispatcher_builder = DispatcherBuilder::new()
-            .with_thread_local(QueuedRenderingSystem)
+            .with(QueuedRenderingSystem, "rendering_system", &[])
             .with(SceneSystem, "scene_system", &[])
             .with(SpriteRenderingSystem, "sprite_rendering_system", &[]);
 
@@ -210,31 +231,29 @@ impl AppBuilder {
         self.world.insert(RenderQueue::new());
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
 
-        let mut dispatcher = dispatcher_builder.build_async(self.world);
-
         let mut scenes: Vec<Scene> = vec![];
 
         for entry in fs::read_dir(config.scenes_path).expect("meow") {
             let scene_reader =
                 fs::read(entry.expect("failed to read directory").path()).expect("meow");
             let scene: Scene = ron::de::from_bytes(&scene_reader)?;
-            dispatcher.world_mut().create_entity().with(scene.clone()).build();
+            self.world.create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());
         }
-
-        dispatcher.setup();
+        
+        let (render_sender, render_receiver) = unbounded_channel::<Drawable>();
+        self.world.insert(render_sender);
+        self.world.insert(self.component_registry);
+        self.world.insert(ActiveScene {
+            name: String::from("main"),
+            loaded: false,
+        });
 
         Ok(App {
             window,
-            // world: self.world,
-            dispatcher,
-            scenes,
-            component_registry: self.component_registry,
-            // assuming the initial scene name is `main`
-            active_scene: ActiveScene {
-                name: String::from("main"),
-                loaded: false,
-            },
+            world: WorldWrapper(self.world),
+            dispatcher_builder: DispatcherBuilderWrapper(dispatcher_builder),
+            render_receiver,
         })
     }
 }
