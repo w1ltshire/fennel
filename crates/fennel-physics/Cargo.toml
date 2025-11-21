@@ -1,0 +1,10 @@
+[package]
+name = "fennel-physics"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+specs = { version = "0.20.0", optional = true }
+
+[features]
+specs = ["dep:specs"]
