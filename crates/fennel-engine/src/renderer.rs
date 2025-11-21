@@ -1,6 +1,6 @@
+use kanal::Sender;
 use log::warn;
 use specs::{System, WriteExpect};
-use tokio::sync::mpsc::UnboundedSender;
 use crate::ecs::sprite::Sprite;
 
 /// A drawable primitive that can be queued for rendering
@@ -26,7 +26,7 @@ pub struct RenderQueue {
 pub struct QueuedRenderingSystem;
 
 impl<'a> System<'a> for QueuedRenderingSystem {
-    type SystemData = (WriteExpect<'a, RenderQueue>, WriteExpect<'a, UnboundedSender<Drawable>>);
+    type SystemData = (WriteExpect<'a, RenderQueue>, WriteExpect<'a, Sender<Drawable>>);
 
     fn run(&mut self, (mut rq, sender): Self::SystemData) {
         rq.queue.drain(..).for_each(|drawable| {

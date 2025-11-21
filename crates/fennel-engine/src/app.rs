@@ -2,6 +2,7 @@ use std::{
     fs,
     sync::{Arc, Mutex},
 };
+use kanal::Receiver;
 use fennel_core::{
     Window,
     events::{KeyboardEvent, WindowEventHandler},
@@ -10,7 +11,6 @@ use fennel_core::{
 use log::warn;
 use serde::{Deserialize, Serialize};
 use specs::{Builder, Component, DispatcherBuilder, World, WorldExt};
-use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 use crate::{
     ecs::sprite::{Sprite, SpriteFactory, SpriteRenderingSystem},
     events::KeyEvents,
@@ -29,7 +29,7 @@ pub struct App {
     world: WorldWrapper,
     /// ECS dispatcher builder
     dispatcher_builder: DispatcherBuilderWrapper,
-    render_receiver: UnboundedReceiver<Drawable>
+    render_receiver: Receiver<Drawable>
 }
 
 type Reg = Box<
@@ -68,7 +68,7 @@ impl WindowEventHandler for App {
     fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
         if let Ok(drawable) = self.render_receiver.try_recv() {
             match drawable {
-                Drawable::Image(sprite) => {
+                Some(Drawable::Image(sprite)) => {
                     window.graphics.draw_image(
                         sprite.image,
                         sprite.transform.position,
@@ -77,10 +77,11 @@ impl WindowEventHandler for App {
                         false
                     ).unwrap_or_else(|e| { warn!("failed to draw image: {e}"); });
                 },
-                Drawable::Rect {w, h, x, y} => {
+                Some(Drawable::Rect {w, h, x, y}) => {
                     window.graphics.draw_rect(w, h, x, y)
                         .unwrap_or_else(|e| { warn!("failed to draw rect: {e}"); });
-                }
+                },
+                None => {}
             }
         }
         window.graphics.canvas.present();
@@ -243,7 +244,7 @@ impl AppBuilder {
             scenes.push(scene.clone());
         }
 
-        let (render_sender, render_receiver) = unbounded_channel::<Drawable>();
+        let (render_sender, render_receiver) = kanal::unbounded::<Drawable>();
         self.world.insert(render_sender);
         self.world.insert(self.component_registry);
         self.world.insert(ActiveScene {
