@@ -119,6 +119,10 @@ impl App {
             loop {
                 dispatcher.dispatch(&world);
                 world.maintain();
+
+                // this `sleep` call is a temporary fix to the high cpu load (issue #2)
+                // i will probably replace it with something better when i introduce ticks
+                std::thread::sleep(std::time::Duration::from_millis(16));
             }
         });
 

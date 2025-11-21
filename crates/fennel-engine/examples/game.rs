@@ -7,7 +7,7 @@ impl<'a> System<'a> for SysA {
     type SystemData = ();
 
     fn run(&mut self, _data: ()) {
-        println!("nya");
+        // println!("nya");
     }
 }
 
