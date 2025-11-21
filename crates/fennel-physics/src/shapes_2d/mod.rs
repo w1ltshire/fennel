@@ -4,3 +4,5 @@ pub mod rigid_body;
 pub mod shapes;
 /// Module providing 2D position
 pub mod position;
+/// Module providing velocity for bodies
+pub mod velocity;
