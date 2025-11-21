@@ -300,7 +300,7 @@ pub async fn run(
         // Simple frame limiter: aim for ~1 millisecond minimum frame time.
         let elapsed = Instant::now().duration_since(now).as_nanos() as u64;
         if elapsed < 999_999 {
-            std::thread::sleep(Duration::from_nanos(999_999 - elapsed));
+            tokio::time::sleep(Duration::from_nanos(999_999 - elapsed)).await;
         }
     }
 }

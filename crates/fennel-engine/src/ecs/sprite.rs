@@ -3,14 +3,8 @@ use serde::Deserialize;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
 
 use crate::{
-    app::App, ecs::transform::Transform, registry::ComponentFactory, renderer::RenderQueue,
+    ecs::transform::Transform, registry::ComponentFactory, renderer::RenderQueue,
 };
-
-/// A raw pointer wrapper to the application
-pub struct HostPtr(pub *mut App);
-
-unsafe impl Send for HostPtr {}
-unsafe impl Sync for HostPtr {}
 
 /// A simple renderable sprite.
 ///

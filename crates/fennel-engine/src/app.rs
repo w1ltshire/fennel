@@ -2,8 +2,6 @@ use std::{
     fs,
     sync::{Arc, Mutex},
 };
-use std::thread::sleep;
-use std::time::Duration;
 use fennel_core::{
     Window,
     events::{KeyboardEvent, WindowEventHandler},
@@ -117,8 +115,8 @@ impl App {
             let dispatcher_builder = self.dispatcher_builder;
             let mut dispatcher = dispatcher_builder.0.build();
             let mut world = self.world.0;
+
             loop {
-                sleep(Duration::from_millis(16));
                 dispatcher.dispatch(&world);
                 world.maintain();
             }
@@ -240,7 +238,7 @@ impl AppBuilder {
             self.world.create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());
         }
-        
+
         let (render_sender, render_receiver) = unbounded_channel::<Drawable>();
         self.world.insert(render_sender);
         self.world.insert(self.component_registry);
