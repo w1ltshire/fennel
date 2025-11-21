@@ -1,3 +1,8 @@
+//! # fennel-physics
+//! A physics engine library for the Fennel game engine
+//!
+//! # Cargo features
+//! `specs`: Provide specs' components implementations for most of the types
 #![forbid(unsafe_code)]
 
 /// Module providing two-dimensional physics code
