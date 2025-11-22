@@ -31,7 +31,7 @@ pub trait HasWindow {
 pub struct Graphics {
     /// The SDL3 canvas, required to draw
     pub canvas: Canvas<Window>,
-    /// SDL3 contaxt
+    /// SDL3 context
     pub sdl_context: Sdl,
     /// SDL3 texture creator
     pub texture_creator: Rc<sdl3::render::TextureCreator<sdl3::video::WindowContext>>,
