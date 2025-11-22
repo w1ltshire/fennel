@@ -59,6 +59,7 @@ pub struct KeyboardEvent {
     pub raw: u16,
 }
 
+/// Represents a mouse motion event.
 pub struct MouseMotionEvent {
     /// When the event happened (in nanos)
     pub timestamp: u64,
@@ -78,6 +79,7 @@ pub struct MouseMotionEvent {
     pub yrel: f32,
 }
 
+/// Represents a mouse click event.
 pub struct MouseClickEvent {
     /// When the event happened (in nanos)
     pub timestamp: u64,
@@ -95,6 +97,7 @@ pub struct MouseClickEvent {
     pub y: f32,
 }
 
+/// Represents a mouse wheel event.
 pub struct MouseWheelEvent {
     /// When the event happened (in nanos)
     pub timestamp: u64,
