@@ -11,3 +11,7 @@ pub mod shapes_2d;
 pub mod world;
 /// Module providing basic body traits
 pub mod body;
+/// Module providing gravity functionality
+pub mod gravity;
+#[cfg(test)]
+mod tests;
