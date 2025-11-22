@@ -1,4 +1,30 @@
 //! `sdl3::event::Event`-driven main loop.
+//!
+//! This module provides a main loop that processes SDL events, such as keyboard and mouse
+//! inputs.
+//! Ita lso defines various event structures and a trait for the main window event handler.
+//! The main loop continuously polls for events and calls window event handler provided by user.
+//!
+//! ## Structures
+//!
+//! - `KeyboardEvent`: Represents keyboard events
+//! - `MouseMotionEvent`: Represents mouse motion events
+//! - `MouseClickEvent`: Represents mouse button click events
+//! - `MouseWheelEvent`: Represents mouse wheel events
+//!
+//! ## Trait
+//!
+//! - `WindowEventHandler`: A trait that defines methods for handling events.
+//! Implementing types must provide their own logic for updating the application
+//! state and drawing to the window for each event type.
+//! Call to `window.graphics.canvas.present()` is mandatory in the `draw()` function,
+//! because it presents the window itself.
+//!
+//! ## Main Loop
+//!
+//! The main loop is executed through the `run` function, which manages event polling,
+//! updates, and rendering. It handles quitting the application when an exit event is
+//! received.
 
 use log::debug;
 use sdl3::event::Event;
@@ -11,54 +37,91 @@ use sdl3::{
     mouse::{MouseButton, MouseState, MouseWheelDirection},
 };
 
+
+/// Represents a keyboard event.
 #[derive(Debug)]
 pub struct KeyboardEvent {
+    /// When the event happened (in nanos)
     pub timestamp: u64,
+    /// The window with keyboard focus, if any
     pub window_id: u32,
+    /// SDL virtual key code
     pub keycode: Option<Keycode>,
+    /// SDL physical key code
     pub scancode: Option<Scancode>,
+    /// Current key modifier (e.g. LALT)
     pub keymod: Mod,
+    /// `true` if this is a key repeat
     pub repeat: bool,
+    /// The keyboard instance id, or 0 if unknown or virtual
     pub which: u32,
+    /// The platform dependent scancode for this event
     pub raw: u16,
 }
 
 pub struct MouseMotionEvent {
+    /// When the event happened (in nanos)
     pub timestamp: u64,
+    /// The window with mouse focus, if any
     pub window_id: u32,
+    /// The mouse instance id, or 0 if unknown or virtual
     pub which: u32,
+    /// The current button state
     pub mousestate: MouseState,
+    /// X coordinate, relative to window
     pub x: f32,
+    /// Y coordinate, relative to window
     pub y: f32,
+    /// The relative motion in the X direction
     pub xrel: f32,
+    /// The relative motion in the Y direction
     pub yrel: f32,
 }
 
 pub struct MouseClickEvent {
+    /// When the event happened (in nanos)
     pub timestamp: u64,
+    /// The window with mouse focus, if any
     pub window_id: u32,
+    /// The mouse instance id in relative mode
     pub which: u32,
+    /// The mouse button index
     pub mouse_btn: MouseButton,
+    /// 1 for single-click, 2 for double-click, etc.
     pub clicks: u8,
+    /// X coordinate, relative to window
     pub x: f32,
+    /// Y coordinate, relative to window
     pub y: f32,
 }
 
 pub struct MouseWheelEvent {
+    /// When the event happened (in nanos)
     pub timestamp: u64,
+    /// The window with mouse focus, if any
     pub window_id: u32,
+    /// The mouse instance id in relative mode
     pub which: u32,
+    /// The amount scrolled horizontally, positive to the right and negative to the left
     pub x: f32,
+    /// The amount scrolled vertically, positive away from the user and negative toward the user
     pub y: f32,
+    /// Set to one of the MouseWheelDirection defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back
     pub direction: MouseWheelDirection,
+    /// X coordinate, relative to window
     pub mouse_x: f32,
+    /// Y coordinate, relative to window
     pub mouse_y: f32,
 }
 
+/// Trait that any type that is to be supplied to [`events::run`] should implement.
 pub trait WindowEventHandler {
+    /// Update the application logic
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()>;
+    /// Draw the application AND OBLIGATORILY call [`Canvas::present`]
     fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()>;
 
+    /// Handle a key down event
     fn key_down_event(
         &mut self,
         _window: &mut Window,
@@ -66,9 +129,11 @@ pub trait WindowEventHandler {
     ) -> anyhow::Result<()> {
         Ok(())
     }
+    /// Handle a key up event
     fn key_up_event(&mut self, _window: &mut Window, _event: KeyboardEvent) -> anyhow::Result<()> {
         Ok(())
     }
+    /// Handle a mouse motion event
     fn mouse_motion_event(
         &mut self,
         _window: &mut Window,
@@ -76,6 +141,7 @@ pub trait WindowEventHandler {
     ) -> anyhow::Result<()> {
         Ok(())
     }
+    /// Handle a mouse button down event
     fn mouse_button_down_event(
         &mut self,
         _window: &mut Window,
@@ -83,6 +149,7 @@ pub trait WindowEventHandler {
     ) -> anyhow::Result<()> {
         Ok(())
     }
+    /// Handle a mouse button up event
     fn mouse_button_up_event(
         &mut self,
         _window: &mut Window,
@@ -90,6 +157,7 @@ pub trait WindowEventHandler {
     ) -> anyhow::Result<()> {
         Ok(())
     }
+    /// Handle a mouse wheel event
     fn mouse_wheel_event(
         &mut self,
         _window: &mut Window,
