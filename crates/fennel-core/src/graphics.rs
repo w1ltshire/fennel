@@ -20,10 +20,6 @@ use crate::resources::font::{DummyFont, Font};
 use crate::resources::image::Image;
 use crate::resources::{self, LoadableResource, ResourceManager};
 
-pub trait HasWindow {
-    fn window_mut(&mut self) -> &mut crate::Window;
-}
-
 /// Owned SDL variables used for rendering
 ///
 /// - `canvas`: the drawing surface for the window
@@ -37,7 +33,7 @@ pub struct Graphics {
     pub texture_creator: Rc<sdl3::render::TextureCreator<sdl3::video::WindowContext>>,
     /// SDL3 TTF context required for text rendering
     pub ttf_context: sdl3::ttf::Sdl3TtfContext,
-    /// Reference to [`resources::ResourceManager`]
+    /// Reference to [`ResourceManager`]
     resource_manager: Arc<Mutex<ResourceManager>>,
 }
 

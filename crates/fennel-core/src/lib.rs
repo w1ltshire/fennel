@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     audio::Audio,
-    graphics::{Graphics, HasWindow},
+    graphics::Graphics,
     resources::ResourceManager,
 };
 
@@ -49,11 +49,5 @@ impl Window {
             audio: Audio::new(),
             resource_manager,
         }
-    }
-}
-
-impl HasWindow for Window {
-    fn window_mut(&mut self) -> &mut Self {
-        self
     }
 }
