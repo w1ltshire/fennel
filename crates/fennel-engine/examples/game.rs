@@ -18,8 +18,7 @@ async fn main() -> anyhow::Result<()> {
         .dimensions((800, 800))
         .config("crates/fennel-engine/examples/game.toml")
         .register_system(SysA, "sys_a", &[])
-        .build()
-        .expect("failed to build an app");
+        .build()?;
 
     app.run().await?;
     Ok(())

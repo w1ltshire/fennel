@@ -2,7 +2,7 @@ use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
 };
-
+use anyhow::Context;
 use fennel_core::{
     Window,
     events::{self, WindowEventHandler},
@@ -38,22 +38,21 @@ impl WindowEventHandler for State {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
     let graphics = graphics::Graphics::new(
         String::from("my cool window"),
         (500, 500),
         resource_manager.clone(),
         |graphics| {
-            // we bulk load resources here because either we'll have to deal with
-            // ownership of `graphics` (the actual `let graphics`, not the closure
-            // argument)
-            // you may think of it like about just some initialization func
+            let mut resource_manager = match resource_manager.try_lock() {
+                Ok(guard) => guard,
+                Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
+            };
             resource_manager
-                .lock()
-                .expect("failed to acquire resource_manager lock")
                 .load_dir(PathBuf::from("assets"), graphics)
-                .expect("failed to load assets from directory");
+                .context("failed to load assets from directory")?;
+            Ok(())
         },
         graphics::WindowConfig::default(),
     )
@@ -68,5 +67,6 @@ async fn main() {
         let boxed = Box::new(State);
         Box::leak(boxed) as &'static mut dyn WindowEventHandler
     };
-    events::run(&mut window, handler, vec![]).await;
+    events::run(&mut window, handler, vec![]).await?;
+    Ok(())
 }

@@ -69,9 +69,14 @@ impl<'a> System<'a> for SceneSystem {
                             component.id, component.config
                         );
                         let entity = entities.create();
+
+                        // iirc no way to return an error from a system, and it's really a fatal error if a factory doesn't
+                        // exist (means either the scene is defined wrongly or the developer didn't register a factory) so
+                        // panic is justified
                         let factory = component_registry
                             .get(&component.id)
                             .unwrap_or_else(|| panic!("factory {} not found", component.id));
+
                         factory.insert_lazy(&lazy, entity, &component.config);
                     }
                 }

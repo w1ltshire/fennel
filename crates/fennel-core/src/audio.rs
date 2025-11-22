@@ -11,8 +11,9 @@ use std::{
     io::BufReader,
     path::{Path, PathBuf},
 };
-
-use rodio::Sink;
+use std::fs::File;
+use log::{error, warn};
+use rodio::{OutputStreamBuilder, Sink};
 use tokio::sync::mpsc::{self, Sender};
 
 /// Holds the command channel
@@ -37,25 +38,42 @@ impl Audio {
         let (tx, mut rx) = mpsc::channel::<AudioCommand>(16);
 
         tokio::spawn(async move {
-            println!("hey im the audio thread nya meow meow >:3");
-            let stream_handle = rodio::OutputStreamBuilder::open_default_stream()
-                .expect("audio: failed to initialize stream handle");
+            println!("hey I'm the audio thread nya meow meow >:3");
+            let stream_handle = match OutputStreamBuilder::open_default_stream() {
+                Ok(handle) => handle,
+                Err(e) => {
+                    error!("audio: failed to initialize stream handle: {}", e);
+                    return;
+                }
+            };
             let mixer = stream_handle.mixer();
             let mut sinks: HashMap<String, Sink> = HashMap::new();
 
             while let Some(message) = rx.recv().await {
                 match message {
                     AudioCommand::Play(pathbuf) => {
-                        let file =
-                            std::fs::File::open(&pathbuf).expect("audio: failed to open file");
-                        let sink = rodio::play(mixer, BufReader::new(file))
-                            .expect("audio: failed to start playback");
-                        sink.set_volume(1.0);
-                        sinks.insert(pathbuf.to_string_lossy().to_string(), sink);
+                        match File::open(&pathbuf) {
+                            Ok(file) => {
+                                let sink = match rodio::play(mixer, BufReader::new(file)) {
+                                    Ok(sink) => sink,
+                                    Err(e) => {
+                                        error!("audio: failed to start playback for {}: {}", pathbuf.display(), e);
+                                        continue;
+                                    }
+                                };
+                                sink.set_volume(1.0);
+                                sinks.insert(pathbuf.to_string_lossy().to_string(), sink);
+                            }
+                            Err(e) => {
+                                error!("audio: failed to open file {}: {}", pathbuf.display(), e);
+                            }
+                        }
                     }
                     AudioCommand::Stop(sink_name) => {
                         if let Some(sink) = sinks.get(&sink_name) {
                             sink.stop();
+                        } else {
+                            warn!("audio: no sink found for {}", sink_name);
                         }
                     }
                 }

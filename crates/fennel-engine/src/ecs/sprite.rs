@@ -1,3 +1,4 @@
+use log::error;
 use ron::Value;
 use serde::Deserialize;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
@@ -28,18 +29,27 @@ pub struct SpriteFactory;
 
 impl ComponentFactory for SpriteFactory {
     fn insert(&self, world: &mut World, entity: Entity, value: &Value) {
-        let sprite = ron::value::Value::into_rust::<Sprite>(value.clone());
-        println!("{:#?}", sprite);
-        world
-            .write_storage::<Sprite>()
-            .insert(entity, sprite.expect("failed to construct a sprite"))
-            .expect("failed to insert sprite into world");
+        match Value::into_rust::<Sprite>(value.clone()) {
+            Ok(sprite) => {
+                let _ = world
+                    .write_storage::<Sprite>()
+                    .insert(entity, sprite);
+            }
+            Err(e) => {
+                error!("failed to construct a sprite for entity {:?}: {}", entity, e);
+            }
+        }
     }
 
     fn insert_lazy(&self, lazy: &LazyUpdate, entity: Entity, value: &Value) {
-        let sprite = ron::value::Value::into_rust::<Sprite>(value.clone())
-            .expect("failed to construct a sprite");
-        lazy.insert(entity, sprite);
+        match Value::into_rust::<Sprite>(value.clone()) {
+            Ok(sprite) => {
+                lazy.insert(entity, sprite);
+            }
+            Err(e) => {
+                error!("failed to construct a sprite for entity {:?}: {}", entity, e);
+            }
+        }
     }
 }
 

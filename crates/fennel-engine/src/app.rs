@@ -2,6 +2,7 @@ use std::{
     fs,
     sync::{Arc, Mutex},
 };
+use anyhow::Context;
 use kanal::Receiver;
 use fennel_core::{
     Window,
@@ -127,7 +128,7 @@ impl App {
             }
         });
 
-        fennel_core::events::run(&mut self.window, unsafe { &mut *ptr }, vec![]).await;
+        fennel_core::events::run(&mut self.window, unsafe { &mut *ptr }, vec![]).await?;
         Ok(())
     }
 }
@@ -207,17 +208,20 @@ impl AppBuilder {
             self.name.to_string(),
             self.dimensions,
             resource_manager.clone(),
-            |graphics| {
+            |graphics| -> anyhow::Result<()> {
+                let mut resource_manager = match resource_manager.try_lock() {
+                    Ok(guard) => guard,
+                    Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
+                };
                 resource_manager
-                    .lock()
-                    .expect("failed to acquire resource_manager lock")
                     .load_dir(config.assets_path.clone().into(), graphics)
-                    .expect("failed to load resources from directory");
+                    .context("failed to load resources from directory")?;
+                Ok(())
             },
             self.window_config,
-        );
+        ).context("failed to initialize graphics")?;
         let window = Window::new(
-            graphics.expect("failed to initialize graphics"),
+            graphics,
             resource_manager,
         );
         let mut dispatcher_builder = DispatcherBuilder::new()
@@ -236,9 +240,9 @@ impl AppBuilder {
 
         let mut scenes: Vec<Scene> = vec![];
 
-        for entry in fs::read_dir(config.scenes_path).expect("meow") {
+        for entry in fs::read_dir(config.scenes_path)? {
             let scene_reader =
-                fs::read(entry.expect("failed to read directory").path()).expect("meow");
+                fs::read(entry?.path())?;
             let scene: Scene = ron::de::from_bytes(&scene_reader)?;
             self.world.create_entity().with(scene.clone()).build();
             scenes.push(scene.clone());

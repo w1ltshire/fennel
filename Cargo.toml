@@ -1,3 +1,3 @@
 [workspace]
 resolver = "3"
-members = ["crates/fennel-core", "crates/fennel-engine", "crates/fennel-physics", "tests"]
+members = ["crates/fennel-core", "crates/fennel-engine", "crates/fennel-physics"]

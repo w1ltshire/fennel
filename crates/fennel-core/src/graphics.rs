@@ -14,8 +14,6 @@ use sdl3::pixels::{Color, PixelFormat};
 use sdl3::render::{Canvas, FRect};
 use sdl3::video::Window;
 
-use quick_error::ResultExt;
-
 use crate::resources::font::{DummyFont, Font};
 use crate::resources::image::Image;
 use crate::resources::{self, LoadableResource, ResourceManager};
@@ -51,7 +49,7 @@ pub struct WindowConfig {
 /// Builder for creating a Graphics instance.
 pub struct GraphicsBuilder<F>
 where
-    F: Fn(&mut Graphics),
+    F: Fn(&mut Graphics) -> anyhow::Result<()>,
 {
     resource_manager: Option<Arc<Mutex<ResourceManager>>>,
     dimensions: (u32, u32),
@@ -62,7 +60,7 @@ where
 
 impl<F> GraphicsBuilder<F>
 where
-    F: Fn(&mut Graphics),
+    F: Fn(&mut Graphics) -> anyhow::Result<()>,
 {
     /// Create a new empty GraphicsBuilder
     /// By default there is no resource manager or resource initializer, dimensions are (0, 0), name
@@ -105,7 +103,7 @@ where
     /// Set the resource initializer (closure)
     pub fn initializer(mut self, initializer: F) -> GraphicsBuilder<F>
     where
-        F: Fn(&mut Graphics),
+        F: Fn(&mut Graphics) -> anyhow::Result<()>,
     {
         self.initializer = Some(initializer);
         self
@@ -134,20 +132,29 @@ where
     /// # Panic
     /// Panics if no resource manager or initializer was provided
     pub fn build(self) -> anyhow::Result<Graphics> {
-        Ok(Graphics::new(
+        let resource_manager = match self.resource_manager {
+            Some(resource_manager) => resource_manager,
+            None => return Err(anyhow::anyhow!("no resource manager supplied")),
+        };
+
+        let initializer = match self.initializer {
+            Some(initializer) => initializer,
+            None => return Err(anyhow::anyhow!("no initializer supplied")),
+        };
+
+        Graphics::new(
             self.name,
             self.dimensions,
-            self.resource_manager.expect("no resource manager provided"),
-            self.initializer.expect("no resource initializer provided"),
+            resource_manager,
+            initializer,
             self.config,
         )
-        .expect("failed to create Graphics"))
     }
 }
 
 impl<F> Default for GraphicsBuilder<F>
 where
-    F: Fn(&mut Graphics),
+    F: Fn(&mut Graphics) -> anyhow::Result<()>,
 {
     /// Default implementation delegates to [`GraphicsBuilder::new`]
     fn default() -> Self {
@@ -177,12 +184,12 @@ impl Graphics {
         resource_manager: Arc<Mutex<ResourceManager>>,
         resource_initialization: F,
         config: WindowConfig,
-    ) -> Result<Graphics, Box<dyn std::error::Error>>
+    ) -> anyhow::Result<Graphics>
     where
-        F: Fn(&mut Graphics),
+        F: Fn(&mut Graphics) -> anyhow::Result<()>,
     {
         let sdl_context = sdl3::init()?;
-        let ttf_context = sdl3::ttf::init().map_err(|e| e.to_string())?;
+        let ttf_context = sdl3::ttf::init()?;
         let video_subsystem = sdl_context.video()?;
 
         let mut builder = video_subsystem.window(&name, dimensions.0, dimensions.1);
@@ -203,7 +210,7 @@ impl Graphics {
             &mut builder
         };
 
-        let window = builder.build().map_err(|e| e.to_string())?;
+        let window = builder.build()?;
 
         let canvas = window.into_canvas();
         let texture_creator = canvas.texture_creator();
@@ -215,7 +222,7 @@ impl Graphics {
             resource_manager,
         };
 
-        resource_initialization(&mut graphics);
+        resource_initialization(&mut graphics)?;
 
         Ok(graphics)
     }
@@ -256,10 +263,11 @@ impl Graphics {
         flip_vertical: bool,
     ) -> anyhow::Result<()> {
         let manager = self.resource_manager.clone();
-        let mut manager = manager
-            .try_lock()
-            .context("failed to lock resource_manager")
-            .expect("failed to acquire resource_manager lock");
+
+        let mut manager = match manager.try_lock() {
+            Ok(guard) => guard,
+            Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
+        };
 
         if !manager.is_cached(path.clone()) {
             // rust programmers when they have to .clone()
@@ -267,11 +275,7 @@ impl Graphics {
             manager.cache_asset(texture?)?; // those question marks are funny hehehe
         }
 
-        let image: &Image = resources::downcast_ref(
-            manager
-                .get_asset(path)
-                .expect("failed to downcast gathered asset"),
-        )?;
+        let image: &Image = resources::downcast_ref(manager.get_asset(path)?, )?;
 
         let dst_rect = FRect::new(
             position.0,
@@ -289,8 +293,7 @@ impl Graphics {
                 None,
                 flip_horizontal,
                 flip_vertical,
-            )
-            .expect("failed to copy texture onto canvas");
+            )?;
 
         Ok(())
     }
@@ -305,10 +308,11 @@ impl Graphics {
         size: f32,
     ) -> anyhow::Result<()> {
         let manager = self.resource_manager.clone();
-        let mut manager = manager
-            .try_lock()
-            .context("failed to lock resource_manager")
-            .expect("failed to acquire resource_manager lock");
+
+        let mut manager = match manager.try_lock() {
+            Ok(guard) => guard,
+            Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
+        };
 
         // dumbass solution. either way, i see no other solution to this.
         // as sdl3 requires us to create a texture from font to draw text,
@@ -359,8 +363,7 @@ impl Graphics {
                 None,
                 false,
                 false,
-            )
-            .expect("failed to copy texture onto canvas");
+            )?;
         Ok(())
     }
 }

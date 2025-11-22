@@ -53,19 +53,22 @@ impl LoadableResource for Font {
     where
         Self: Sized,
     {
-        if size.is_none() {
-            bail!("no font size was provided");
-        }
+        let size = match size {
+            Some(size) => size,
+            None => bail!("Font size not provided"),
+        };
         let font = graphics
             .ttf_context
-            .load_font(&path, size.expect("no size was provided"))?;
+            .load_font(&path, size)?;
+        let family_name = match font.face_family_name() {
+            Some(name) => name,
+            None => bail!("failed to get font family name"),
+        };
         Ok(Box::new(Self {
             path,
-            family_name: font
-                .face_family_name()
-                .expect("failed to get font family name"),
+            family_name,
             name,
-            size: size.expect("no size was provided"),
+            size,
             buffer: Rc::new(font),
         }))
     }

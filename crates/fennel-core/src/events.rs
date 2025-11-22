@@ -187,12 +187,11 @@ pub async fn run(
     window: &mut Window,
     state: &'static mut dyn WindowEventHandler,
     mut hooks: Vec<Box<dyn Hook>>,
-) {
+) -> anyhow::Result<()> {
     let mut event_pump = window
         .graphics
         .sdl_context
-        .event_pump()
-        .expect("failed to get event_pump");
+        .event_pump()?;
     for hook in &mut hooks {
         debug!("preparing hook {}", hook.name());
         hook.prepare(&mut event_pump, window);
@@ -231,8 +230,7 @@ pub async fn run(
                             which,
                             raw,
                         },
-                    )
-                    .expect("failed to handle event"),
+                    )?,
 
                 Event::KeyUp {
                     timestamp,
@@ -256,8 +254,7 @@ pub async fn run(
                             which,
                             raw,
                         },
-                    )
-                    .expect("failed to handle event"),
+                    )?,
 
                 Event::MouseMotion {
                     timestamp,
@@ -281,8 +278,7 @@ pub async fn run(
                             xrel,
                             yrel,
                         },
-                    )
-                    .expect("failed to handle event"),
+                    )?,
 
                 Event::MouseButtonDown {
                     timestamp,
@@ -304,8 +300,7 @@ pub async fn run(
                             x,
                             y,
                         },
-                    )
-                    .expect("failed to handle event"),
+                    )?,
 
                 Event::MouseButtonUp {
                     timestamp,
@@ -327,8 +322,7 @@ pub async fn run(
                             x,
                             y,
                         },
-                    )
-                    .expect("failed to handle event"),
+                    )?,
 
                 Event::MouseWheel {
                     timestamp,
@@ -352,8 +346,7 @@ pub async fn run(
                             mouse_x,
                             mouse_y,
                         },
-                    )
-                    .expect("failed to handle event"),
+                    )?,
                 _ => {}
             }
         }
@@ -371,4 +364,5 @@ pub async fn run(
             tokio::time::sleep(Duration::from_nanos(999_999 - elapsed)).await;
         }
     }
+    Ok(())
 }

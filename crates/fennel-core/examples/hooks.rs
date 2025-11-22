@@ -7,7 +7,7 @@ use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
 };
-
+use anyhow::Context;
 use fennel_core::{
     Window,
     events::{self, WindowEventHandler},
@@ -114,18 +114,21 @@ impl Hook for MyHook {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
     let graphics = graphics::GraphicsBuilder::new()
         .window_name(String::from("game"))
         .dimensions((1360, 768))
         .resource_manager(resource_manager.clone())
         .initializer(|graphics| {
+            let mut resource_manager = match resource_manager.try_lock() {
+                Ok(guard) => guard,
+                Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
+            };
             resource_manager
-                .lock()
-                .expect("failed to acquire resource_manager lock")
                 .load_dir(PathBuf::from("assets"), graphics)
-                .expect("failed to load assets from directory");
+                .context("failed to load assets from directory")?;
+            Ok(())
         })
         .build();
     let mut window = Window::new(
@@ -146,5 +149,6 @@ async fn main() {
             imgui: None,
         })],
     )
-    .await;
+    .await?;
+    Ok(())
 }
