@@ -11,3 +11,5 @@ pub mod registry;
 pub mod renderer;
 /// Module providing functionality of scenes
 pub mod scenes;
+/// Module providing time (tick) functionality
+pub mod time;

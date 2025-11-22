@@ -304,9 +304,10 @@ impl Graphics {
         text: String,
         position: (f32, f32),
         font: String,
-        color: Color,
+        color: (u8, u8, u8),
         size: f32,
     ) -> anyhow::Result<()> {
+        let color = Color::RGB(color.0, color.1, color.2);
         let manager = self.resource_manager.clone();
 
         let mut manager = match manager.try_lock() {

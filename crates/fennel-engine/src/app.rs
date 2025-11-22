@@ -2,6 +2,7 @@ use std::{
     fs,
     sync::{Arc, Mutex},
 };
+use std::time::{Duration, Instant};
 use anyhow::Context;
 use kanal::Receiver;
 use fennel_core::{
@@ -20,6 +21,7 @@ use crate::{
     scenes::{ActiveScene, Scene, SceneSystem},
 };
 use crate::renderer::Drawable;
+use crate::time::{Tick, TickSystem};
 
 /// The application struct which contains [`Window`], [`World`] and `specs`
 /// `Dispatcher`
@@ -82,6 +84,15 @@ impl WindowEventHandler for App {
                     window.graphics.draw_rect(w, h, x, y)
                         .unwrap_or_else(|e| { warn!("failed to draw rect: {e}"); });
                 },
+                Some(Drawable::Text {font, position, text, size}) => {
+                  window.graphics.draw_text(
+                      text,
+                      position,
+                      font,
+                      (255, 0, 0),
+                      size
+                  )?;
+                },
                 None => {}
             }
         }
@@ -117,14 +128,23 @@ impl App {
             let dispatcher_builder = self.dispatcher_builder;
             let mut dispatcher = dispatcher_builder.0.build();
             let mut world = self.world.0;
+            world.insert(Tick {
+                ticks: 0,
+                tick_rate: 16_000_000
+            });
 
             loop {
+                let now = Instant::now();
+
                 dispatcher.dispatch(&world);
                 world.maintain();
 
-                // this `sleep` call is a temporary fix to the high cpu load (issue #2)
-                // i will probably replace it with something better when i introduce ticks
-                std::thread::sleep(std::time::Duration::from_millis(16));
+                let elapsed = Instant::now().duration_since(now).as_nanos() as u64;
+                if elapsed < 16_000_000 {
+                    std::thread::sleep(Duration::from_nanos(16_000_000 - elapsed));
+                } else {
+                    warn!("cannot keep up, tick took {elapsed} > 16000000 nanoseconds");
+                }
             }
         });
 
@@ -225,9 +245,10 @@ impl AppBuilder {
             resource_manager,
         );
         let mut dispatcher_builder = DispatcherBuilder::new()
-            .with(QueuedRenderingSystem, "rendering_system", &[])
             .with(SceneSystem, "scene_system", &[])
-            .with(SpriteRenderingSystem, "sprite_rendering_system", &[]);
+            .with(SpriteRenderingSystem, "sprite_rendering_system", &[])
+            .with(QueuedRenderingSystem, "rendering_system", &[])
+            .with(TickSystem, "tick_system", &[]);
 
         for reg in self.dispatcher_config.drain(..) {
             dispatcher_builder = reg(&mut dispatcher_builder);

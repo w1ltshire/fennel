@@ -36,14 +36,14 @@ impl WindowEventHandler for State {
             String::from("hi"),
             (64.0, 64.0),
             String::from("Terminus"),
-            Color::RGBA(255, 0, 0, 0),
+            (255, 0, 0),
             16.0,
         )?;
         window.graphics.draw_text(
             String::from("hi"),
             (64.0, 64.0),
             String::from("Terminus"),
-            Color::RGBA(255, 0, 0, 0),
+            (255, 0, 0),
             64.0,
         )?;
         window.graphics.canvas.present();

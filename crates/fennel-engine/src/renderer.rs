@@ -14,6 +14,7 @@ pub enum Drawable {
     Image(Sprite),
     /// A basic rectangle
     Rect { w: f32, h: f32, x: f32, y: f32 },
+    Text { font: String, position: (f32, f32), text: String, size: f32 },
 }
 
 /// A simple queue of [`Drawable`] items to be consumed by a rendering system
