@@ -1,5 +1,6 @@
 use std::{any::Any, cell::Ref, collections::HashMap, fs, path::PathBuf};
-
+use anyhow::{bail, Context};
+use log::debug;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -90,9 +91,10 @@ pub fn downcast_ref<T: 'static + LoadableResource>(
 
     let any_ref = dyn_ref as &dyn Any;
 
-    Ok(any_ref
-        .downcast_ref::<T>()
-        .expect("incorrect concrete type"))
+   match any_ref.downcast_ref::<T>() {
+       Some(t) => Ok(t),
+       None => bail!("downcast error"),
+   }
 }
 
 impl ResourceManager {
@@ -108,32 +110,41 @@ impl ResourceManager {
     /// # Errors
     /// Returns an error if manifest does not exist in the target directory
     pub fn load_dir(&mut self, path: PathBuf, graphics: &mut Graphics) -> anyhow::Result<()> {
-        let manifest_file = fs::read(path.join("manifest.toml"))?;
-        let manifest: Manifest = toml::from_slice(&manifest_file)?;
+        let manifest_file = fs::read(path.join("manifest.toml"))
+            .context("failed to read manifest.toml")?;
+
+        let manifest: Manifest = toml::from_slice(&manifest_file)
+            .context("failed to parse manifest.toml")?;
+
         for asset in manifest.assets {
+            debug!("loading asset '{}' with class {:?}", asset.name, asset.class);
+
+            let asset_path = path.join(asset.path);
+
             match asset.class {
                 AssetType::Image => {
-                    let path = path.join(asset.path);
                     let image = Image::load(
-                        path.clone(),
-                        path.to_str()
-                            .expect("failed to convert path to string")
+                        asset_path.clone(),
+                        asset_path.to_str()
+                            .context("failed to convert asset path to string")?
                             .to_string(),
                         graphics,
                         None,
                     )?;
-                    println!("{:?}", image.name());
                     self.cache_asset(image)?;
                 }
-                AssetType::Audio => {}
+                AssetType::Audio => {
+                    // Handle loading audio assets if necessary
+                }
                 AssetType::Font => {
-                    let path = path.join(asset.path);
-                    let font = DummyFont::load(path, asset.name, graphics, None)?;
+                    let font = DummyFont::load(asset_path, asset.name, graphics, None)
+                        .context("failed to load font")?;
                     println!("{:?}", font.name());
                     self.cache_asset(font)?;
                 }
             }
         }
+
         Ok(())
     }
 
