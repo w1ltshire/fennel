@@ -13,6 +13,7 @@ impl<'a> System<'a> for SysA {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init();
     let app = AppBuilder::new()
         .name("game")
         .dimensions((800, 800))
