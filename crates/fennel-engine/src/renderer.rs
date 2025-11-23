@@ -14,7 +14,17 @@ pub enum Drawable {
     Image(Sprite),
     /// A basic rectangle
     Rect { w: f32, h: f32, x: f32, y: f32 },
-    Text { font: String, position: (f32, f32), text: String, size: f32 },
+    /// Text drawable.
+    ///
+    /// # Fields
+    /// * `font`: Font name registered in the resource manager
+    /// * `position`: Position in `(f32, f32)` relative to the window
+    /// * `text`: The text itself to render
+    /// * `color`: RGB tuple of `u8`
+    /// * `size`: Font size in `f32`
+    Text { font: String, position: (f32, f32), text: String, color: (u8, u8, u8), size: f32 },
+    /// Ready to present command
+    Present
 }
 
 /// A simple queue of [`Drawable`] items to be consumed by a rendering system
@@ -34,6 +44,9 @@ impl<'a> System<'a> for QueuedRenderingSystem {
             sender.send(drawable).unwrap_or_else(|e| {
                 warn!("failed to send drawable: {e}");
             });
+        });
+        sender.send(Drawable::Present).unwrap_or_else(|e| {
+            warn!("failed to send drawable: {e}");
         });
     }
 }
