@@ -125,9 +125,7 @@ impl ResourceManager {
                 AssetType::Image => {
                     let image = Image::load(
                         asset_path.clone(),
-                        asset_path.to_str()
-                            .context("failed to convert asset path to string")?
-                            .to_string(),
+                        asset.name,
                         graphics,
                         None,
                     )?;
