@@ -13,3 +13,5 @@ pub mod renderer;
 pub mod scenes;
 /// Module providing time (tick) functionality
 pub mod time;
+#[cfg(test)]
+mod tests;

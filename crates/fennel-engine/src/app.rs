@@ -4,7 +4,7 @@ use std::{
 };
 use std::time::{Duration, Instant};
 use anyhow::Context;
-use kanal::Receiver;
+use kanal::{Receiver, Sender};
 use fennel_core::{
     Window,
     events::{KeyboardEvent, WindowEventHandler},
@@ -32,7 +32,8 @@ pub struct App {
     world: WorldWrapper,
     /// ECS dispatcher builder
     dispatcher_builder: DispatcherBuilderWrapper,
-    render_receiver: Receiver<Drawable>
+    render_receiver: Receiver<Drawable>,
+    drawn: bool
 }
 
 type Reg = Box<
@@ -69,7 +70,12 @@ impl WindowEventHandler for App {
     }
 
     fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
+        // FIXME: fps is capped at ~45-60 because of this implementation
         if let Ok(drawable) = self.render_receiver.try_recv() {
+            if !self.drawn {
+                window.graphics.canvas.clear();
+            }
+            self.drawn = true;
             match drawable {
                 Some(Drawable::Image(sprite)) => {
                     window.graphics.draw_image(
@@ -84,19 +90,22 @@ impl WindowEventHandler for App {
                     window.graphics.draw_rect(w, h, x, y)
                         .unwrap_or_else(|e| { warn!("failed to draw rect: {e}"); });
                 },
-                Some(Drawable::Text {font, position, text, size}) => {
-                  window.graphics.draw_text(
-                      text,
-                      position,
-                      font,
-                      (255, 0, 0),
-                      size
-                  )?;
+                Some(Drawable::Text {font, position, text, size, color}) => {
+                    window.graphics.draw_text(
+                        text,
+                        position,
+                        font,
+                        color,
+                        size
+                    )?;
+                },
+                Some(Drawable::Present) => {
+                    window.graphics.canvas.present();
+                    self.drawn = false;
                 },
                 None => {}
             }
         }
-        window.graphics.canvas.present();
         Ok(())
     }
 
@@ -130,7 +139,8 @@ impl App {
             let mut world = self.world.0;
             world.insert(Tick {
                 ticks: 0,
-                tick_rate: 16_000_000
+                tick_rate: 16_000_000,
+                total_elapsed_time: 0.0
             });
 
             loop {
@@ -139,12 +149,25 @@ impl App {
                 dispatcher.dispatch(&world);
                 world.maintain();
 
-                let elapsed = Instant::now().duration_since(now).as_nanos() as u64;
-                if elapsed < 16_000_000 {
-                    std::thread::sleep(Duration::from_nanos(16_000_000 - elapsed));
+                let elapsed = Instant::now().duration_since(now);
+                let mut tick = world.write_resource::<Tick>();
+
+                if elapsed.as_nanos() < tick.tick_rate as u128 {
+                    tick.total_elapsed_time += (tick.tick_rate - elapsed.as_nanos() as u64) as f64 / 1_000_000_000.0;
+                    std::thread::sleep(Duration::from_nanos(16_000_000 - elapsed.as_nanos() as u64));
                 } else {
-                    warn!("cannot keep up, tick took {elapsed} > 16000000 nanoseconds");
+                    tick.total_elapsed_time += (elapsed.as_nanos() as u64) as f64 / 1_000_000_000.0;
+                    warn!("cannot keep up, tick took {} > 16000000 nanoseconds", elapsed.as_nanos());
                 }
+
+                #[cfg(debug_assertions)]
+                world.write_resource::<Sender<Drawable>>().send(Drawable::Text {
+                    font: "Terminus".to_string(),
+                    position: (300.0, 0.0),
+                    text: format!("TPS: {}", tick.tps().floor()),
+                    color: (255, 0, 0),
+                    size: 14.0,
+                }).unwrap();
             }
         });
 
@@ -277,11 +300,14 @@ impl AppBuilder {
             loaded: false,
         });
 
+        let world = WorldWrapper(self.world);
+
         Ok(App {
             window,
-            world: WorldWrapper(self.world),
+            world,
             dispatcher_builder: DispatcherBuilderWrapper(dispatcher_builder),
             render_receiver,
+            drawn: false
         })
     }
 }

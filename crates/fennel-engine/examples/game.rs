@@ -7,6 +7,7 @@ impl<'a> System<'a> for SysA {
     type SystemData = ();
 
     fn run(&mut self, _data: ()) {
+        // std::thread::sleep(std::time::Duration::from_millis(183)); // artificial delay, aim for ~5.5 tps
         // println!("nya");
     }
 }
