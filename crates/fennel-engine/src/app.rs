@@ -21,6 +21,7 @@ use crate::{
     scenes::{ActiveScene, Scene, SceneSystem},
 };
 use crate::renderer::Drawable;
+use crate::tiles::{Tile, TileFactory, TileRenderingSystem};
 use crate::time::{Tick, TickSystem};
 
 /// The application struct which contains [`Window`], [`World`] and `specs`
@@ -271,6 +272,7 @@ impl AppBuilder {
             .with(SceneSystem, "scene_system", &[])
             .with(SpriteRenderingSystem, "sprite_rendering_system", &[])
             .with(QueuedRenderingSystem, "rendering_system", &[])
+            .with(TileRenderingSystem, "tile_rendering_system", &[])
             .with(TickSystem, "tick_system", &[]);
 
         for reg in self.dispatcher_config.drain(..) {
@@ -281,6 +283,7 @@ impl AppBuilder {
         self.world.insert(KeyEvents::default());
         self.world.insert(RenderQueue::new());
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
+        self = self.with_component::<Tile, TileFactory>("tile", TileFactory);
 
         let mut scenes: Vec<Scene> = vec![];
 
