@@ -55,7 +55,7 @@ impl LoadableResource for Image {
     ) -> anyhow::Result<Box<dyn LoadableResource>> {
         let img = ImageReader::open(&path)?.decode()?;
         let mut buffer = img.to_rgba8().into_raw();
-        let surface = sdl3::surface::Surface::from_data(
+        let surface = Surface::from_data(
             &mut buffer,
             img.width(),
             img.height(),
@@ -64,7 +64,7 @@ impl LoadableResource for Image {
         )?;
 
         let texture = unsafe {
-            std::mem::transmute::<sdl3::render::Texture<'_>, sdl3::render::Texture<'static>>(
+            std::mem::transmute::<Texture<'_>, Texture<'static>>(
                 graphics
                     .texture_creator
                     .create_texture_from_surface(surface)?,
