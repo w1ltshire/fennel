@@ -29,7 +29,7 @@ impl Image {
         surface: Surface,
     ) -> anyhow::Result<Box<dyn LoadableResource>> {
         let texture = unsafe {
-            std::mem::transmute::<sdl3::render::Texture<'_>, sdl3::render::Texture<'static>>(
+            std::mem::transmute::<Texture<'_>, Texture<'static>>(
                 graphics
                     .texture_creator
                     .create_texture_from_surface(&surface)?,
