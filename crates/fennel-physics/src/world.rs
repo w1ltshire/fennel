@@ -6,6 +6,7 @@ use crate::gravity::Gravity;
 pub struct PhysicsWorld {
     /// List of all bodies in this world
     pub bodies: Vec<Box<dyn Body>>,
+    /// World's gravity properties
     pub gravity: Gravity,
 }
 
@@ -32,6 +33,10 @@ impl PhysicsWorld {
         self.bodies.push(body);
     }
 
+    /// Update this world's bodies
+    ///
+    /// # Arguments
+    /// * `delta_time`: the time difference
     pub fn step(&mut self, delta_time: f32) {
         for body in self.bodies.iter_mut() {
             body.update(delta_time, self.gravity.acceleration);
@@ -40,6 +45,8 @@ impl PhysicsWorld {
         self.handle_collisions();
     }
 
+    /// Handle collisions in this world
+    // TODO: handle collisions
     pub fn handle_collisions(&mut self) {
 
     }
