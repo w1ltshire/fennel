@@ -18,7 +18,7 @@ pub struct Image {
     pub texture: Rc<Texture<'static>>,
     /// Image width
     pub width: u32,
-    /// Image heiht
+    /// Image height
     pub height: u32,
 }
 
