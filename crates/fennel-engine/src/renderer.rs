@@ -1,7 +1,9 @@
 use kanal::Sender;
 use log::warn;
-use specs::{System, WriteExpect};
+use specs::{ReadExpect, System, WriteExpect};
+use crate::camera::Camera;
 use crate::ecs::sprite::Sprite;
+use crate::ecs::transform::Transform;
 
 /// A drawable primitive that can be queued for rendering
 ///
@@ -36,15 +38,51 @@ pub struct RenderQueue {
 /// ECS system that renders Sprite components from [`RenderQueue`]
 pub struct QueuedRenderingSystem;
 
-impl<'a> System<'a> for QueuedRenderingSystem {
-    type SystemData = (WriteExpect<'a, RenderQueue>, WriteExpect<'a, Sender<Drawable>>);
 
-    fn run(&mut self, (mut rq, sender): Self::SystemData) {
+impl<'a> System<'a> for QueuedRenderingSystem {
+    type SystemData = (
+        WriteExpect<'a, RenderQueue>,
+        WriteExpect<'a, Sender<Drawable>>,
+        ReadExpect<'a, Camera>
+    );
+
+    fn run(&mut self, (mut rq, sender, camera): Self::SystemData) {
+
         rq.queue.drain(..).for_each(|drawable| {
-            sender.send(drawable).unwrap_or_else(|e| {
-                warn!("failed to send drawable: {e}");
-            });
+            match drawable {
+                Drawable::Rect { w, h, x, y } => {
+                    let (camera_x, camera_y) = camera.world_to_camera((x, y));
+                    sender.send(Drawable::Rect { w, h, x: camera_x, y: camera_y }).unwrap_or_else(|e| {
+                        warn!("failed to send drawable: {e}");
+                    });
+                },
+                Drawable::Image(sprite) => {
+                    let (camera_x, camera_y) = camera.world_to_camera((sprite.transform.position.0, sprite.transform.position.1));
+                    sender.send(Drawable::Image(Sprite {
+                        image: sprite.image,
+                        transform: Transform {
+                            position: (camera_x, camera_y),
+                            rotation: sprite.transform.rotation,
+                            scale: sprite.transform.scale
+                        },
+                    })).unwrap_or_else(|e| {
+                        warn!("failed to send drawable: {e}");
+                    });
+                },
+                Drawable::Text { font, position, text, color, size } => {
+                    let (camera_x, camera_y) = camera.world_to_camera(position);
+                    sender.send(Drawable::Text { font, position: (camera_x, camera_y), text, color, size }).unwrap_or_else(|e| {
+                        warn!("failed to send drawable: {e}");
+                    });
+                },
+                _ => {
+                    sender.send(drawable).unwrap_or_else(|e| {
+                        warn!("failed to send drawable: {e}");
+                    });
+                }
+            }
         });
+
         sender.send(Drawable::Present).unwrap_or_else(|e| {
             warn!("failed to send drawable: {e}");
         });

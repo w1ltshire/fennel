@@ -12,7 +12,7 @@ impl<'a> System<'a> for SysA {
     fn run(&mut self, (mut key_events, mut sprite): Self::SystemData) {
         // std::thread::sleep(std::time::Duration::from_millis(183)); // artificial delay, aim for ~5.5 tps
         // println!("nya");
-        for mut sprite in (&mut sprite).join() {
+        for sprite in (&mut sprite).join() {
             key_events.0.drain(..).for_each(|event| {
                 if let Some(scancode) = event.scancode {
                     println!("{:?}", event);

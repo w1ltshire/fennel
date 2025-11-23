@@ -20,6 +20,7 @@ use crate::{
     renderer::{QueuedRenderingSystem, RenderQueue},
     scenes::{ActiveScene, Scene, SceneSystem},
 };
+use crate::camera::Camera;
 use crate::renderer::Drawable;
 use crate::tiles::{Tile, TileFactory, TileRenderingSystem};
 use crate::time::{Tick, TickSystem};
@@ -282,6 +283,7 @@ impl AppBuilder {
         self.world.register::<Scene>();
         self.world.insert(KeyEvents::default());
         self.world.insert(RenderQueue::new());
+        self.world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
         self = self.with_component::<Tile, TileFactory>("tile", TileFactory);
 

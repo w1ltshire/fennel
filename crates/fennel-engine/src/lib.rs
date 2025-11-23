@@ -15,5 +15,7 @@ pub mod scenes;
 pub mod time;
 /// Module providing tiles functionality
 pub mod tiles;
+/// Module providing rendering camera functionality
+pub mod camera;
 #[cfg(test)]
 mod tests;

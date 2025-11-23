@@ -9,7 +9,7 @@ use crate::renderer::{Drawable, RenderQueue};
 /// A struct to represent a tile in the world
 #[derive(Debug, Deserialize)]
 pub struct Tile {
-    /// Texture ID in the resource manager
+    /// Texture sprite in the resource manager
     pub texture: Sprite,
 }
 
