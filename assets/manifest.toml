@@ -7,3 +7,8 @@ type = "Image"
 name = "Terminus"
 path = "terminus.ttf"
 type = "Font"
+
+[[assets]]
+name = "tile_bg_empty"
+path = "Sprite-0001.png"
+type = "Image"

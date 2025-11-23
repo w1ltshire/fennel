@@ -5,28 +5,30 @@
             id: "player",
             components: [
                 (
-                  id: "sprite",
-                  config: (
-                    image: "assets/example.png",
-                    transform: (
-                      position: (0.0, 0.0),
-                      rotation: 0.0,
-                      scale: 0.0
+                    id: "sprite",
+                    config: (
+                        image: "assets/example.png",
+                        transform: (
+                            position: (0.0, 0.0),
+                            rotation: 0.0,
+                            scale: 0.0
+                        )
                     )
-                  )
                 ),
                 (
-                  id: "sprite",
-                  config: (
-                    image: "assets/example.png",
-                    transform: (
-                      position: (0.0, 500.0),
-                      rotation: 90.0,
-                      scale: 0.0
+                    id: "tile",
+                    config: (
+                        texture: (
+                            image: "assets/Sprite-0001.png",
+                            transform: (
+                                position: (128.0, 0.0),
+                                rotation: 0.0,
+                                scale: 0.0
+                            )
+                        )
                     )
-                  )
                 ),
-            ],
-        ),
+            ]
+        )
     ]
 )

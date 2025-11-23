@@ -1,14 +1,39 @@
+use sdl3::keyboard::Scancode;
 use fennel_engine::app::AppBuilder;
-use specs::System;
+use specs::{Join, System, WriteExpect, WriteStorage};
+use fennel_engine::ecs::sprite::Sprite;
+use fennel_engine::events::KeyEvents;
 
 struct SysA;
 
 impl<'a> System<'a> for SysA {
-    type SystemData = ();
+    type SystemData = (WriteExpect<'a, KeyEvents>, WriteStorage<'a, Sprite>);
 
-    fn run(&mut self, _data: ()) {
+    fn run(&mut self, (mut key_events, mut sprite): Self::SystemData) {
         // std::thread::sleep(std::time::Duration::from_millis(183)); // artificial delay, aim for ~5.5 tps
         // println!("nya");
+        for mut sprite in (&mut sprite).join() {
+            key_events.0.drain(..).for_each(|event| {
+                if let Some(scancode) = event.scancode {
+                    println!("{:?}", event);
+                    match scancode {
+                        Scancode::W => {
+                            sprite.transform.position.1 -= 4.0;
+                        },
+                        Scancode::S => {
+                            sprite.transform.position.1 += 4.0;
+                        },
+                        Scancode::A => {
+                            sprite.transform.position.0 -= 4.0;
+                        },
+                        Scancode::D => {
+                            sprite.transform.position.0 += 4.0;
+                        },
+                        _ => {}
+                    }
+                }
+            });
+        }
     }
 }
 
