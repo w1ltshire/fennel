@@ -1,0 +1,12 @@
+[package]
+name = "fennel-gpu"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sdl3 = "0.16.2"
+image = "0.25.9"
+anyhow = "1.0.100"
+
+[build-dependencies]
+shaderc = "0.10.1"
