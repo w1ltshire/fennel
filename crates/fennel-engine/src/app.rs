@@ -4,7 +4,6 @@ use std::{
 };
 use std::time::{Duration, Instant};
 use anyhow::Context;
-use kanal::{Receiver, Sender};
 use fennel_core::{
     Window,
     events::{KeyboardEvent, WindowEventHandler},
@@ -12,7 +11,7 @@ use fennel_core::{
 };
 use log::warn;
 use serde::{Deserialize, Serialize};
-use specs::{Builder, Component, DispatcherBuilder, World, WorldExt};
+use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
 use crate::{
     ecs::sprite::{Sprite, SpriteFactory, SpriteRenderingSystem},
     events::KeyEvents,
@@ -21,7 +20,6 @@ use crate::{
     scenes::{ActiveScene, Scene, SceneSystem},
 };
 use crate::camera::Camera;
-use crate::renderer::Drawable;
 use crate::tiles::{Tile, TileFactory, TileRenderingSystem};
 use crate::time::{Tick, TickSystem};
 
@@ -31,11 +29,9 @@ pub struct App {
     /// Responsible for GFX and audio
     pub window: Window,
     /// ECS world
-    world: WorldWrapper,
-    /// ECS dispatcher builder
-    dispatcher_builder: DispatcherBuilderWrapper,
-    render_receiver: Receiver<Drawable>,
-    drawn: bool
+    world: World,
+    /// ECS dispatcher
+    dispatcher: Dispatcher<'static, 'static>
 }
 
 type Reg = Box<
@@ -68,59 +64,26 @@ struct Config {
 
 impl WindowEventHandler for App {
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
+        self.frame_tick()?;
         Ok(())
     }
 
     fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
-        // FIXME: fps is capped at ~45-60 because of this implementation
-        if let Ok(drawable) = self.render_receiver.try_recv() {
-            if !self.drawn {
-                window.graphics.canvas.clear();
-            }
-            self.drawn = true;
-            match drawable {
-                Some(Drawable::Image(sprite)) => {
-                    window.graphics.draw_image(
-                        sprite.image,
-                        sprite.transform.position,
-                        sprite.transform.rotation,
-                        false,
-                        false
-                    ).unwrap_or_else(|e| { warn!("failed to draw image: {e}"); });
-                },
-                Some(Drawable::Rect {w, h, x, y}) => {
-                    window.graphics.draw_rect(w, h, x, y)
-                        .unwrap_or_else(|e| { warn!("failed to draw rect: {e}"); });
-                },
-                Some(Drawable::Text {font, position, text, size, color}) => {
-                    window.graphics.draw_text(
-                        text,
-                        position,
-                        font,
-                        color,
-                        size
-                    )?;
-                },
-                Some(Drawable::Present) => {
-                    window.graphics.canvas.present();
-                    self.drawn = false;
-                },
-                None => {}
-            }
-        }
+        window.graphics.canvas.present();
         Ok(())
     }
 
     fn key_down_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
-        self.world.0.write_resource::<KeyEvents>().0.push(event);
+        self.world.write_resource::<KeyEvents>().0.push(event);
         Ok(())
     }
 }
 
-struct DispatcherBuilderWrapper(DispatcherBuilder<'static, 'static>);
-unsafe impl Send for DispatcherBuilderWrapper {}
-struct WorldWrapper(World);
-unsafe impl Send for WorldWrapper {}
+/// A raw pointer wrapper to the application
+pub struct HostPtr(pub *mut App);
+
+unsafe impl Send for HostPtr {}
+unsafe impl Sync for HostPtr {}
 
 impl App {
     /// Runs the event loop, must be called only once, UB otherwise
@@ -133,47 +96,32 @@ impl App {
         //
         // TODO: make it safe
         let ptr: *mut App = &mut self as *mut App;
-
-        // if this doesn't work then don't blame me, blame single-event upset, the sun and the earth's magnetic field >:3
-        std::thread::spawn(move || {
-            let dispatcher_builder = self.dispatcher_builder;
-            let mut dispatcher = dispatcher_builder.0.build();
-            let mut world = self.world.0;
-            world.insert(Tick {
-                ticks: 0,
-                tick_rate: 16_000_000,
-                total_elapsed_time: 0.0
-            });
-
-            loop {
-                let now = Instant::now();
-
-                dispatcher.dispatch(&world);
-                world.maintain();
-
-                let elapsed = Instant::now().duration_since(now);
-                let mut tick = world.write_resource::<Tick>();
-
-                if elapsed.as_nanos() < tick.tick_rate as u128 {
-                    tick.total_elapsed_time += (tick.tick_rate - elapsed.as_nanos() as u64) as f64 / 1_000_000_000.0;
-                    std::thread::sleep(Duration::from_nanos(16_000_000 - elapsed.as_nanos() as u64));
-                } else {
-                    tick.total_elapsed_time += (elapsed.as_nanos() as u64) as f64 / 1_000_000_000.0;
-                    warn!("cannot keep up, tick took {} > 16000000 nanoseconds", elapsed.as_nanos());
-                }
-
-                #[cfg(debug_assertions)]
-                world.write_resource::<Sender<Drawable>>().send(Drawable::Text {
-                    font: "Terminus".to_string(),
-                    position: (300.0, 0.0),
-                    text: format!("TPS: {}", tick.tps().floor()),
-                    color: (255, 0, 0),
-                    size: 14.0,
-                }).unwrap();
-            }
-        });
-
         fennel_core::events::run(&mut self.window, unsafe { &mut *ptr }, vec![]).await?;
+        Ok(())
+    }
+
+    fn frame_tick(&mut self) -> anyhow::Result<()> {
+        let now = Instant::now();
+        let host_ptr = HostPtr(self as *mut App);
+        self.world.insert(host_ptr);
+
+        self.dispatcher.dispatch(&self.world);
+        self.world.maintain();
+
+        let elapsed = Instant::now().duration_since(now);
+        let mut tick = self.world.write_resource::<Tick>();
+
+        if elapsed.as_nanos() < tick.tick_rate as u128 {
+            tick.total_elapsed_time += (tick.tick_rate - elapsed.as_nanos() as u64) as f64 / 1_000_000_000.0;
+            std::thread::sleep(Duration::from_nanos(16_000_000 - elapsed.as_nanos() as u64));
+        } else {
+            tick.total_elapsed_time += (elapsed.as_nanos() as u64) as f64 / 1_000_000_000.0;
+            warn!("cannot keep up, tick took {} > 16000000 nanoseconds", elapsed.as_nanos());
+        }
+
+        drop(tick);
+
+        self.world.remove::<HostPtr>();
         Ok(())
     }
 }
@@ -272,7 +220,7 @@ impl AppBuilder {
         let mut dispatcher_builder = DispatcherBuilder::new()
             .with(SceneSystem, "scene_system", &[])
             .with(SpriteRenderingSystem, "sprite_rendering_system", &[])
-            .with(QueuedRenderingSystem, "rendering_system", &[])
+            .with_thread_local(QueuedRenderingSystem)
             .with(TileRenderingSystem, "tile_rendering_system", &[])
             .with(TickSystem, "tick_system", &[]);
 
@@ -283,7 +231,12 @@ impl AppBuilder {
         self.world.register::<Scene>();
         self.world.insert(KeyEvents::default());
         self.world.insert(RenderQueue::new());
-        self.world.insert(Camera::new((-160.0, 0.0), (0.0, 0.0)));
+        self.world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
+        self.world.insert(Tick {
+            ticks: 0,
+            tick_rate: 16_000_000,
+            total_elapsed_time: 0.0
+        });
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
         self = self.with_component::<Tile, TileFactory>("tile", TileFactory);
 
@@ -297,22 +250,16 @@ impl AppBuilder {
             scenes.push(scene.clone());
         }
 
-        let (render_sender, render_receiver) = kanal::unbounded::<Drawable>();
-        self.world.insert(render_sender);
         self.world.insert(self.component_registry);
         self.world.insert(ActiveScene {
             name: String::from("main"),
             loaded: false,
         });
 
-        let world = WorldWrapper(self.world);
-
         Ok(App {
             window,
-            world,
-            dispatcher_builder: DispatcherBuilderWrapper(dispatcher_builder),
-            render_receiver,
-            drawn: false
+            world: self.world,
+            dispatcher: dispatcher_builder.build()
         })
     }
 }
