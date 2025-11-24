@@ -7,7 +7,7 @@
                 (
                     id: "sprite",
                     config: (
-                        image: "assets/example.png",
+                        image: "example",
                         transform: (
                             position: (0.0, 0.0),
                             rotation: 0.0,
@@ -19,9 +19,9 @@
                     id: "tile",
                     config: (
                         texture: (
-                            image: "assets/Sprite-0001.png",
+                            image: "tile_bg_empty",
                             transform: (
-                                position: (128.0, 0.0),
+                                position: (-128.0, 0.0),
                                 rotation: 0.0,
                                 scale: 0.0
                             )

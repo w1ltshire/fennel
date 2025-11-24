@@ -283,7 +283,7 @@ impl AppBuilder {
         self.world.register::<Scene>();
         self.world.insert(KeyEvents::default());
         self.world.insert(RenderQueue::new());
-        self.world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
+        self.world.insert(Camera::new((-160.0, 0.0), (0.0, 0.0)));
         self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
         self = self.with_component::<Tile, TileFactory>("tile", TileFactory);
 
