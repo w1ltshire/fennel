@@ -24,8 +24,6 @@ pub enum Drawable {
     /// * `color`: RGB tuple of `u8`
     /// * `size`: Font size in `f32`
     Text { font: String, position: (f32, f32), text: String, color: (u8, u8, u8), size: f32 },
-    /// Ready to present command
-    Present
 }
 
 /// A simple queue of [`Drawable`] items to be consumed by a rendering system
@@ -36,7 +34,6 @@ pub struct RenderQueue {
 
 /// ECS system that renders Sprite components from [`RenderQueue`]
 pub struct QueuedRenderingSystem;
-
 
 impl<'a> System<'a> for QueuedRenderingSystem {
     type SystemData = (
@@ -51,18 +48,32 @@ impl<'a> System<'a> for QueuedRenderingSystem {
         for drawable in rq.queue.drain(..) {
             match drawable {
                 Drawable::Image(sprite) => {
-                    let (camera_x, camera_y) = camera.world_to_camera((sprite.transform.position.0, sprite.transform.position.1));
-                    app
-                        .window
-                        .graphics
-                        .draw_image(
-                            sprite.image,
-                            (camera_x, camera_y),
-                            sprite.transform.rotation,
-                            false,
-                            false,
-                        )
-                        .unwrap_or_else(|e| warn!("failed to draw image: {:?}", e));
+                    if !sprite.fixed {
+                        let (camera_x, camera_y) = camera.world_to_camera((sprite.transform.position.0, sprite.transform.position.1));
+                        app
+                            .window
+                            .graphics
+                            .draw_image(
+                                sprite.image,
+                                (camera_x, camera_y),
+                                sprite.transform.rotation,
+                                false,
+                                false,
+                            )
+                            .unwrap_or_else(|e| warn!("failed to draw image: {:?}", e));
+                    } else {
+                        app
+                            .window
+                            .graphics
+                            .draw_image(
+                                sprite.image,
+                                sprite.transform.position,
+                                sprite.transform.rotation,
+                                false,
+                                false,
+                            )
+                            .unwrap_or_else(|e| warn!("failed to draw image: {:?}", e));
+                    }
                 },
                 Drawable::Rect { w, h, x, y } => {
                     let (camera_x, camera_y) = camera.world_to_camera((x, y));
@@ -80,7 +91,6 @@ impl<'a> System<'a> for QueuedRenderingSystem {
                         .draw_text(text, (camera_x, camera_y), font, color, size)
                         .unwrap_or_else(|e| warn!("failed to draw text: {:?}", e));
                 }
-                _ => {}
             }
         }
     }

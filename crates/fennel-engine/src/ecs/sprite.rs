@@ -18,6 +18,8 @@ pub struct Sprite {
     pub image: String,
     /// Representing sprite's transformation in the 2D world
     pub transform: Transform,
+    /// Is this sprite fixed on screen? (not affected by camera)
+    pub fixed: bool
 }
 
 impl specs::Component for Sprite {
