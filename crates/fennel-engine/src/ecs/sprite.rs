@@ -71,3 +71,19 @@ impl<'a> System<'a> for SpriteRenderingSystem {
         }
     }
 }
+
+impl Sprite {
+    /// Creates a new instance of [`Sprite`]
+    ///
+    /// # Arguments
+    /// * `image`: [`String`] identifier of the image in the resource manager
+    /// * `transform`: [`Transform`] of the sprite (position, scale, rotation)
+    /// * `fixed`: is this sprite fixed on the screen?
+    pub fn new(image: String, transform: Transform, fixed: bool) -> Self {
+        Self {
+            image,
+            transform,
+            fixed
+        }
+    }
+}
