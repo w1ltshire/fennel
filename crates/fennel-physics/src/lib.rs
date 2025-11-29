@@ -13,5 +13,7 @@ pub mod world;
 pub mod body;
 /// Module providing gravity functionality
 pub mod gravity;
+/// Module providing collision detection by leveraging the AABB concept
+pub mod aabb;
 #[cfg(test)]
 mod tests;
