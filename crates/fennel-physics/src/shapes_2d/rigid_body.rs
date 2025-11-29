@@ -12,6 +12,7 @@ pub struct RigidBody {
     velocity: Vector2<f32>,
     /// Body's force in Newtons
     force: Vector2<f32>,
+    /// Body's acceleration in m/s^2
     acceleration: Vector2<f32>,
 }
 
@@ -34,7 +35,7 @@ impl RigidBody {
             mass: 0.0,
             velocity: Vector2::new(0.0, 0.0),
             force: Vector2::new(0.0, 0.0),
-            acceleration: Vector2::new(0.0, 0.0),
+            acceleration: Vector2::new(0.0, 0.0)
         }
     }
 }
