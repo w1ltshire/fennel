@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use nalgebra::Vector2;
 
-/// Trait that all bodies must implement to be in the [`PhysicalWorld`]
+/// Trait that all bodies must implement to be in the [`crate::world::PhysicsWorld`]
 pub trait Body: Debug {
     /// Get the body's position
     fn get_position(&self) -> &Vector2<f32>;
