@@ -1,11 +1,13 @@
 use sdl3::keyboard::Scancode;
 use fennel_engine::app::AppBuilder;
 use specs::{Join, System, WriteExpect, WriteStorage};
+use fennel_core::graphics::Sprite;
+use fennel_core::plugin::GraphicsPlugin;
 use fennel_engine::camera::Camera;
-use fennel_engine::ecs::sprite::Sprite;
 use fennel_engine::events::KeyEvents;
 use fennel_engine::scenes::ActiveScene;
 
+// example system
 struct SysA;
 
 impl<'a> System<'a> for SysA {
@@ -62,6 +64,7 @@ async fn main() -> anyhow::Result<()> {
         .dimensions((800, 800))
         .config("crates/fennel-engine/examples/game.toml")
         .register_system(SysA, "sys_a", &[])
+        .with_plugin(GraphicsPlugin::new("game", (800, 600), "assets"))
         .build()?;
 
     app.run().await?;

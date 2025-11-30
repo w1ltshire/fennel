@@ -2,9 +2,9 @@ use log::error;
 use ron::Value;
 use serde::Deserialize;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
-use crate::ecs::sprite::Sprite;
+use fennel_core::graphics::{Drawable, Sprite};
 use crate::registry::ComponentFactory;
-use crate::renderer::{Drawable, RenderQueue};
+use crate::renderer::RenderQueue;
 
 /// A struct to represent a tile in the world
 #[derive(Debug, Deserialize)]

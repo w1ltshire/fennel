@@ -148,7 +148,6 @@ async fn main() -> anyhow::Result<()> {
             device: None,
             imgui: None,
         })],
-    )
-    .await?;
+    )?;
     Ok(())
 }

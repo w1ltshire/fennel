@@ -80,10 +80,10 @@ pub trait LoadableResource: Any {
     }
 }
 
-/// evil &Box\<dyn LoadableResource> to &T
+// evil &Box\<dyn LoadableResource> to &T
 #[allow(clippy::borrowed_box)] // i have no idea how can this be done better because here we box a
 // trait
-/// Downcast a '&Box<dyn LoadableResource>' to a concrete type
+/// Downcast a '&Box\<dyn LoadableResource>' to a concrete type
 pub fn downcast_ref<T: 'static + LoadableResource>(
     b: &Box<dyn LoadableResource>,
 ) -> anyhow::Result<&T> {

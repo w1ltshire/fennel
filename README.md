@@ -22,6 +22,6 @@ Crates won't be updated until I (hopefully) release a stable 2.0 version, as dev
 - [ ] Editor (sometime in the not-so-near future)
 - [x] Scenes
 - [ ] Virtual FS for resource management (in progress)
-- [ ] Plugins
+- [x] Plugins
 - [ ] Ticks
 - [ ] Replace `.unwrap()`s and `.expect()`s with proper error handling

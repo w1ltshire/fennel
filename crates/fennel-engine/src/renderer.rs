@@ -1,30 +1,8 @@
-use log::warn;
+use kanal::Sender;
+use log::error;
 use specs::{ReadExpect, System, WriteExpect};
-use crate::app::HostPtr;
+use fennel_core::graphics::{Drawable, Transform};
 use crate::camera::Camera;
-use crate::ecs::sprite::Sprite;
-
-/// A drawable primitive that can be queued for rendering
-///
-/// Variants:
-/// - Image(Sprite) - a sprite to draw
-/// - Rect { w, h, x, y } - a rectangle specified with width, height, x and y position (all `f32`)
-#[derive(Debug)]
-pub enum Drawable {
-    /// A sprite. Use for queueing render of some image
-    Image(Sprite),
-    /// A basic rectangle
-    Rect { w: f32, h: f32, x: f32, y: f32 },
-    /// Text drawable.
-    ///
-    /// # Fields
-    /// * `font`: Font name registered in the resource manager
-    /// * `position`: Position in `(f32, f32)` relative to the window
-    /// * `text`: The text itself to render
-    /// * `color`: RGB tuple of `u8`
-    /// * `size`: Font size in `f32`
-    Text { font: String, position: (f32, f32), text: String, color: (u8, u8, u8), size: f32 },
-}
 
 /// A simple queue of [`Drawable`] items to be consumed by a rendering system
 pub struct RenderQueue {
@@ -39,60 +17,41 @@ impl<'a> System<'a> for QueuedRenderingSystem {
     type SystemData = (
         WriteExpect<'a, RenderQueue>,
         ReadExpect<'a, Camera>,
-        WriteExpect<'a, HostPtr>
+        WriteExpect<'a, Sender<Vec<Drawable>>>,
     );
 
-    fn run(&mut self, (mut rq, camera, mut host_ptr): Self::SystemData) {
-        let app = unsafe { &mut *host_ptr.0 };
-        app.window.graphics.canvas.clear();
-        for drawable in rq.queue.drain(..) {
+    fn run(&mut self, (mut rq, camera, sender): Self::SystemData) {
+        let mut drained_drawables: Vec<Drawable> = rq.queue.drain(..).collect();
+        for drawable in &mut drained_drawables {
             match drawable {
                 Drawable::Image(sprite) => {
                     if !sprite.fixed {
                         let (camera_x, camera_y) = camera.world_to_camera((sprite.transform.position.0, sprite.transform.position.1));
-                        app
-                            .window
-                            .graphics
-                            .draw_image(
-                                sprite.image,
-                                (camera_x, camera_y),
-                                sprite.transform.rotation,
-                                false,
-                                false,
-                            )
-                            .unwrap_or_else(|e| warn!("failed to draw image: {:?}", e));
-                    } else {
-                        app
-                            .window
-                            .graphics
-                            .draw_image(
-                                sprite.image,
-                                sprite.transform.position,
-                                sprite.transform.rotation,
-                                false,
-                                false,
-                            )
-                            .unwrap_or_else(|e| warn!("failed to draw image: {:?}", e));
+                        sprite.transform = Transform::new((camera_x, camera_y), sprite.transform.rotation, sprite.transform.scale);
                     }
                 },
                 Drawable::Rect { w, h, x, y } => {
-                    let (camera_x, camera_y) = camera.world_to_camera((x, y));
-                    app
-                        .window
-                        .graphics
-                        .draw_rect(w, h, camera_x, camera_y)
-                        .unwrap_or_else(|e| warn!("failed to draw rect: {:?}", e));
+                    let (camera_x, camera_y) = camera.world_to_camera((*x, *y));
+                    *drawable = Drawable::Rect {
+                        w: *w,
+                        h: *h,
+                        x: camera_x,
+                        y: camera_y,
+                    };
                 },
                 Drawable::Text { font, position, text, color, size } => {
-                    let (camera_x, camera_y) = camera.world_to_camera(position);
-                    app
-                        .window
-                        .graphics
-                        .draw_text(text, (camera_x, camera_y), font, color, size)
-                        .unwrap_or_else(|e| warn!("failed to draw text: {:?}", e));
+                    let (camera_x, camera_y) = camera.world_to_camera(*position);
+                    *drawable = Drawable::Text {
+                        font: font.clone(),
+                        position: (camera_x, camera_y),
+                        text: text.clone(),
+                        color: *color,
+                        size: *size,
+                    };
                 }
             }
         }
+        sender.send(drained_drawables).unwrap_or_else(|e| error!("failed to send queue: {}", e));
     }
 }
 

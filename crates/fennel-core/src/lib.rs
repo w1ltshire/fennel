@@ -2,7 +2,6 @@
 use std::sync::{Arc, Mutex};
 
 use crate::{
-    audio::Audio,
     graphics::Graphics,
     resources::ResourceManager,
 };
@@ -17,6 +16,7 @@ pub mod graphics;
 pub mod hooks;
 /// Resource management
 pub mod resources;
+pub mod plugin;
 
 unsafe impl Send for Window {}
 unsafe impl Sync for Window {}
@@ -28,8 +28,6 @@ unsafe impl Sync for Window {}
 pub struct Window {
     /// Graphics subsystem used to render frames.
     pub graphics: Graphics,
-    /// Audio subsystem
-    pub audio: Audio,
     /// Resource manager
     pub resource_manager: Arc<Mutex<ResourceManager>>,
 }
@@ -46,7 +44,6 @@ impl Window {
     pub fn new(graphics: Graphics, resource_manager: Arc<Mutex<ResourceManager>>) -> Window {
         Window {
             graphics,
-            audio: Audio::new(),
             resource_manager,
         }
     }

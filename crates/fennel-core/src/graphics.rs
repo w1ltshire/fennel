@@ -13,7 +13,7 @@ use sdl3::Sdl;
 use sdl3::pixels::{Color, PixelFormat};
 use sdl3::render::{Canvas, FRect};
 use sdl3::video::Window;
-
+use serde::Deserialize;
 use crate::resources::font::{DummyFont, Font};
 use crate::resources::image::Image;
 use crate::resources::{self, LoadableResource, ResourceManager};
@@ -56,6 +56,91 @@ where
     name: String,
     initializer: Option<F>,
     config: WindowConfig,
+}
+
+
+/// A drawable primitive that can be queued for rendering
+///
+/// Variants:
+/// - Image(Sprite) - a sprite to draw
+/// - Rect { w, h, x, y } - a rectangle specified with width, height, x and y position (all `f32`)
+#[derive(Debug)]
+pub enum Drawable {
+    /// A sprite. Use for queueing render of some image
+    Image(Sprite),
+    /// A basic rectangle
+    Rect { w: f32, h: f32, x: f32, y: f32 },
+    /// Text drawable.
+    ///
+    /// # Fields
+    /// * `font`: Font name registered in the resource manager
+    /// * `position`: Position in `(f32, f32)` relative to the window
+    /// * `text`: The text itself to render
+    /// * `color`: RGB tuple of `u8`
+    /// * `size`: Font size in `f32`
+    Text { font: String, position: (f32, f32), text: String, color: (u8, u8, u8), size: f32 },
+}
+
+/// A simple renderable sprite.
+///
+/// # Fields
+/// - image: identifier or path of the image to draw
+/// - position: tuple (x, y) position on screen
+#[derive(Deserialize, Debug, Clone)]
+pub struct Sprite {
+    /// Sprite asset id in the resource manager
+    pub image: String,
+    /// Representing sprite's transformation in the 2D world
+    pub transform: Transform,
+    /// Is this sprite fixed on screen? (not affected by camera)
+    pub fixed: bool
+}
+
+impl specs::Component for Sprite {
+    type Storage = specs::VecStorage<Self>;
+}
+
+
+/// Transform component, containing position in the window, scale and rotation
+#[derive(Deserialize, Debug, Clone)]
+pub struct Transform {
+    /// Position in the window (x, y)
+    pub position: (f32, f32),
+    /// Scale
+    pub scale: f64,
+    /// Rotation
+    pub rotation: f64,
+}
+
+impl specs::Component for Transform {
+    type Storage = specs::VecStorage<Self>;
+}
+
+impl Sprite {
+    /// Creates a new instance of [`Sprite`]
+    ///
+    /// # Arguments
+    /// * `image`: [`String`] identifier of the image in the resource manager
+    /// * `transform`: [`Transform`] of the sprite (position, scale, rotation)
+    /// * `fixed`: is this sprite fixed on the screen?
+    pub fn new(image: String, transform: Transform, fixed: bool) -> Self {
+        Self {
+            image,
+            transform,
+            fixed
+        }
+    }
+}
+
+impl Transform {
+    /// Creates a new instance of [`Transform`]
+    pub fn new(position: (f32, f32), scale: f64, rotation: f64) -> Self {
+        Self {
+            position,
+            scale,
+            rotation
+        }
+    }
 }
 
 impl<F> GraphicsBuilder<F>

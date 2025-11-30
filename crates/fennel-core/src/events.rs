@@ -117,11 +117,11 @@ pub struct MouseWheelEvent {
     pub mouse_y: f32,
 }
 
-/// Trait that any type that is to be supplied to [`events::run`] should implement.
+/// Trait that any type that is to be supplied to [`crate::events::run`] should implement.
 pub trait WindowEventHandler {
     /// Update the application logic
     fn update(&mut self, _window: &mut Window) -> anyhow::Result<()>;
-    /// Draw the application AND OBLIGATORILY call [`Canvas::present`]
+    /// Draw the application and obligatorily call [`sdl3::render::Canvas::present`]
     fn draw(&mut self, _window: &mut Window) -> anyhow::Result<()>;
 
     /// Handle a key down event
@@ -175,7 +175,7 @@ pub trait WindowEventHandler {
 /// Parameters:
 /// - `window`: mutable reference to your `Window`. required because [`Window`] contains required
 ///   gfx variables
-/// - `state`: boxed implementation of [`EventHandler`] that receives update/draw calls
+/// - `state`: boxed implementation of [`WindowEventHandler`] that receives update/draw calls
 ///
 /// Behavior:
 /// - Polls SDL events each frame and breaks the loop on `Event::Quit`.
@@ -186,7 +186,7 @@ pub trait WindowEventHandler {
 /// let mut window = Window::new("cool title".into(), "cool author".into(), graphics);
 /// events::run(&mut window, Box::new(my_handler));
 /// ```
-pub async fn run(
+pub fn run(
     window: &mut Window,
     state: &'static mut dyn WindowEventHandler,
     mut hooks: Vec<Box<dyn Hook>>,
@@ -364,7 +364,7 @@ pub async fn run(
         // Simple frame limiter: aim for ~1 millisecond minimum frame time.
         let elapsed = Instant::now().duration_since(now).as_nanos() as u64;
         if elapsed < 999_999 {
-            tokio::time::sleep(Duration::from_nanos(999_999 - elapsed)).await;
+            std::thread::sleep(Duration::from_nanos(999_999 - elapsed));
         }
     }
     Ok(())

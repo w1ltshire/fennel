@@ -1,3 +1,2 @@
-assets_path = "assets"
 scenes_path = "crates/fennel-engine/examples/scenes"
 initial_scene = "main"

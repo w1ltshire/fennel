@@ -1,5 +1,5 @@
 use std::{
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::{Arc, Mutex},
 };
 use anyhow::Context;
@@ -10,7 +10,6 @@ use fennel_core::{
     resources::ResourceManager,
 };
 use sdl3::pixels::Color;
-use tokio::runtime::Handle;
 
 struct State;
 
@@ -25,7 +24,7 @@ impl WindowEventHandler for State {
         window
             .graphics
             .draw_image(
-                "assets/example.png".to_string(),
+                "example".to_string(),
                 (0.0, 0.0),
                 90.0,
                 false,
@@ -50,22 +49,8 @@ impl WindowEventHandler for State {
         Ok(())
     }
 
-    fn key_down_event(&mut self, window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
+    fn key_down_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
         println!("{:?}", event.keycode);
-        tokio::task::block_in_place(move || {
-            Handle::current().block_on(async move {
-                window
-                    .audio
-                    .play_audio(Path::new("assets/music.ogg"), false)
-                    .await
-                    .expect("failed to play audio");
-                window
-                    .audio
-                    .play_audio(Path::new("assets/440.wav"), false)
-                    .await
-                    .expect("failed to play audio");
-            })
-        });
         Ok(())
     }
 }
@@ -101,6 +86,6 @@ async fn main() -> anyhow::Result<()> {
         let boxed = Box::new(State);
         Box::leak(boxed) as &'static mut dyn WindowEventHandler
     };
-    events::run(&mut window, handler, vec![]).await?;
+    events::run(&mut window, handler, vec![])?;
     Ok(())
 }

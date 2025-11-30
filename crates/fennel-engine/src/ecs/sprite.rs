@@ -1,30 +1,10 @@
 use log::error;
 use ron::Value;
-use serde::Deserialize;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
-
+use fennel_core::graphics::{Drawable, Sprite};
 use crate::{
-    ecs::transform::Transform, registry::ComponentFactory, renderer::RenderQueue,
+    registry::ComponentFactory, renderer::RenderQueue,
 };
-
-/// A simple renderable sprite.
-///
-/// # Fields
-/// - image: identifier or path of the image to draw
-/// - position: tuple (x, y) position on screen
-#[derive(Deserialize, Debug, Clone)]
-pub struct Sprite {
-    /// Sprite asset id in the resource manager
-    pub image: String,
-    /// Representing sprite's transformation in the 2D world
-    pub transform: Transform,
-    /// Is this sprite fixed on screen? (not affected by camera)
-    pub fixed: bool
-}
-
-impl specs::Component for Sprite {
-    type Storage = specs::VecStorage<Self>;
-}
 
 /// Factory for [`Sprite`]
 pub struct SpriteFactory;
@@ -67,23 +47,7 @@ impl<'a> System<'a> for SpriteRenderingSystem {
     fn run(&mut self, (sprites, mut rq): Self::SystemData) {
         for sprite in (&sprites).join() {
             rq.queue
-                .push(crate::renderer::Drawable::Image(sprite.clone()));
-        }
-    }
-}
-
-impl Sprite {
-    /// Creates a new instance of [`Sprite`]
-    ///
-    /// # Arguments
-    /// * `image`: [`String`] identifier of the image in the resource manager
-    /// * `transform`: [`Transform`] of the sprite (position, scale, rotation)
-    /// * `fixed`: is this sprite fixed on the screen?
-    pub fn new(image: String, transform: Transform, fixed: bool) -> Self {
-        Self {
-            image,
-            transform,
-            fixed
+                .push(Drawable::Image(sprite.clone()));
         }
     }
 }
