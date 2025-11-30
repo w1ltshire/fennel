@@ -2,6 +2,8 @@
 name = "fennel-plugins"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "Crate defining plugin trait for the Fennel engine"
 
 [dependencies]
 anyhow = "1.0.100"
