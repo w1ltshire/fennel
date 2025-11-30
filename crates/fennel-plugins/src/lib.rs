@@ -14,12 +14,16 @@ use specs::shred::cell::AtomicRefCell;
 ///
 /// # Example
 /// ```
+/// use std::collections::HashMap;
 /// use specs::World;
 /// use fennel_plugins::Plugin;
+/// use specs::prelude::{ResourceId, Resource};
+/// use specs::shred::cell::AtomicRefCell;
+///
 /// struct MyCoolPlugin;
 ///
 /// impl Plugin for MyCoolPlugin {
-/// 	fn prepare(&mut self, _world: *mut World) -> anyhow::Result<()> {
+/// 	fn prepare(&mut self, dependencies: HashMap<String, &AtomicRefCell<Box<(dyn Resource + 'static)>>>) -> anyhow::Result<()> {
 ///  		// initialize your plugin here
 ///    		Ok(())
 ///    	}
@@ -27,6 +31,10 @@ use specs::shred::cell::AtomicRefCell;
 ///  	fn update(&mut self, delta_time: f64) -> anyhow::Result<()> {
 /// 		// update your plugin state
 /// 		Ok(())
+/// 	}
+///
+/// 	fn resource_dependencies(&mut self) -> HashMap<String, ResourceId> {
+///    		HashMap::new()
 /// 	}
 ///
 /// 	fn name(&self) -> &'static str {
