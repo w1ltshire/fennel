@@ -5,7 +5,7 @@ use crate::Window;
 // i'm feeling kinda jolly rn
 // oohhh i'm faaaalliiing ohhhhh i'm faaadiiiing ohhh have i lost it a-aaaallll
 
-/// Trait that a hook type must implement to be passed to [`events::run`]
+/// Trait that a hook type must implement to be passed to [`crate::events::run`]
 pub trait Hook {
     /// Do here any preparations for your hook that you need.
     /// Inside, this function is called before entering the main loop
