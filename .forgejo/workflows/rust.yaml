@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: https://github.com/dtolnay/rust-toolchain
+      - uses: https://github.com/dtolnay/rust-toolchain@trunk
         with:
           toolchain: stable
 
