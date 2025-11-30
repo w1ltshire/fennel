@@ -2,6 +2,8 @@ use nalgebra::Vector2;
 use crate::body::Body;
 #[cfg(feature = "specs")]
 use specs::Component;
+#[cfg(feature = "specs")]
+use specs::VecStorage;
 
 /// A struct representing a 2D rigid body
 #[derive(Debug)]
