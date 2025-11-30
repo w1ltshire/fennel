@@ -15,7 +15,7 @@ Crates won't be updated until I (hopefully) release a stable 2.0 version, as dev
 - [x] Rendering
 - [x] Event handling
 - [x] Basic audio subsystem
-- [ ] More advanced audio (sometime in the near future)
+- [ ] More advanced audio (sometime soon)
 - [x] Resource management
 - [x] ECS (using `specs`)
 - [ ] Scripting (in progress)
@@ -23,5 +23,5 @@ Crates won't be updated until I (hopefully) release a stable 2.0 version, as dev
 - [x] Scenes
 - [ ] Virtual FS for resource management (in progress)
 - [x] Plugins
-- [ ] Ticks
+- [x] Ticks
 - [ ] Replace `.unwrap()`s and `.expect()`s with proper error handling
