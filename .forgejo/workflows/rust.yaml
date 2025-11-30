@@ -1,0 +1,17 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: wackbyte/rust-toolchain@trunk
+        with:
+          toolchain: stable
+
+      - run: cargo test --all-features
