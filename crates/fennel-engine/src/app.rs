@@ -17,17 +17,14 @@ use crate::renderer::{QueuedRenderingSystem, RenderQueue};
 use crate::tiles::{Tile, TileFactory, TileRenderingSystem};
 use crate::time::{Tick, TickSystem};
 
-/// The application struct which contains [`Window`], [`World`] and `specs`
+/// The application struct which contains [`World`] and `specs`
 /// `Dispatcher`
 pub struct App {
-    /* /// Responsible for GFX and audio
-    pub window: Window, */
     /// ECS world
     world: World,
     /// ECS dispatcher
     dispatcher: Dispatcher<'static, 'static>,
     plugins: Vec<Box<dyn Plugin + 'static + Send + Sync>>,
-    // render_queue: Arc<RenderQueue>,
 }
 
 type Reg = Box<

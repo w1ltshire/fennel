@@ -1,5 +1,7 @@
 use nalgebra::Vector2;
 use crate::body::Body;
+#[cfg(feature = "specs")]
+use specs::Component;
 
 /// A struct representing a 2D rigid body
 #[derive(Debug)]
