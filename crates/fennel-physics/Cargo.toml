@@ -2,6 +2,8 @@
 name = "fennel-physics"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "Physics engine for the Fennel game engine"
 
 [dependencies]
 nalgebra = "0.34.1"
