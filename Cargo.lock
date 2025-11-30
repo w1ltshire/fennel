@@ -696,13 +696,16 @@ name = "fennel-core"
 version = "0.5.1"
 dependencies = [
  "anyhow",
+ "fennel-plugins",
  "image 0.25.9",
  "imgui",
  "imgui-sdl3",
+ "kanal",
  "log",
  "rodio",
  "sdl3",
  "serde",
+ "specs",
  "tokio",
  "toml",
 ]
@@ -714,6 +717,7 @@ dependencies = [
  "anyhow",
  "env_logger",
  "fennel-core",
+ "fennel-plugins",
  "kanal",
  "log",
  "ron",
@@ -730,6 +734,14 @@ version = "0.1.0"
 dependencies = [
  "nalgebra",
  "plotters",
+ "specs",
+]
+
+[[package]]
+name = "fennel-plugins"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
  "specs",
 ]
 
