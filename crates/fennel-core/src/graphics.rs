@@ -148,7 +148,7 @@ where
     F: Fn(&mut Graphics) -> anyhow::Result<()>,
 {
     /// Create a new empty GraphicsBuilder
-    /// By default there is no resource manager or resource initializer, dimensions are (0, 0), name
+    /// By default there is no resource manager or resource initializer; dimensions are (0, 0), name
     /// is empty
     pub fn new() -> GraphicsBuilder<F> {
         GraphicsBuilder {
