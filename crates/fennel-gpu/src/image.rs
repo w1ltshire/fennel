@@ -13,7 +13,7 @@ pub fn create_texture_from_image(
 ) -> anyhow::Result<Texture<'static>> {
 	// pray to the Machine God so all those unsafe blocks won't cause an UB or segfault
 	// Hail, Spirit of the Machine, Essence Divine, In your code and circuitry, the stars align.
-	// By the Omnissiah’s will, we commune and bind, Data sanctified, logic refined.
+	// By the Omnissiah's will, we commune and bind, Data sanctified, logic refined.
 
 	let c_string = CString::new(image_path.as_ref().to_str().unwrap())?; // this unwrap is ass. session terminated
 	let path_ptr = c_string.as_ptr();
