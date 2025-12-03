@@ -2,6 +2,9 @@
 name = "fennel-gpu"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "This crate provided low-level graphics functionality for the Fennel game engine."
+repository = "https://codeberg.org/wiltshire/fennel.git"
 
 [dependencies]
 sdl3 = "0.16.2"
