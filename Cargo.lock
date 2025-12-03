@@ -729,6 +729,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "fennel-gpu"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "log",
+ "sdl3",
+ "sdl3-image-sys",
+ "shaderc",
+]
+
+[[package]]
 name = "fennel-physics"
 version = "0.1.0"
 dependencies = [
@@ -2183,6 +2194,15 @@ dependencies = [
  "libc",
  "sdl3-sys",
  "sdl3-ttf-sys",
+]
+
+[[package]]
+name = "sdl3-image-sys"
+version = "0.2.0+SDL3-image-3.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d92bd93ce75ca9b027474f90c788daf3b5ced8410ee3c1dcb478a10030bf162"
+dependencies = [
+ "sdl3-sys",
 ]
 
 [[package]]

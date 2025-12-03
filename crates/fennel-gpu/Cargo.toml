@@ -5,8 +5,9 @@ edition = "2024"
 
 [dependencies]
 sdl3 = "0.16.2"
-image = "0.25.9"
 anyhow = "1.0.100"
+sdl3-image-sys = "0.2.0"
+log = "0.4.28"
 
 [build-dependencies]
 shaderc = "0.10.1"
