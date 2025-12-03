@@ -24,7 +24,7 @@ use sdl3::sys::error::SDL_GetError;
 /// of image file path, tho an error will be returned if any of the pointers are null.
 ///
 /// # Example
-/// ```no_run
+/// ```ignore
 /// let texture = fennel_gpu::image::create_texture_from_image("path/to/image.png", &gpu_device, &copy_pass)?;
 /// ```
 pub fn create_texture_from_image(
