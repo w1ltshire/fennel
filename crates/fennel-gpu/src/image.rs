@@ -5,7 +5,28 @@ use sdl3::gpu::{CopyPass, Device, Texture, TextureCreateInfo, TextureFormat, Tex
 use sdl3::surface::Surface;
 use sdl3::sys::error::SDL_GetError;
 
-/// Creates a [`Texture`] from a path
+/// Creates a [`Texture`] from a specified image file path.
+///
+/// This function takes an image file at `image_path` and creates a GPU
+/// texture from it.
+///
+/// # Parameters
+/// - `image_path`: A path to the image file
+/// - `gpu`: A reference to the GPU device to create the texture
+/// - `copy_pass`: A reference to the `CopyPass` to load the texture into GPU
+///
+/// # Returns
+/// Returns a result containing the created [`Texture`] on success, or an error
+/// if anything fails.
+///
+/// # Safety
+/// This function interacts with raw pointers and C functions. Ensure the validity
+/// of image file path, tho an error will be returned if any of the pointers are null.
+///
+/// # Example
+/// ```no_run
+/// let texture = fennel_gpu::image::create_texture_from_image("path/to/image.png", &gpu_device, &copy_pass)?;
+/// ```
 pub fn create_texture_from_image(
 	image_path: impl AsRef<Path>,
 	gpu: &Device,
