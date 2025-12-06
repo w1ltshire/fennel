@@ -5,9 +5,9 @@
 //! ```ignore
 //! use fennel_gpu::renderer::GPURenderer;
 //! fn main() -> anyhow::Result<()> {
-//! 	let gpu_device = sdl3::gpu::Device::new(sdl3::gpu::ShaderFormat::SPIRV, true)?;
-//! 	let mut renderer = GPURenderer::new(gpu_device)?;
-//! 	Ok(())
+//!     let gpu_device = sdl3::gpu::Device::new(sdl3::gpu::ShaderFormat::SPIRV, true)?;
+//!     let mut renderer = GPURenderer::new(gpu_device)?;
+//!     Ok(())
 //!}
 //! ```
 
@@ -61,20 +61,7 @@ impl GPURenderer {
 		&mut self,
 		image_path: impl AsRef<Path>
 	) -> anyhow::Result<Texture<'static>> {
-		// pray to the Machine God so all those unsafe blocks won't cause an UB or segfault
-		// Hail, Spirit of the Machine, Essence Divine; In your code and circuitry, the stars align.
-		// By the Omnissiah's will, we commune and bind, Data sanctified, logic refined.
-
-		let c_string = CString::new(image_path.as_ref().to_str().unwrap())?; // this `unwrap` is ass. session terminated
-		let path_ptr = c_string.as_ptr();
-		let raw_surface = unsafe { sdl3_image_sys::image::IMG_Load(path_ptr) };
-
-		if raw_surface.is_null() {
-			let error = unsafe { CStr::from_ptr(SDL_GetError()) };
-			bail!("surface pointer is null: {}", error.to_str()?);
-		}
-
-		let surface = unsafe { Surface::from_ll(raw_surface) };
+		let surface = unsafe { self.load_surface(image_path)? };
 		let image_size = surface.size();
 		let size_bytes = surface.pixel_format().bytes_per_pixel() as u32 * image_size.0 * image_size.1;
 
@@ -119,5 +106,22 @@ impl GPURenderer {
 		self.device.end_copy_pass(copy_pass);
 
 		Ok(texture)
+	}
+
+	unsafe fn load_surface(&mut self, image_path: impl AsRef<Path>) -> anyhow::Result<Surface<'static>> {
+		// pray to the Machine God so all those unsafe blocks won't cause an UB or segfault
+		// Hail, Spirit of the Machine, Essence Divine; In your code and circuitry, the stars align.
+		// By the Omnissiah's will, we commune and bind, Data sanctified, logic refined.
+
+		let c_string = CString::new(image_path.as_ref().to_str().unwrap())?; // this `unwrap` is ass. session terminated
+		let path_ptr = c_string.as_ptr();
+		let raw_surface = unsafe { sdl3_image_sys::image::IMG_Load(path_ptr) };
+
+		if raw_surface.is_null() {
+			let error = unsafe { CStr::from_ptr(SDL_GetError()) };
+			bail!("surface pointer is null: {}", error.to_str()?);
+		}
+
+		Ok(unsafe { Surface::from_ll(raw_surface) })
 	}
 }
