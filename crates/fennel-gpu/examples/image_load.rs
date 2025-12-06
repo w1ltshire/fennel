@@ -1,6 +1,5 @@
-use fennel_gpu::image;
-
 use sdl3::gpu::ShaderFormat;
+use fennel_gpu::renderer::GPURenderer;
 
 fn main() -> anyhow::Result<()> {
 	let sdl_context = sdl3::init()?;
@@ -18,10 +17,9 @@ fn main() -> anyhow::Result<()> {
 	)?
 		.with_window(&window)?;
 
-	let copy_commands = gpu.acquire_command_buffer()?;
-	let copy_pass = gpu.begin_copy_pass(&copy_commands)?;
+	let mut renderer = GPURenderer::new(gpu)?;
 
-	let _image = image::create_texture_from_image("assets/Sprite-0001.png", &gpu, &copy_pass)?;
+	let _image = renderer.create_texture_from_image("assets/Sprite-0001.png")?;
 
 	Ok(())
 }

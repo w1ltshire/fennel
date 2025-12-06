@@ -1,2 +1,9 @@
-/// Provides structures and implementations that help with loading images as [`sdl3::surface::Surface`]s
-pub mod image;
+//! Library providing low-level graphics functionality for the Fennel game engine, excluding the windowing.
+//!
+//! This library focuses on rendering graphics using GPU.
+//! It provides a main [`GPURenderer`] structure, which allows for various GPU-related operations.
+//!
+//! # Errors
+//! This crate uses the [`anyhow`] crate for error handling.
+
+pub mod renderer;
