@@ -59,7 +59,14 @@ impl WindowEventHandler for EventHandler {
 							false
 						).unwrap_or_else(|e| { error!("failed to draw image: {e}"); });
 					},
-					_ => {}
+					Drawable::Text { font, position, text, color, size } => {
+						window.graphics.draw_text(text, position, font, color, size)
+							.unwrap_or_else(|e| { error!("failed to draw text: {e}"); });
+					},
+					Drawable::Rect { w, h, x, y } => {
+						window.graphics.draw_rect(x, y, w, h)
+							.unwrap_or_else(|e| { error!("failed to draw rectangle: {e}"); });
+					}
 				}
 			}
 		}
