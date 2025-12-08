@@ -4,7 +4,7 @@
 //! as plugins are the backbone for most of the engine's features.
 //!
 //! An example is the `fennel_core::plugin::GraphicsPlugin` plugin, which provides the most important
-//!	part of the engine, the graphics.
+//! part of the engine, the graphics.
 
 use std::collections::HashMap;
 use specs::prelude::{Resource, ResourceId};
@@ -23,23 +23,23 @@ use specs::shred::cell::AtomicRefCell;
 /// struct MyCoolPlugin;
 ///
 /// impl Plugin for MyCoolPlugin {
-/// 	fn prepare(&mut self, dependencies: HashMap<String, &AtomicRefCell<Box<(dyn Resource + 'static)>>>) -> anyhow::Result<()> {
-///  		// initialize your plugin here
-///    		Ok(())
-///    	}
+///     fn prepare(&mut self, dependencies: HashMap<String, &AtomicRefCell<Box<(dyn Resource + 'static)>>>) -> anyhow::Result<()> {
+///         // initialize your plugin here
+///         Ok(())
+///     }
 ///
-///  	fn update(&mut self, delta_time: f64) -> anyhow::Result<()> {
-/// 		// update your plugin state
-/// 		Ok(())
-/// 	}
+///     fn update(&mut self, delta_time: f64) -> anyhow::Result<()> {
+///         // update your plugin state
+///         Ok(())
+///     }
 ///
-/// 	fn resource_dependencies(&mut self) -> HashMap<String, ResourceId> {
-///    		HashMap::new()
-/// 	}
+///     fn resource_dependencies(&mut self) -> HashMap<String, ResourceId> {
+///         HashMap::new()
+///     }
 ///
-/// 	fn name(&self) -> &'static str {
-///    		"my_cool_plugin"
-/// 	}
+///     fn name(&self) -> &'static str {
+///         "my_cool_plugin"
+///     }
 /// }
 /// ```
 pub trait Plugin {

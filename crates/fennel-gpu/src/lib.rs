@@ -7,3 +7,4 @@
 //! This crate uses the [`anyhow`] crate for error handling.
 
 pub mod renderer;
+pub mod vertex;

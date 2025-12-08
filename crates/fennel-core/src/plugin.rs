@@ -79,7 +79,7 @@ impl Plugin for GraphicsPlugin {
 	fn prepare(&mut self, dependencies: HashMap<String, &AtomicRefCell<Box<dyn Resource>>>) -> anyhow::Result<()> {
 		// performance cost should be acceptable for these `.clone()`s as these are called only once
 		let name = self.name;
-		let dimensions = self.dimensions.clone();
+		let dimensions = self.dimensions;
 		let assets_path = self.assets_path.clone();
 
 		// the current dependency system is quite janky, but hey, it doesn't segfaults, panics or produces UB (I hope)
