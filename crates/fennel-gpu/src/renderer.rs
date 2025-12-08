@@ -62,9 +62,13 @@ impl GPURenderer {
 		image_path: impl AsRef<Path>
 	) -> anyhow::Result<Texture<'static>> {
 		let surface = unsafe { self.load_surface(image_path)? };
+
+		Ok(self.create_and_upload_texture(surface)?)
+	}
+
+	fn create_and_upload_texture(&mut self, surface: Surface) -> anyhow::Result<Texture<'static>> {
 		let image_size = surface.size();
 		let size_bytes = surface.pixel_format().bytes_per_pixel() as u32 * image_size.0 * image_size.1;
-
 		let texture = self.device.create_texture(
 			TextureCreateInfo::new()
 				.with_format(TextureFormat::R8g8b8a8Unorm)
