@@ -6,7 +6,7 @@ use crate::world::PhysicsWorld;
 #[test]
 fn gravity_free_fall() {
     let mut world = PhysicsWorld::new();
-    let mut body = RigidBody::new();
+    let mut body = RigidBody::empty();
     body.set_mass(1.0);
     body.set_position(Vector2::new(0.0, 0.0));
     world.add_body(Box::new(body));

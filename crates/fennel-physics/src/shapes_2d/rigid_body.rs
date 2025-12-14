@@ -1,15 +1,18 @@
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 use crate::body::Body;
 #[cfg(feature = "specs")]
 use specs::Component;
 #[cfg(feature = "specs")]
 use specs::VecStorage;
+use crate::aabb::BoundingBox;
 
 /// A struct representing a 2D rigid body
 #[derive(Debug)]
 pub struct RigidBody {
     /// 2D position
     position: Vector2<f32>,
+    /// Body's dimensions in 2D plane
+    dimensions: Vector2<f32>,
     /// Body's mass in kg
     mass: f32,
     /// Body's velocity, vector quantity with a direction
@@ -18,6 +21,8 @@ pub struct RigidBody {
     force: Vector2<f32>,
     /// Body's acceleration in m/s^2
     acceleration: Vector2<f32>,
+    /// Body's AABB for fast collision checks
+    bounding_box: BoundingBox,
 }
 
 #[cfg(feature = "specs")]
@@ -27,19 +32,40 @@ impl Component for RigidBody {
 
 impl Default for RigidBody {
     fn default() -> Self {
-        Self::new()
+        Self::empty()
     }
 }
 
 impl RigidBody {
-    /// Create a new instance of [`RigidBody`] with all fields set to 0.0
-    pub fn new() -> Self {
+    /// Create a new instance of [`RigidBody`] with all fields set to 0.0.
+    pub fn empty() -> Self {
         Self {
             position: Vector2::new(0.0, 0.0),
+            dimensions: Vector2::new(0.0, 0.0),
             mass: 0.0,
             velocity: Vector2::new(0.0, 0.0),
             force: Vector2::new(0.0, 0.0),
-            acceleration: Vector2::new(0.0, 0.0)
+            acceleration: Vector2::new(0.0, 0.0),
+            bounding_box: BoundingBox::new(0.0, 0.0, Vector3::new(0.0, 0.0, 0.0)),
+        }
+    }
+
+    /// Create a new instance of [`RigidBody`].
+    /// 
+    /// # Arguments
+    /// * `position` - position of the body in the world
+    /// * `dimensions` - dimensions of the body (w, h)
+    /// * `mass` - mass of the body in kg
+    pub fn new(position: Vector2<f32>, dimensions: Vector2<f32>, mass: f32) -> Self {
+        let bounding_box = BoundingBox::new(dimensions.x, dimensions.y, Vector3::new(position.x, position.y, 0.0));
+        Self {
+            position,
+            dimensions,
+            mass,
+            velocity: Vector2::new(0.0, 0.0),
+            force: Vector2::new(0.0, 0.0),
+            acceleration: Vector2::new(0.0, 0.0),
+            bounding_box,
         }
     }
 }

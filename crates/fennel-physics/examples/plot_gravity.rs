@@ -5,7 +5,7 @@ use fennel_physics::world::PhysicsWorld;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut world = PhysicsWorld::new();
-    let mut body = RigidBody::new();
+    let mut body = RigidBody::empty();
     body.set_mass(1.0);
     body.set_position(nalgebra::Vector2::new(0.0, 100.0));
     world.add_body(Box::new(body));
