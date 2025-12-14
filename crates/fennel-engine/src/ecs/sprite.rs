@@ -3,37 +3,10 @@ use ron::Value;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
 use fennel_core::graphics::{Drawable, Sprite};
 use crate::{
-    registry::ComponentFactory, renderer::RenderQueue,
+    registry::ComponentFactory, renderer::RenderQueue
 };
 
-/// Factory for [`Sprite`]
-pub struct SpriteFactory;
-
-impl ComponentFactory for SpriteFactory {
-    fn insert(&self, world: &mut World, entity: Entity, value: &Value) {
-        match Value::into_rust::<Sprite>(value.clone()) {
-            Ok(sprite) => {
-                let _ = world
-                    .write_storage::<Sprite>()
-                    .insert(entity, sprite);
-            }
-            Err(e) => {
-                error!("failed to construct a sprite for entity {:?}: {}", entity, e);
-            }
-        }
-    }
-
-    fn insert_lazy(&self, lazy: &LazyUpdate, entity: Entity, value: &Value) {
-        match Value::into_rust::<Sprite>(value.clone()) {
-            Ok(sprite) => {
-                lazy.insert(entity, sprite);
-            }
-            Err(e) => {
-                error!("failed to construct a sprite for entity {:?}: {}", entity, e);
-            }
-        }
-    }
-}
+impl_component_factory!(SpriteFactory, Sprite);
 
 /// ECS system that queues [`Sprite`]s for rendering
 ///

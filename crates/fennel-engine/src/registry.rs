@@ -40,3 +40,35 @@ impl Default for ComponentRegistry {
         Self::new()
     }
 }
+
+macro_rules! impl_component_factory {
+    ($factory:ident, $component:ident) => {
+        pub struct $factory;
+
+        impl ComponentFactory for $factory {
+            fn insert(&self, world: &mut World, entity: Entity, value: &Value) {
+                match Value::into_rust::<$component>(value.clone()) {
+                    Ok(component) => {
+                        let _ = world
+                            .write_storage::<$component>()
+                            .insert(entity, component);
+                    }
+                    Err(e) => {
+                        error!("failed to construct a {} for entity {:?}: {}", stringify!($component), entity, e);
+                    }
+                }
+            }
+
+            fn insert_lazy(&self, lazy: &LazyUpdate, entity: Entity, value: &Value) {
+                match Value::into_rust::<$component>(value.clone()) {
+                    Ok(component) => {
+                        lazy.insert(entity, component);
+                    }
+                    Err(e) => {
+                        error!("failed to construct a {} for entity {:?}: {}", stringify!($component), entity, e);
+                    }
+                }
+            }
+        }
+    };
+}

@@ -1,12 +1,13 @@
 //! A library providing abstractions over `fennel-core`, a simpler API and an ECS
 /// Application layer module
 pub mod app;
+/// Module providing component registry
+#[macro_use]
+pub mod registry;
 /// Module providing basic systems like rendering on top of `specs`
 pub mod ecs;
 /// Helper event types for ECS
 pub mod events;
-/// Module providing component registry
-pub mod registry;
 /// Module providing advanced rendering functionality
 pub mod renderer;
 /// Module providing functionality of scenes

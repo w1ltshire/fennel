@@ -61,7 +61,6 @@ async fn main() -> anyhow::Result<()> {
     env_logger::init();
     let app = AppBuilder::new()
         .name("game")
-        .dimensions((800, 800))
         .config("crates/fennel-engine/examples/game.toml")
         .register_system(SysA, "sys_a", &[])
         .with_plugin(GraphicsPlugin::new("game", (800, 600), "assets"))
