@@ -212,10 +212,17 @@ impl AppBuilder {
             let mut dependencies = HashMap::new();
             plugin.resource_dependencies().iter().for_each(|resource| {
                 debug!("plugin `{}` requested resource {:?} with key `{}`, trying to fetch...", plugin.name(), resource.1, resource.0);
-                let fetched_resource = unsafe { self.world.try_fetch_internal(resource.1.clone()) }.unwrap();
-
-                dependencies.insert(resource.0.to_string(), fetched_resource);
-                debug!("got resource {:?} for plugin {}", resource, plugin.name());
+                let fetched_resource = unsafe { self.world.try_fetch_internal(resource.1.clone()) };
+                match fetched_resource {
+                    Some(fetched_resource) => {
+                        dependencies.insert(resource.0.to_string(), fetched_resource);
+                        debug!("got resource {:?} for plugin {}", resource, plugin.name());
+                    }
+                    Err(e) => {
+                        error!("failed to fetch resource {:?} for plugin {}, plugin not loaded: {e}", resource, plugin.name());
+                        return;
+                    }
+                }
             });
             plugin.prepare(dependencies).unwrap_or_else(|e| {
                 error!("failed to prepare plugin: {e}");
