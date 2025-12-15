@@ -1,3 +1,12 @@
+//! # Resource manager for the `Fennel` game engine
+//! This library provides a simple resource manager for the `Fennel` game engine, enabling easy management
+//! of various assets, such as scenes, images, audio, fonts, etc.
+//!
+//! ## Modules
+//! This library consists of the following modules:
+//! - [`manager`](manager)` - Implements the functionality of the resource manager, including caching, insertion, and fetching resources
+//! - [`resource`](resource)` - Defines the traits for resources to implement to be compatible with the resource manager
+
 /// The resource manager itself
 pub mod manager;
 /// All the things to represent a resource type
