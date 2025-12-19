@@ -41,16 +41,10 @@ impl GPURenderer {
 	///
 	/// # Parameters
 	/// - `image_path`: A path to the image file
-	/// - `gpu`: A reference to the GPU device to create the texture
-	/// - `copy_pass`: A reference to the `CopyPass` to load the texture into GPU
 	///
 	/// # Returns
 	/// Returns a result containing the created [`Texture`] on success, or an error
 	/// if anything fails.
-	///
-	/// # Safety
-	/// This function interacts with raw pointers and C functions. Ensure the validity
-	/// of an image file path, tho an error will be returned if any of the pointers are null.
 	///
 	/// # Example
 	/// ```ignore
@@ -66,7 +60,15 @@ impl GPURenderer {
 		Ok(self.create_and_upload_texture(surface)?)
 	}
 
-	fn create_and_upload_texture(&mut self, surface: Surface) -> anyhow::Result<Texture<'static>> {
+	/// Creates a [`Texture`] from a [`Surface`].
+	///
+	/// # Parameters
+	/// - `surface`: The surface from which the function will create a texture
+	///
+	/// # Returns
+	/// Returns a result containing the created [`Texture`] on success, or an error
+	/// if anything fails
+	pub fn create_and_upload_texture(&mut self, surface: Surface) -> anyhow::Result<Texture<'static>> {
 		let image_size = surface.size();
 		let size_bytes = surface.pixel_format().bytes_per_pixel() as u32 * image_size.0 * image_size.1;
 		let texture = self.device.create_texture(
@@ -112,7 +114,18 @@ impl GPURenderer {
 		Ok(texture)
 	}
 
-	unsafe fn load_surface(&mut self, image_path: impl AsRef<Path>) -> anyhow::Result<Surface<'static>> {
+	/// Create a [`Surface`] with `'static` lifetime from a file
+	///
+	/// # Parameters
+	/// `image_path` - path to the file on the filesystem
+	///
+	/// # Safety
+	/// This function calls FFI C functions of `sdl3` and operates with [`CStr`]s. This function also
+	/// tries to safely wrap around those functions, returning an error if `sdl3` returns an error.
+	///
+	/// # Returns
+	/// [`Surface`] with a `'static` lifetime wrapped in [`anyhow::Result`]
+	pub unsafe fn load_surface(&mut self, image_path: impl AsRef<Path>) -> anyhow::Result<Surface<'static>> {
 		// pray to the Machine God so all those unsafe blocks won't cause an UB or segfault
 		// Hail, Spirit of the Machine, Essence Divine; In your code and circuitry, the stars align.
 		// By the Omnissiah's will, we commune and bind, Data sanctified, logic refined.
