@@ -1,14 +1,13 @@
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::{Arc, Mutex};
-use anyhow::Context;
 use kanal::Receiver;
 use log::{debug, error};
 use specs::prelude::{Resource, ResourceId};
 use specs::shred::cell::AtomicRefCell;
 use fennel_plugins::Plugin;
+use fennel_resources::manager::ResourceManager;
 use crate::graphics::{Drawable, Graphics, WindowConfig};
-use crate::resources::ResourceManager;
 use crate::Window;
 use crate::events;
 use crate::events::WindowEventHandler;
@@ -84,13 +83,20 @@ impl Plugin for GraphicsPlugin {
 
 		// the current dependency system is quite janky, but hey, it doesn't segfaults, panics or produces UB (I hope)
 		let mut receiver: Option<Receiver<Vec<Drawable>>> = None;
-		dependencies.iter().for_each(|dep| {
-			debug!("received dependency {}", dep.0);
-			if dep.0 == "render_rx" {
+		dependencies
+			.iter()
+			.filter(|dep| dep.0 == "render_rx")
+			.for_each(|dep| {
 				let dep = dep.1.borrow();
-				receiver = Some(dep.downcast_ref::<Receiver<Vec<Drawable>>>().unwrap().clone());
-			}
-		});
+				let dep = dep.downcast_ref::<Receiver<Vec<Drawable>>>();
+				if let Some(dep) = dep {
+					receiver = Some(dep.clone());
+				} else {
+					// engine always inserts a render receiver into the world so a graphics plugin can take it
+					// as a dependency, so this is unreachable
+					unreachable!()
+				}
+			});
 
 		std::thread::spawn(move || {
 			let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
@@ -98,22 +104,17 @@ impl Plugin for GraphicsPlugin {
 				String::from(name),
 				dimensions,
 				resource_manager.clone(),
-				|graphics| -> anyhow::Result<()> {
+				|mut graphics| -> anyhow::Result<()> {
 					let mut resource_manager = match resource_manager.try_lock() {
 						Ok(guard) => guard,
 						Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
 					};
-					resource_manager
-						.load_dir(PathBuf::from(assets_path.clone()), graphics)
-						.context("failed to load resources from directory")?;
+					crate::resources::load_dir(&mut resource_manager, assets_path.parse()?, &mut graphics)?;
 					Ok(())
 				},
 				WindowConfig::default(),
 			).expect("failed to create graphics");
-			let mut window = Window::new(
-				graphics,
-				resource_manager,
-			);
+			let mut window = Window::new(graphics);
 			let handler: &'static mut dyn WindowEventHandler = {
 				let boxed = Box::new(EventHandler {
 					render_receiver: receiver.unwrap().clone()

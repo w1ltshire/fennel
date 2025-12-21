@@ -2,14 +2,13 @@ use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
 };
-use anyhow::Context;
 use fennel_core::{
     Window,
     events::{self, WindowEventHandler},
     graphics,
-    resources::ResourceManager,
 };
 use sdl3::pixels::Color;
+use fennel_resources::manager::ResourceManager;
 
 struct State;
 
@@ -49,16 +48,14 @@ async fn main() -> anyhow::Result<()> {
                 Ok(guard) => guard,
                 Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
             };
-            resource_manager
-                .load_dir(PathBuf::from("assets"), graphics)
-                .context("failed to load assets from directory")?;
+            fennel_core::resources::load_dir(&mut resource_manager, PathBuf::from("assets"), graphics)?;
             Ok(())
         },
         graphics::WindowConfig::default(),
     )
     .expect("failed to create graphics");
 
-    let mut window = Window::new(graphics, resource_manager.clone());
+    let mut window = Window::new(graphics);
 
     // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we
     // need to do this seemingly weird thing (while `app.rs` in fennel-engine has an ass solution

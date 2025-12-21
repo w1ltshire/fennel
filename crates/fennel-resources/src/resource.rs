@@ -9,5 +9,5 @@ pub trait Resource {
 	fn data_mut(&mut self) -> &mut dyn Any;
 
 	/// Return the resource name which should be unique
-	fn name(&self) -> &'static str;
+	fn name(&self) -> String;
 }

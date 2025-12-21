@@ -1,10 +1,6 @@
 //! Core window-related API for Fennel engine
-use std::sync::{Arc, Mutex};
 
-use crate::{
-    graphics::Graphics,
-    resources::ResourceManager,
-};
+use crate::graphics::Graphics;
 
 /// Audio playback
 pub mod audio;
@@ -28,8 +24,6 @@ unsafe impl Sync for Window {}
 pub struct Window {
     /// Graphics subsystem used to render frames.
     pub graphics: Graphics,
-    /// Resource manager
-    pub resource_manager: Arc<Mutex<ResourceManager>>,
 }
 
 impl Window {
@@ -41,10 +35,9 @@ impl Window {
     ///
     /// # Returns
     /// A [`Window`] instance ready to be used by an [`events::WindowEventHandler`].
-    pub fn new(graphics: Graphics, resource_manager: Arc<Mutex<ResourceManager>>) -> Window {
+    pub fn new(graphics: Graphics) -> Window {
         Window {
-            graphics,
-            resource_manager,
+            graphics
         }
     }
 }

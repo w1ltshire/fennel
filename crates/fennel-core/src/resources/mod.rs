@@ -1,8 +1,9 @@
-use std::{any::Any, cell::Ref, collections::HashMap, fs, path::PathBuf};
-use anyhow::{bail, Context};
+use std::{fs, path::PathBuf};
+use anyhow::Context;
 use log::debug;
 use serde::{Deserialize, Serialize};
-
+use fennel_resources::manager::ResourceManager;
+use fennel_resources::resource::Resource;
 use crate::{
     graphics::Graphics,
     resources::{font::DummyFont, image::Image},
@@ -10,15 +11,6 @@ use crate::{
 
 pub mod font;
 pub mod image;
-
-/// Manages a collection of loadable resources indexed by their name
-pub struct ResourceManager {
-    /// Map resource name to a type that implements [`LoadableResource`] trait
-    pub resources: HashMap<String, Box<dyn LoadableResource>>,
-}
-
-unsafe impl Send for ResourceManager {}
-unsafe impl Sync for ResourceManager {}
 
 #[derive(Deserialize, Serialize, Debug)]
 enum AssetType {
@@ -42,140 +34,38 @@ struct Manifest {
     pub assets: Vec<Asset>,
 }
 
-/// Trait that all loadable assets must implement
-pub trait LoadableResource: Any {
-    /// Load a resource from `path` and return it boxed
-    ///
-    /// # Arguments
-    /// `path`: path to the resoruce file
-    /// `graphics`: current [`Graphics`] instance which holds `texture_creator` and `ttf_context`
-    /// `size`: optional size for any resoruce that needs it
-    ///
-    /// # Errors
-    /// Returns an error if the file cannot be read or parsed
-    fn load(
-        path: PathBuf,
-        name: String,
-        graphics: &mut Graphics,
-        size: Option<f32>,
-    ) -> anyhow::Result<Box<dyn LoadableResource>>
-    where
-        Self: Sized;
+pub fn load_dir(resource_manager: &mut ResourceManager, path_buf: PathBuf, graphics: &mut Graphics) -> anyhow::Result<()> {
+    let manifest_file = fs::read(path_buf.join("manifest.toml"))
+        .context("failed to read manifest.toml")?;
 
-    /// Eaasy-to-use identifier for the resource
-    fn name(&self) -> String;
+    let manifest: Manifest = toml::from_slice(&manifest_file)
+        .context("failed to parse manifest.toml")?;
 
-    /// Return a mutable slice that the graphics thread can pass to SDL
-    ///
-    /// If the resource does not have a buffer, then it mustn't implement this function
-    fn as_mut_slice(&self) -> Option<&mut [u8]> {
-        None
-    }
+    for asset in manifest.assets {
+        debug!("loading asset '{}' with class {:?}", asset.name, asset.class);
 
-    /// Return an immutable slice for read‑only access
-    ///
-    /// If the resource does not have a buffer, then it mustn't implement this function
-    fn as_slice(&self) -> Option<Ref<'_, [u8]>> {
-        None
-    }
-}
+        let asset_path = path_buf.join(asset.path);
 
-// evil &Box\<dyn LoadableResource> to &T
-#[allow(clippy::borrowed_box)] // i have no idea how can this be done better because here we box a
-// trait
-/// Downcast a '&Box\<dyn LoadableResource>' to a concrete type
-pub fn downcast_ref<T: 'static + LoadableResource>(
-    b: &Box<dyn LoadableResource>,
-) -> anyhow::Result<&T> {
-    let dyn_ref: &dyn LoadableResource = b.as_ref();
+        match asset.class {
+            AssetType::Image => {
+                let image = Image::load(
+                    asset_path.clone(),
+                    asset.name,
+                    graphics
+                )?;
+                println!("inserting {}", image.name());
+                resource_manager.insert(image);
+            }
+            AssetType::Audio => {
 
-    let any_ref = dyn_ref as &dyn Any;
-
-   match any_ref.downcast_ref::<T>() {
-       Some(t) => Ok(t),
-       None => bail!("downcast error"),
-   }
-}
-
-impl ResourceManager {
-    /// Create a new manager with empty `resources` field
-    pub fn new() -> Self {
-        Self {
-            resources: HashMap::new(),
-        }
-    }
-
-    /// Loads assets from a directory, which must contain a manifest
-    ///
-    /// # Errors
-    /// Returns an error if manifest does not exist in the target directory
-    pub fn load_dir(&mut self, path: PathBuf, graphics: &mut Graphics) -> anyhow::Result<()> {
-        let manifest_file = fs::read(path.join("manifest.toml"))
-            .context("failed to read manifest.toml")?;
-
-        let manifest: Manifest = toml::from_slice(&manifest_file)
-            .context("failed to parse manifest.toml")?;
-
-        for asset in manifest.assets {
-            debug!("loading asset '{}' with class {:?}", asset.name, asset.class);
-
-            let asset_path = path.join(asset.path);
-
-            match asset.class {
-                AssetType::Image => {
-                    let image = Image::load(
-                        asset_path.clone(),
-                        asset.name,
-                        graphics,
-                        None,
-                    )?;
-                    self.cache_asset(image)?;
-                }
-                AssetType::Audio => {
-                    // Handle loading audio assets if necessary
-                }
-                AssetType::Font => {
-                    let font = DummyFont::load(asset_path, asset.name, graphics, None)
-                        .context("failed to load font")?;
-                    println!("{:?}", font.name());
-                    self.cache_asset(font)?;
-                }
+            }
+            AssetType::Font => {
+                println!("{:?} - {}", asset_path.clone(), asset.name.clone());
+                let font = DummyFont::new(asset_path, asset.name);
+                resource_manager.insert(font);
             }
         }
-
-        Ok(())
     }
 
-    /// Insert a loaded asset into the cache
-    ///
-    /// The asset is stored under the key returned by `asset.name()`
-    pub fn cache_asset(&mut self, asset: Box<dyn LoadableResource>) -> anyhow::Result<()> {
-        self.resources.insert(asset.name(), asset);
-        Ok(())
-    }
-
-    // here i have NO fucking idea should it be `&Box<dyn LoadableResource>` or whatever
-    // self.resources.get returns a reference to the resource, so basically a reference to Box
-    // but afaik Box is a pointer, and for me it feels a bit fucking wrong to uh return a
-    // reference to a pointer >:3 and also clippy is angry at me for doing this
-    #[allow(clippy::borrowed_box)] // same reason as in `as_concrete`
-    pub fn get_asset(&self, name: String) -> anyhow::Result<&Box<dyn LoadableResource>> {
-        let asset = self
-            .resources
-            .get(&name)
-            .unwrap_or_else(|| panic!("asset {name} not found"));
-        Ok(asset)
-    }
-
-    /// Check if a resource is cached
-    pub fn is_cached(&self, name: String) -> bool {
-        self.resources.contains_key(&name)
-    }
-}
-
-impl Default for ResourceManager {
-    /// `default()` is equivalent to `ResourceManager::new()`.
-    fn default() -> Self {
-        Self::new()
-    }
+    Ok(())
 }

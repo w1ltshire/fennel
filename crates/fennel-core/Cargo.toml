@@ -21,3 +21,4 @@ toml = "0.9.8"
 fennel-plugins = { version = "0.1.0", path = "../fennel-plugins" }
 specs = "0.20.0"
 kanal = "0.1.1"
+fennel-resources = { version = "0.1.0", path = "../fennel-resources" }

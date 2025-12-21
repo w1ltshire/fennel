@@ -8,15 +8,15 @@
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-
+use anyhow::Context;
 use sdl3::Sdl;
 use sdl3::pixels::{Color, PixelFormat};
 use sdl3::render::{Canvas, FRect};
 use sdl3::video::Window;
 use serde::Deserialize;
-use crate::resources::font::{DummyFont, Font};
-use crate::resources::image::Image;
-use crate::resources::{self, LoadableResource, ResourceManager};
+use fennel_resources::manager::ResourceManager;
+use crate::resources::font::{Font, InternalDummyFont, InternalFont};
+use crate::resources::image::{Image, InnerImage};
 
 /// Owned SDL variables used for rendering
 ///
@@ -353,14 +353,15 @@ impl Graphics {
             Ok(guard) => guard,
             Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
         };
-
-        if !manager.is_cached(path.clone()) {
+        let key = path.clone();
+        if !manager.is_cached(&*key) {
             // rust programmers when they have to .clone()
-            let texture = Image::load(PathBuf::from(path.clone()), "".to_string(), self, None);
-            manager.cache_asset(texture?)?; // those question marks are funny hehehe
+            let texture = Image::load(PathBuf::from(path.clone()), "".to_string(), self);
+            manager.insert(texture?);
         }
 
-        let image: &Image = resources::downcast_ref(manager.get_asset(path)?, )?;
+        let image = manager.get(&*key)?.data()
+            .downcast_ref::<Rc<InnerImage>>().context("failed to downcast image")?;
 
         let dst_rect = FRect::new(
             position.0,
@@ -410,29 +411,31 @@ impl Graphics {
             size,
             color.to_u32(&PixelFormat::RGBA32)
         );
-        let font: &DummyFont = {
-            let asset = manager.get_asset(font)?;
-            resources::downcast_ref(asset)?
+        let font: &InternalDummyFont = {
+            let asset = manager.get(&*font)?.data()
+                .downcast_ref::<InternalDummyFont>().context("failed to downcast font")?;
+            asset
         };
 
-        let font_key = format!("{}|{}", font.name(), size);
+        let font_key = format!("{}|{}", font.name, size);
 
-        if !manager.is_cached(font_key.clone()) {
+        if !manager.is_cached(&font_key.clone()) {
             let asset = Font::load(font.path.clone(), font_key.clone(), self, Some(size));
-            manager.cache_asset(asset?)?;
+            manager.insert(asset?);
         }
-
-        if !manager.is_cached(cache_key.clone()) {
-            let font = resources::downcast_ref::<Font>(manager.get_asset(font_key)?)?;
-            let surface = font
-                .buffer
+        
+        if !manager.is_cached(&cache_key.clone()) {
+            let font = manager.get(&font_key)?.data()
+                .downcast_ref::<Rc<InternalFont>>().context("failed to downcast font")?;
+            let surface = font.buffer
                 .render(&text)
                 .blended(color)
                 .map_err(|e| anyhow::anyhow!("render error: {e}"))?;
             let image = Image::load_from_surface(cache_key.clone(), self, surface);
-            manager.cache_asset(image?)?;
+            manager.insert(image?);
         }
-        let texture: &Image = resources::downcast_ref(manager.get_asset(cache_key)?)?;
+        let texture = manager.get(&*cache_key)?.data()
+            .downcast_ref::<Rc<InnerImage>>().context("failed to downcast image")?;
 
         let dst_rect = FRect::new(
             position.0,

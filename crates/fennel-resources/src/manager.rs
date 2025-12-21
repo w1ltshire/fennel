@@ -1,9 +1,10 @@
 use std::collections::HashMap;
+use anyhow::Context;
 use crate::resource::Resource;
 
 /// A struct that represents the resource manager, which stores the resources
 pub struct ResourceManager {
-	cache: HashMap<&'static str, Box<dyn Resource>>,
+	cache: HashMap<String, Box<dyn Resource>>,
 }
 
 impl ResourceManager {
@@ -29,7 +30,8 @@ impl ResourceManager {
 	/// manager.insert(MyResource { name: "my_resource" });
 	/// ```
 	pub fn insert<T: Resource + 'static>(&mut self, resource: T) {
-		self.cache.insert(resource.name(), Box::new(resource));
+		let name = resource.name().clone().to_string();
+		self.cache.insert(name, Box::new(resource));
 	}
 
 	/// Remove a type implementing [`Resource`] from [`ResourceManager`]
@@ -38,7 +40,7 @@ impl ResourceManager {
 	/// * `name`: the unique name of the resource
 	///
 	/// # Returns
-	/// An [`Option`] with [`Box<dyn Resource>`] inside it, which is [`Some`] if
+	/// An [`anyhow::Result`] with [`Box<dyn Resource>`] inside it, which is [`Some`] if
 	/// the resource exists, [`None`] if not.
 	///
 	/// # Examples
@@ -48,8 +50,8 @@ impl ResourceManager {
 	/// manager.insert(MyResource { name: "my_resource" });
 	/// let same_resource = manager.remove("my_resource");
 	/// ```
-	pub fn remove(&mut self, name: &'static str) -> Option<Box<dyn Resource>> {
-		self.cache.remove(name)
+	pub fn remove(&mut self, name: &str) -> anyhow::Result<Box<dyn Resource>> {
+		self.cache.remove(name).context("resource does not exist")
 	}
 
 	/// Get a type implementing [`Resource`] from [`ResourceManager`]
@@ -58,7 +60,7 @@ impl ResourceManager {
 	/// * `name`: the unique name of the resource
 	///
 	/// # Returns
-	/// An [`Option`] with an immutable reference to [`Box<dyn Resource>`] inside of it,
+	/// An [`anyhow::Result`] with an immutable reference to [`Box<dyn Resource>`] inside of it,
 	/// which is [`Some`] if the resource exists, [`None`] if not.
 	///
 	/// # Examples
@@ -67,8 +69,8 @@ impl ResourceManager {
 	/// let manager = ResourceManager::new();
 	/// let resource = manager.get("my_resource");
 	/// ```
-	pub fn get(&self, name: &'static str) -> Option<&Box<dyn Resource>> {
-		self.cache.get(name)
+	pub fn get(&self, name: &str) -> anyhow::Result<&Box<dyn Resource>> {
+		self.cache.get(name).context("resource does not exist")
 	}
 
 	/// Get a type implementing [`Resource`] from [`ResourceManager`]. This function follows Rust's
@@ -78,7 +80,7 @@ impl ResourceManager {
 	/// * `name`: the unique name of the resource
 	///
 	/// # Returns
-	/// An [`Option`] with a mutable reference to [`Box<dyn Resource>`] inside it,
+	/// An [`anyhow::Result`] with a mutable reference to [`Box<dyn Resource>`] inside it,
 	/// which is [`Some`] if the resource exists, [`None`] if not.
 	///
 	/// # Examples
@@ -87,7 +89,12 @@ impl ResourceManager {
 	/// let manager = ResourceManager::new();
 	/// let resource = manager.get_mut("my_resource");
 	/// ```
-	pub fn get_mut(&mut self, name: &'static str) -> Option<&mut Box<dyn Resource>> {
-		self.cache.get_mut(name)
+	pub fn get_mut(&mut self, name: &str) -> anyhow::Result<&mut Box<dyn Resource>> {
+		self.cache.get_mut(name).context("resource does not exist")
+	}
+
+	/// Determines whether a resource exists in the cache and returns a boolean
+	pub fn is_cached(&self, name: &str) -> bool {
+		self.cache.contains_key(name)
 	}
 }

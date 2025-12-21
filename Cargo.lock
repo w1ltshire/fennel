@@ -697,6 +697,7 @@ version = "0.5.1"
 dependencies = [
  "anyhow",
  "fennel-plugins",
+ "fennel-resources",
  "image 0.25.9",
  "imgui",
  "imgui-sdl3",
@@ -758,6 +759,9 @@ dependencies = [
 [[package]]
 name = "fennel-resources"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+]
 
 [[package]]
 name = "find-msvc-tools"

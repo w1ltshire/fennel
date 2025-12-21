@@ -1,55 +1,73 @@
 use anyhow::bail;
 use std::{path::PathBuf, rc::Rc};
-
-use crate::{graphics::Graphics, resources::LoadableResource};
+use std::any::Any;
+use fennel_resources::resource::Resource;
+use crate::graphics::Graphics;
 
 /// Font asset
-pub struct Font {
+pub struct InternalFont {
     /// Filesystem path to the font.
     pub path: PathBuf,
     /// Font family name
     pub family_name: String,
-    /// Internal name
-    name: String,
     /// Point size
     pub size: f32,
     /// Smart pointer to sdl3's `Font`
     pub buffer: Rc<sdl3::ttf::Font<'static>>,
 }
 
-/// Font asset to be able to use fonts of various sizes
-pub struct DummyFont {
-    /// Filesystem path to the font.
-    pub path: PathBuf,
-    /// Internal name
+pub struct Font {
+    internal: Rc<InternalFont>,
     name: String,
 }
 
-impl LoadableResource for DummyFont {
-    fn load(
-        path: PathBuf,
-        name: String,
-        _graphics: &mut Graphics,
-        _size: Option<f32>,
-    ) -> anyhow::Result<Box<dyn LoadableResource>>
-    where
-        Self: Sized,
-    {
-        Ok(Box::new(Self { path, name }))
+/// Font asset to be able to use fonts of various sizes
+pub struct DummyFont {
+    inner: InternalDummyFont
+}
+
+pub(crate) struct InternalDummyFont {
+    /// Filesystem path to the font.
+    pub(crate) path: PathBuf,
+    /// Internal name
+    pub(crate) name: String,
+}
+
+impl Resource for DummyFont {
+    fn data(&self) -> &dyn Any {
+        &self.inner as &dyn Any
+    }
+
+    fn data_mut(&mut self) -> &mut dyn Any {
+        &mut self.inner as &mut dyn Any
     }
 
     fn name(&self) -> String {
-        self.name.to_string()
+        self.inner.name.clone()
     }
 }
-impl LoadableResource for Font {
-    // TODO: improve font internal naming, it's quite confusing as of now
-    fn load(
+
+impl Resource for Font {
+    fn data(&self) -> &dyn Any {
+        &self.internal as &dyn Any
+    }
+
+    fn data_mut(&mut self) -> &mut dyn Any {
+        &mut self.internal as &mut dyn Any
+    }
+
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+}
+
+impl Font {
+    pub(crate) fn load(
         path: PathBuf,
         name: String,
         graphics: &mut Graphics,
         size: Option<f32>,
-    ) -> anyhow::Result<Box<dyn LoadableResource>>
+    ) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
@@ -64,16 +82,28 @@ impl LoadableResource for Font {
             Some(name) => name,
             None => bail!("failed to get font family name"),
         };
-        Ok(Box::new(Self {
+
+        let internal = InternalFont {
             path,
             family_name,
-            name,
             size,
             buffer: Rc::new(font),
-        }))
-    }
+        };
 
-    fn name(&self) -> String {
-        self.name.to_string()
+        Ok(Self {
+            internal: Rc::new(internal),
+            name
+        })
+    }
+}
+
+impl DummyFont {
+    pub fn new(path: PathBuf, name: String) -> Self {
+        Self {
+            inner: InternalDummyFont {
+                path,
+                name,
+            }
+        }
     }
 }

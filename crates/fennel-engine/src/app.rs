@@ -218,8 +218,8 @@ impl AppBuilder {
                         dependencies.insert(resource.0.to_string(), fetched_resource);
                         debug!("got resource {:?} for plugin {}", resource, plugin.name());
                     }
-                    Err(e) => {
-                        error!("failed to fetch resource {:?} for plugin {}, plugin not loaded: {e}", resource, plugin.name());
+                    None => {
+                        error!("failed to fetch resource {:?} for plugin {}, plugin not loaded", resource, plugin.name());
                         return;
                     }
                 }

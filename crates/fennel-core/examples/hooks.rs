@@ -7,13 +7,11 @@ use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
 };
-use anyhow::Context;
 use fennel_core::{
     Window,
     events::{self, WindowEventHandler},
     graphics,
     hooks::Hook,
-    resources::ResourceManager,
 };
 use imgui_sdl3::ImGuiSdl3;
 use sdl3::{
@@ -22,6 +20,7 @@ use sdl3::{
     gpu::{ColorTargetInfo, Device, LoadOp, ShaderFormat, StoreOp},
     pixels::Color,
 };
+use fennel_resources::manager::ResourceManager;
 
 struct State;
 struct MyHook {
@@ -125,16 +124,11 @@ async fn main() -> anyhow::Result<()> {
                 Ok(guard) => guard,
                 Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
             };
-            resource_manager
-                .load_dir(PathBuf::from("assets"), graphics)
-                .context("failed to load assets from directory")?;
+            fennel_core::resources::load_dir(&mut resource_manager, PathBuf::from("assets"), graphics)?;
             Ok(())
         })
         .build();
-    let mut window = Window::new(
-        graphics.expect("failed to create graphics"),
-        resource_manager,
-    );
+    let mut window = Window::new(graphics.expect("failed to create graphics"));
 
     let handler: &'static mut dyn WindowEventHandler = {
         let boxed = Box::new(State);
