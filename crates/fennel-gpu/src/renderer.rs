@@ -15,7 +15,7 @@ use std::ffi::{CStr, CString};
 use std::path::Path;
 use anyhow::bail;
 use log::debug;
-use sdl3::gpu::{ColorTargetDescription, CommandBuffer, CompareOp, CullMode, DepthStencilState, Device, FillMode, GraphicsPipeline, GraphicsPipelineTargetInfo, PrimitiveType, RasterizerState, Shader, Texture, TextureCreateInfo, TextureFormat, TextureRegion, TextureTransferInfo, TextureType, TextureUsage, TransferBufferUsage, VertexAttribute, VertexBufferDescription, VertexElementFormat, VertexInputRate, VertexInputState};
+use sdl3::gpu::{ColorTargetDescription, CommandBuffer, CompareOp, CullMode, DepthStencilState, Device, FillMode, GraphicsPipeline, GraphicsPipelineTargetInfo, PrimitiveType, RasterizerState, Shader, ShaderFormat, ShaderStage, Texture, TextureCreateInfo, TextureFormat, TextureRegion, TextureTransferInfo, TextureType, TextureUsage, TransferBufferUsage, VertexAttribute, VertexBufferDescription, VertexElementFormat, VertexInputRate, VertexInputState};
 use sdl3::surface::Surface;
 use sdl3::sys::error::SDL_GetError;
 use sdl3::video::Window;
@@ -27,6 +27,7 @@ pub struct GPURenderer {
 	command_buffer: CommandBuffer,
 	swapchain_format: TextureFormat
 }
+
 
 impl GPURenderer {
 	/// Creates a new [`GPURenderer`] instance, taking ownership of the provided GPU device.
@@ -147,17 +148,20 @@ impl GPURenderer {
 	}
 
 	/// Creates a new [`GraphicsPipeline`]
-	/// 
+	///
 	/// # Parameters
 	/// * `frag_shader` - fragment shader for this pipeline
 	/// * `vert_shader` - vertex shader for this pipeline
-	/// 
+	///
 	/// # Returns
 	/// [`GraphicsPipeline`] in [`anyhow::Result`]
 	pub fn create_pipeline<'a>(&mut self, frag_shader: &'a Shader, vert_shader: &'a Shader) -> anyhow::Result<GraphicsPipeline> {
 		// copy-pasted this piece from some code i was writing to tinker around with sdl3's gpu module :3
 		// TODO: ehh make it like configurable or smth
 		debug!("creating a graphics pipeline");
+		
+		// BEWARE OF THE PIPELINE: he/him -> he/they -> they/them -> she/they -> she/her
+		// ^ kinda me
 		let pipeline = self.device
 			.create_graphics_pipeline()
 			.with_primitive_type(PrimitiveType::TriangleList)
@@ -204,5 +208,29 @@ impl GPURenderer {
 			)
 			.build()?;
 		Ok(pipeline)
+	}
+
+	/// Creates a new [`Shader`]
+	///
+	/// # Parameters
+	/// * `entry_point` - entry function name as a C string
+	/// * `stage` - shader stage (`Vertex`, `Fragment`)
+	/// * `code` - shader code
+	/// * `uniform_buffers` - amount of uniform buffers
+	///
+	/// # Returns
+	/// [`Shader`] in [`anyhow::Result`]
+	pub fn create_shader<'a>(&mut self, entry_point: &'a CStr, stage: ShaderStage, code: &'a [u8], uniform_buffers: u32) -> anyhow::Result<Shader> {
+		let shader = self.device
+			.create_shader()
+			.with_code(
+				ShaderFormat::SPIRV,
+				code,
+				stage,
+			)
+			.with_uniform_buffers(uniform_buffers)
+			.with_entrypoint(entry_point)
+			.build()?;
+		Ok(shader)
 	}
 }
