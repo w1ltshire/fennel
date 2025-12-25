@@ -15,19 +15,16 @@ use std::ffi::{CStr, CString};
 use std::path::Path;
 use anyhow::bail;
 use log::debug;
-use sdl3::gpu::{ColorTargetDescription, CommandBuffer, CompareOp, CullMode, DepthStencilState, Device, FillMode, GraphicsPipeline, GraphicsPipelineTargetInfo, PrimitiveType, RasterizerState, Shader, ShaderFormat, ShaderStage, Texture, TextureCreateInfo, TextureFormat, TextureRegion, TextureTransferInfo, TextureType, TextureUsage, TransferBufferUsage, VertexAttribute, VertexBufferDescription, VertexElementFormat, VertexInputRate, VertexInputState};
+use sdl3::gpu::{Buffer, BufferRegion, BufferUsageFlags, ColorTargetDescription, CommandBuffer, CompareOp, CopyPass, CullMode, DepthStencilState, Device, FillMode, GraphicsPipeline, GraphicsPipelineTargetInfo, PrimitiveType, RasterizerState, Shader, ShaderFormat, ShaderStage, Texture, TextureCreateInfo, TextureFormat, TextureRegion, TextureTransferInfo, TextureType, TextureUsage, TransferBufferLocation, TransferBufferUsage, VertexAttribute, VertexBufferDescription, VertexElementFormat, VertexInputRate, VertexInputState};
 use sdl3::surface::Surface;
 use sdl3::sys::error::SDL_GetError;
-use sdl3::video::Window;
 use crate::vertex::Vertex;
 
 /// A structure representing the GPU renderer.
 pub struct GPURenderer {
-	device: Device,
-	command_buffer: CommandBuffer,
+	pub device: Device,
 	swapchain_format: TextureFormat
 }
-
 
 impl GPURenderer {
 	/// Creates a new [`GPURenderer`] instance, taking ownership of the provided GPU device.
@@ -35,8 +32,7 @@ impl GPURenderer {
 	/// # Arguments
 	/// * `device`: instance of [`Device`]
 	pub fn new(device: Device, swapchain_format: TextureFormat) -> anyhow::Result<Self> {
-		let command_buffer = device.acquire_command_buffer()?;
-		Ok(Self { device, command_buffer, swapchain_format })
+		Ok(Self { device, swapchain_format })
 	}
 
 	/// Creates a [`Texture`] from a specified image file path.
@@ -58,11 +54,12 @@ impl GPURenderer {
 	/// ```
 	pub fn create_texture_from_image(
 		&mut self,
-		image_path: impl AsRef<Path>
+		image_path: impl AsRef<Path>,
+		command_buffer: &CommandBuffer
 	) -> anyhow::Result<Texture<'static>> {
 		let surface = unsafe { self.load_surface(image_path)? };
 
-		Ok(self.create_and_upload_texture(surface)?)
+		Ok(self.create_and_upload_texture(surface, command_buffer)?)
 	}
 
 	/// Creates a [`Texture`] from a [`Surface`].
@@ -73,7 +70,7 @@ impl GPURenderer {
 	/// # Returns
 	/// Returns a result containing the created [`Texture`] on success, or an error
 	/// if anything fails
-	pub fn create_and_upload_texture(&mut self, surface: Surface) -> anyhow::Result<Texture<'static>> {
+	pub fn create_and_upload_texture(&mut self, surface: Surface, command_buffer: &CommandBuffer) -> anyhow::Result<Texture<'static>> {
 		let image_size = surface.size();
 		let size_bytes = surface.pixel_format().bytes_per_pixel() as u32 * image_size.0 * image_size.1;
 		let texture = self.device.create_texture(
@@ -99,7 +96,7 @@ impl GPURenderer {
 		});
 		buffer_mem.unmap();
 
-		let copy_pass = self.device.begin_copy_pass(&self.command_buffer)?;
+		let copy_pass = self.device.begin_copy_pass(&command_buffer)?; // didn't sdl docs said you need to minimize copy pass creations? ah, fuck that. Too bad!
 
 		copy_pass.upload_to_gpu_texture(
 			TextureTransferInfo::new()
@@ -159,7 +156,7 @@ impl GPURenderer {
 		// copy-pasted this piece from some code i was writing to tinker around with sdl3's gpu module :3
 		// TODO: ehh make it like configurable or smth
 		debug!("creating a graphics pipeline");
-		
+
 		// BEWARE OF THE PIPELINE: he/him -> he/they -> they/them -> she/they -> she/her
 		// ^ kinda me
 		let pipeline = self.device
@@ -232,5 +229,50 @@ impl GPURenderer {
 			.with_entrypoint(entry_point)
 			.build()?;
 		Ok(shader)
+	}
+
+	/// Create a GPU buffer with usage flag [`BufferUsageFlags::VERTEX`], populate it
+	/// with vertices and upload to GPU
+	///
+	/// # Arguments
+	/// * `data` - slice of whatever you're uploading to the GPU
+	/// * `buffer_usage_flags` - what this buffer is going to be used for
+	/// * `copy_pass` - the GPU copy pass
+	pub fn create_and_populate_buffer<T: Copy>(&self, data: &[T], buffer_usage_flags: BufferUsageFlags, copy_pass: &mut CopyPass)
+		-> anyhow::Result<Buffer> {
+		let len_bytes = size_of_val(data);
+		let transfer_buffer = self.device
+			.create_transfer_buffer()
+			.with_size(len_bytes as u32)
+			.with_usage(TransferBufferUsage::UPLOAD)
+			.build()?;
+
+		let buffer = self.device
+			.create_buffer()
+			.with_size(len_bytes as u32)
+			.with_usage(buffer_usage_flags)
+			.build()?;
+
+		let mut map = transfer_buffer.map::<T>(&self.device, true);
+		let mem = map.mem_mut();
+		for (index, &value) in data.iter().enumerate() {
+			mem[index] = value;
+		}
+
+		map.unmap();
+
+		copy_pass.upload_to_gpu_buffer(
+			TransferBufferLocation::new()
+				.with_offset(0)
+				.with_transfer_buffer(&transfer_buffer),
+			BufferRegion::new()
+				.with_offset(0)
+				.with_size(len_bytes as u32)
+				.with_buffer(&buffer),
+			true,
+		);
+		debug!("done uploading to buffer");
+
+		Ok(buffer)
 	}
 }

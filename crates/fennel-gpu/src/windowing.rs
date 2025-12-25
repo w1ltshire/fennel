@@ -1,12 +1,12 @@
 use log::debug;
-use sdl3::gpu::ShaderFormat;
-use sdl3::Sdl;
+use sdl3::gpu::{ShaderFormat, Texture};
+use sdl3::{Error, Sdl};
 use crate::renderer::GPURenderer;
 
 /// Structure representing the window, wrapping video subsystem functions and owning the graphics
 pub struct Window {
-	window: sdl3::video::Window,
-	sdl_context: Sdl,
+	pub window: sdl3::video::Window, // i swear its temporary
+	pub sdl_context: Sdl,
 	pub renderer: GPURenderer
 }
 
@@ -126,7 +126,7 @@ impl Window {
 			.with_window(&window)?;
 		let swapchain_format = gpu.get_swapchain_texture_format(&window);
 		let renderer = GPURenderer::new(gpu, swapchain_format)?;
-		
+
 		debug!("window ready with title {title} and dimensions {dimensions:?}");
 
 		Ok(Self {
