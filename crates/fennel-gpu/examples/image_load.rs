@@ -2,6 +2,7 @@ use sdl3::gpu::ShaderFormat;
 use fennel_gpu::renderer::GPURenderer;
 
 fn main() -> anyhow::Result<()> {
+	env_logger::init();
 	let sdl_context = sdl3::init()?;
 	let video_subsystem = sdl_context.video()?;
 
@@ -17,7 +18,8 @@ fn main() -> anyhow::Result<()> {
 	)?
 		.with_window(&window)?;
 
-	let mut renderer = GPURenderer::new(gpu)?;
+	let swapchain_format = gpu.get_swapchain_texture_format(&window);
+	let mut renderer = GPURenderer::new(gpu, swapchain_format)?;
 
 	let _image = renderer.create_texture_from_image("assets/Sprite-0001.png")?;
 

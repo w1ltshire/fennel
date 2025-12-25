@@ -14,14 +14,18 @@
 use std::ffi::{CStr, CString};
 use std::path::Path;
 use anyhow::bail;
-use sdl3::gpu::{CommandBuffer, Device, Texture, TextureCreateInfo, TextureFormat, TextureRegion, TextureTransferInfo, TextureType, TextureUsage, TransferBufferUsage};
+use log::debug;
+use sdl3::gpu::{ColorTargetDescription, CommandBuffer, CompareOp, CullMode, DepthStencilState, Device, FillMode, GraphicsPipeline, GraphicsPipelineTargetInfo, PrimitiveType, RasterizerState, Shader, Texture, TextureCreateInfo, TextureFormat, TextureRegion, TextureTransferInfo, TextureType, TextureUsage, TransferBufferUsage, VertexAttribute, VertexBufferDescription, VertexElementFormat, VertexInputRate, VertexInputState};
 use sdl3::surface::Surface;
 use sdl3::sys::error::SDL_GetError;
+use sdl3::video::Window;
+use crate::vertex::Vertex;
 
 /// A structure representing the GPU renderer.
 pub struct GPURenderer {
 	device: Device,
 	command_buffer: CommandBuffer,
+	swapchain_format: TextureFormat
 }
 
 impl GPURenderer {
@@ -29,9 +33,9 @@ impl GPURenderer {
 	///
 	/// # Arguments
 	/// * `device`: instance of [`Device`]
-	pub fn new(device: Device) -> anyhow::Result<Self> {
+	pub fn new(device: Device, swapchain_format: TextureFormat) -> anyhow::Result<Self> {
 		let command_buffer = device.acquire_command_buffer()?;
-		Ok(Self { device, command_buffer })
+		Ok(Self { device, command_buffer, swapchain_format })
 	}
 
 	/// Creates a [`Texture`] from a specified image file path.
@@ -140,5 +144,65 @@ impl GPURenderer {
 		}
 
 		Ok(unsafe { Surface::from_ll(raw_surface) })
+	}
+
+	/// Creates a new [`GraphicsPipeline`]
+	/// 
+	/// # Parameters
+	/// * `frag_shader` - fragment shader for this pipeline
+	/// * `vert_shader` - vertex shader for this pipeline
+	/// 
+	/// # Returns
+	/// [`GraphicsPipeline`] in [`anyhow::Result`]
+	pub fn create_pipeline<'a>(&mut self, frag_shader: &'a Shader, vert_shader: &'a Shader) -> anyhow::Result<GraphicsPipeline> {
+		// copy-pasted this piece from some code i was writing to tinker around with sdl3's gpu module :3
+		// TODO: ehh make it like configurable or smth
+		debug!("creating a graphics pipeline");
+		let pipeline = self.device
+			.create_graphics_pipeline()
+			.with_primitive_type(PrimitiveType::TriangleList)
+			.with_fragment_shader(&frag_shader)
+			.with_vertex_shader(&vert_shader)
+			.with_vertex_input_state(
+				VertexInputState::new()
+					.with_vertex_buffer_descriptions(&[VertexBufferDescription::new()
+						.with_slot(0)
+						.with_pitch(size_of::<Vertex>() as u32)
+						.with_input_rate(VertexInputRate::Vertex)
+						.with_instance_step_rate(0)])
+					.with_vertex_attributes(&[
+						VertexAttribute::new()
+							.with_format(VertexElementFormat::Float3)
+							.with_location(0)
+							.with_buffer_slot(0)
+							.with_offset(0),
+						VertexAttribute::new()
+							.with_format(VertexElementFormat::Float2)
+							.with_location(1)
+							.with_buffer_slot(0)
+							.with_offset((3 * size_of::<f32>()) as u32),
+					]),
+			)
+			.with_rasterizer_state(
+				RasterizerState::new()
+					.with_fill_mode(FillMode::Fill)
+					.with_cull_mode(CullMode::Front),
+			)
+			.with_depth_stencil_state(
+				DepthStencilState::new()
+					.with_enable_depth_test(true)
+					.with_enable_depth_write(true)
+					.with_compare_op(CompareOp::Less),
+			)
+			.with_target_info(
+				GraphicsPipelineTargetInfo::new()
+					.with_color_target_descriptions(&[
+						ColorTargetDescription::new().with_format(self.swapchain_format)
+					])
+					.with_has_depth_stencil_target(true)
+					.with_depth_stencil_format(TextureFormat::D16Unorm),
+			)
+			.build()?;
+		Ok(pipeline)
 	}
 }
