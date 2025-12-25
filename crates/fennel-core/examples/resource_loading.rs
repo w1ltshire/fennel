@@ -57,9 +57,6 @@ async fn main() -> anyhow::Result<()> {
 
     let mut window = Window::new(graphics);
 
-    // because events::run takes a `&'static mut dyn WindowEventHandler` as a second argument we
-    // need to do this seemingly weird thing (while `app.rs` in fennel-runtime has an ass solution
-    // with raw pointers lmfao)
     let handler: &'static mut dyn WindowEventHandler = {
         let boxed = Box::new(State);
         Box::leak(boxed) as &'static mut dyn WindowEventHandler
