@@ -10,6 +10,8 @@ repository = "https://codeberg.org/wiltshire/fennel.git"
 sdl3 = "0.16.2"
 anyhow = "1.0.100"
 sdl3-image-sys = "0.2.0"
+env_logger = "0.11.8"
+log = "0.4.29"
 
 [build-dependencies]
 shaderc = "0.10.1"
