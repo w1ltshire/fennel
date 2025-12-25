@@ -1,8 +1,8 @@
 [package]
-name = "fennel-engine"
+name = "fennel-runtime"
 version = "1.8.0"
 edition = "2024"
-repository = "https://codeberg.org/wiltshire/fennel.git"
+repository = "https://github.com/w1ltshire/fennel.git"
 license = "MIT"
 description = "Main package of Fennel game engine providing higher level API"
 rust-version = "1.87.0"

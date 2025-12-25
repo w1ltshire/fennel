@@ -2,7 +2,7 @@
 name = "fennel-core"
 version = "0.5.1"
 edition = "2024"
-repository = "https://codeberg.org/wiltshire/fennel.git"
+repository = "https://github.com/w1ltshire/fennel.git"
 license = "MIT"
 description = "Core package of Fennel game engine providing rendering and audio"
 rust-version = "1.87.0"

@@ -1,0 +1,9 @@
+(
+    name: "test",
+    entities: [
+        (
+            id: "player",
+            components: []
+        )
+    ]
+)

@@ -16,20 +16,6 @@
                         fixed: false
                     )
                 ),
-                (
-                    id: "tile",
-                    config: (
-                        texture: (
-                            image: "tile_bg_empty",
-                            transform: (
-                                position: (196.0, 0.0),
-                                rotation: 0.0,
-                                scale: 0.0
-                            ),
-                            fixed: true
-                        )
-                    )
-                ),
             ]
         )
     ]

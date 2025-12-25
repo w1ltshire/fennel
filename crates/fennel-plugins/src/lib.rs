@@ -54,7 +54,7 @@ pub trait Plugin {
 	/// Use the [`ResourceId::new`] function to acquire a [`ResourceId`] instance.
 	///
 	/// Usually you want the dependency to be an [`std::sync::Arc`], [`std::rc::Rc`] or some sort of channel receiver/sender,
-	/// as under the hood `fennel_engine` clones the resource.
+	/// as under the hood `fennel_runtime` clones the resource.
 	fn resource_dependencies(&mut self) -> HashMap<String, ResourceId>;
 	/// Return the plugin's name; must be unique and not change
 	fn name(&self) -> &'static str;

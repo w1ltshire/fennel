@@ -12,7 +12,7 @@ use crate::Window;
 use crate::events;
 use crate::events::WindowEventHandler;
 
-/// The graphics module plugin for `fennel_engine`
+/// The graphics module plugin for `fennel_runtime`
 pub struct GraphicsPlugin {
 	name: &'static str,
 	dimensions: (u32, u32),

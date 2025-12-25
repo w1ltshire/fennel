@@ -1,4 +1,8 @@
-//! A library providing abstractions over `fennel-core`, a simpler API and an ECS
+//! # `fennel-runtime`
+//! The Fennel engine's runtime module, which basically serves as the main entry point into the application (game).
+//! Runtime contains only essential pieces: an ECS, time management (ticks), scene management.
+//! It "glues" together everything else, you name it: renderer, tiles, sprites, animations, maybe some RPG-like systems.
+
 /// Application layer module
 pub mod app;
 /// Module providing component registry
@@ -14,8 +18,6 @@ pub mod renderer;
 pub mod scenes;
 /// Module providing time (tick) functionality
 pub mod time;
-/// Module providing tiles functionality
-pub mod tiles;
 /// Module providing rendering camera functionality
 pub mod camera;
 #[cfg(test)]

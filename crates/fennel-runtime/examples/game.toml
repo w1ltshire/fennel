@@ -1,0 +1,2 @@
+scenes_path = "crates/fennel-runtime/examples/scenes"
+initial_scene = "main"
