@@ -52,7 +52,6 @@ impl DependencyDescriptor {
 /// impl Plugin for MyCoolPlugin {
 ///     fn prepare(
 /// 		&mut self,
-/// 		dependencies: HashMap<String, &AtomicRefCell<Box<(dyn Resource + 'static)>>>,
 /// 		dispatcher_builder: &mut DispatcherBuilder,
 /// 		world: &mut World
 /// 	) -> anyhow::Result<()> {
@@ -63,10 +62,6 @@ impl DependencyDescriptor {
 ///     fn update(&mut self, delta_time: f64) -> anyhow::Result<()> {
 ///         // update your plugin state
 ///         Ok(())
-///     }
-///
-///     fn resource_dependencies(&self) -> HashMap<String, DependencyDescriptor> {
-///         HashMap::new()
 ///     }
 ///
 ///     fn name(&self) -> &'static str {
