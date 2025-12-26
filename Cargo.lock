@@ -758,7 +758,6 @@ dependencies = [
  "kanal",
  "log",
  "ron",
- "sdl3",
  "serde",
  "specs",
  "tokio",

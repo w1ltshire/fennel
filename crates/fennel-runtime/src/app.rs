@@ -7,11 +7,9 @@ use fennel_core::graphics::{Drawable, Sprite};
 use fennel_plugins::Plugin;
 use crate::{
     ecs::sprite::{SpriteFactory, SpriteRenderingSystem},
-    events::KeyEvents,
     registry::{ComponentFactory, ComponentRegistry},
     scenes::{ActiveScene, Scene, SceneSystem},
 };
-use crate::camera::Camera;
 use crate::time::{Tick, TickSystem};
 
 /// The application struct which contains [`World`] and `specs`
@@ -147,8 +145,6 @@ impl AppBuilder {
         self.dispatcher_builder.add(TickSystem, "tick_system", &[]);
 
         self.world.register::<Scene>();
-        self.world.insert(KeyEvents::default());
-        self.world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
         self.world.insert(Tick {
             ticks: 0,
             tick_rate: 16_000_000,

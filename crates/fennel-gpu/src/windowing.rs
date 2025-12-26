@@ -1,6 +1,6 @@
 use log::debug;
-use sdl3::gpu::{ShaderFormat, Texture};
-use sdl3::{Error, Sdl};
+use sdl3::gpu::ShaderFormat;
+use sdl3::Sdl;
 use crate::renderer::GPURenderer;
 
 /// Structure representing the window, wrapping video subsystem functions and owning the graphics
