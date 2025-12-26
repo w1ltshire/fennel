@@ -1,17 +1,17 @@
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use kanal::Receiver;
 use log::{debug, error};
-use specs::prelude::{Resource, ResourceId};
-use specs::shred::cell::AtomicRefCell;
-use specs::DispatcherBuilder;
+use specs::{DispatcherBuilder, World};
 use fennel_plugins::Plugin;
 use fennel_resources::manager::ResourceManager;
 use crate::graphics::{Drawable, Graphics, WindowConfig};
 use crate::Window;
 use crate::events;
 use crate::events::WindowEventHandler;
+use crate::plugin::system::{Camera, QueuedRenderingSystem, RenderQueue};
+
+pub mod system;
 
 /// The graphics module plugin for `fennel_runtime`
 pub struct GraphicsPlugin {
@@ -78,30 +78,19 @@ impl WindowEventHandler for EventHandler {
 impl Plugin for GraphicsPlugin {
 	fn prepare(
 		&mut self,
-		dependencies: HashMap<String, &AtomicRefCell<Box<dyn Resource>>>,
-		_dispatcher_builder: &mut DispatcherBuilder,
+		dispatcher_builder: &mut DispatcherBuilder,
+		world: &mut World,
 	) -> anyhow::Result<()> {
 		// performance cost should be acceptable for these `.clone()`s as these are called only once
 		let name = self.name;
 		let dimensions = self.dimensions;
 		let assets_path = self.assets_path.clone();
+		let (render_sender, render_receiver) = kanal::bounded::<Vec<Drawable>>(16);
 
-		// the current dependency system is quite janky, but hey, it doesn't segfaults, panics or produces UB (I hope)
-		let mut receiver: Option<Receiver<Vec<Drawable>>> = None;
-		dependencies
-			.iter()
-			.filter(|dep| dep.0 == "render_rx")
-			.for_each(|dep| {
-				let dep = dep.1.borrow();
-				let dep = dep.downcast_ref::<Receiver<Vec<Drawable>>>();
-				if let Some(dep) = dep {
-					receiver = Some(dep.clone());
-				} else {
-					// engine always inserts a render receiver into the world so a graphics plugin can take it
-					// as a dependency, so this is unreachable
-					unreachable!()
-				}
-			});
+		world.insert(RenderQueue::new());
+		world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
+		world.insert(render_sender);
+		dispatcher_builder.add_thread_local(QueuedRenderingSystem);
 
 		std::thread::spawn(move || {
 			let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
@@ -122,7 +111,7 @@ impl Plugin for GraphicsPlugin {
 			let mut window = Window::new(graphics);
 			let handler: &'static mut dyn WindowEventHandler = {
 				let boxed = Box::new(EventHandler {
-					render_receiver: receiver.unwrap().clone()
+					render_receiver
 				});
 				Box::leak(boxed) as &'static mut dyn WindowEventHandler
 			};
@@ -134,12 +123,6 @@ impl Plugin for GraphicsPlugin {
 
 	fn update(&mut self, _delta_time: f64) -> anyhow::Result<()> {
 		Ok(())
-	}
-
-	fn resource_dependencies(&self) -> HashMap<String, ResourceId> {
-		let mut map = HashMap::new();
-		map.insert("render_rx".to_string(), ResourceId::new::<Receiver<Vec<Drawable>>>());
-		map
 	}
 
 	fn name(&self) -> &'static str {

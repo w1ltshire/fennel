@@ -12,6 +12,7 @@ pub mod graphics;
 pub mod hooks;
 /// Resource management
 pub mod resources;
+/// The graphics plugin
 pub mod plugin;
 
 unsafe impl Send for Window {}

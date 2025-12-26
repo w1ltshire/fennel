@@ -2,9 +2,8 @@ use log::error;
 use ron::Value;
 use specs::{Entity, Join, LazyUpdate, ReadStorage, System, World, WorldExt, WriteExpect};
 use fennel_core::graphics::{Drawable, Sprite};
-use crate::{
-    registry::ComponentFactory, renderer::RenderQueue
-};
+use fennel_core::plugin::system::RenderQueue;
+use crate::registry::ComponentFactory;
 
 impl_component_factory!(SpriteFactory, Sprite);
 

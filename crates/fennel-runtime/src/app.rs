@@ -1,7 +1,6 @@
-use std::collections::HashMap;
 use std::fs;
 use std::time::{Duration, Instant};
-use log::{debug, error, warn};
+use log::{error, warn};
 use serde::{Deserialize, Serialize};
 use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
 use fennel_core::graphics::{Drawable, Sprite};
@@ -13,7 +12,6 @@ use crate::{
     scenes::{ActiveScene, Scene, SceneSystem},
 };
 use crate::camera::Camera;
-use crate::renderer::{QueuedRenderingSystem, RenderQueue};
 use crate::time::{Tick, TickSystem};
 
 /// The application struct which contains [`World`] and `specs`
@@ -144,15 +142,9 @@ impl AppBuilder {
     pub fn build(mut self) -> anyhow::Result<App> {
         let config_reader = fs::read(self.config)?;
         let config: Config = toml::from_slice(&config_reader)?;
-        /*let mut dispatcher_builder = DispatcherBuilder::new()
-            .with(SceneSystem, "scene_system", &[])
-            .with(SpriteRenderingSystem, "sprite_rendering_system", &[])
-            .with_thread_local(QueuedRenderingSystem)
-            .with(TickSystem, "tick_system", &[]);*/
         self.dispatcher_builder.add(SceneSystem, "scene_system", &[]);
         self.dispatcher_builder.add(SpriteRenderingSystem, "sprite_rendering_system", &[]);
         self.dispatcher_builder.add(TickSystem, "tick_system", &[]);
-        self.dispatcher_builder.add_thread_local(QueuedRenderingSystem);
 
         self.world.register::<Scene>();
         self.world.insert(KeyEvents::default());
@@ -181,27 +173,11 @@ impl AppBuilder {
             name: String::from("main"),
             loaded: false,
         });
-        self.world.insert(RenderQueue::new());
         self.world.insert(render_rx);
         self.world.insert(render_tx);
 
         self.plugins.iter_mut().for_each(|plugin| {
-            let mut dependencies = HashMap::new();
-            plugin.resource_dependencies().iter().for_each(|resource| {
-                debug!("plugin `{}` requested resource {:?} with key `{}`, trying to fetch...", plugin.name(), resource.1, resource.0);
-                let fetched_resource = unsafe { self.world.try_fetch_internal(resource.1.clone()) };
-                match fetched_resource {
-                    Some(fetched_resource) => {
-                        dependencies.insert(resource.0.to_string(), fetched_resource);
-                        debug!("got resource {:?} for plugin {}", resource, plugin.name());
-                    }
-                    None => {
-                        error!("failed to fetch resource {:?} for plugin {}, plugin not loaded", resource, plugin.name());
-                        return;
-                    }
-                }
-            });
-            plugin.prepare(dependencies, &mut self.dispatcher_builder).unwrap_or_else(|e| {
+            plugin.prepare(&mut self.dispatcher_builder, &mut self.world).unwrap_or_else(|e| {
                 error!("failed to prepare plugin: {e}");
             });
         });

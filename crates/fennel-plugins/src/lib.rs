@@ -13,25 +13,49 @@
 //!
 //! consider facilitating the usage of channels and threads.
 
-use std::collections::HashMap;
-use specs::DispatcherBuilder;
-use specs::prelude::{Resource, ResourceId};
-use specs::shred::cell::AtomicRefCell;
+use std::any::Any;
+use specs::{DispatcherBuilder, World};
+use specs::prelude::ResourceId;
+
+/// A struct that represents a plugin dependency descriptor
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct DependencyDescriptor {
+	resource: ResourceId,
+}
+
+impl DependencyDescriptor {
+	/// Create a new instance of [`DependencyDescriptor`]
+	pub fn new<T: Any + Send + Sync>() -> Self {
+		Self {
+			resource: ResourceId::new::<T>(),
+		}
+	}
+
+	/// Returns the [`ResourceId`]
+	pub fn resource(&self) -> ResourceId {
+		self.resource.clone()
+	}
+}
 
 /// A trait that all plugins must implement to be inserted into `App`
 ///
 /// # Example
 /// ```
 /// use std::collections::HashMap;
-/// use specs::World;
-/// use fennel_plugins::Plugin;
+/// use specs::{DispatcherBuilder, World};
+/// use fennel_plugins::{Plugin, DependencyDescriptor};
 /// use specs::prelude::{ResourceId, Resource};
 /// use specs::shred::cell::AtomicRefCell;
 ///
 /// struct MyCoolPlugin;
 ///
 /// impl Plugin for MyCoolPlugin {
-///     fn prepare(&mut self, dependencies: HashMap<String, &AtomicRefCell<Box<(dyn Resource + 'static)>>>) -> anyhow::Result<()> {
+///     fn prepare(
+/// 		&mut self,
+/// 		dependencies: HashMap<String, &AtomicRefCell<Box<(dyn Resource + 'static)>>>,
+/// 		dispatcher_builder: &mut DispatcherBuilder,
+/// 		world: &mut World
+/// 	) -> anyhow::Result<()> {
 ///         // initialize your plugin here
 ///         Ok(())
 ///     }
@@ -41,7 +65,7 @@ use specs::shred::cell::AtomicRefCell;
 ///         Ok(())
 ///     }
 ///
-///     fn resource_dependencies(&mut self) -> HashMap<String, ResourceId> {
+///     fn resource_dependencies(&self) -> HashMap<String, DependencyDescriptor> {
 ///         HashMap::new()
 ///     }
 ///
@@ -54,24 +78,15 @@ pub trait Plugin {
 	/// Prepare/initialize the plugin, return a result of the initialization.
 	///
 	/// # Arguments
-	/// * `dependencies`: [`HashMap`] keyed by a [`String`] with value [`AtomicRefCell`] with a box with [`Resource`] inside it.
 	/// * `dispatcher_builder`: a mutable reference to [`DispatcherBuilder`] so the plugin can register its own systems
+	/// * `world`: a mutable reference to [`World`] so the plugin can register components, insert resources, e.t.c.
 	fn prepare(
 		&mut self,
-		dependencies: HashMap<String, &AtomicRefCell<Box<dyn Resource>>>,
 		dispatcher_builder: &mut DispatcherBuilder,
+		world: &mut World,
 	) -> anyhow::Result<()>;
-
 	/// Update the plugin state, return a result of this
 	fn update(&mut self, delta_time: f64) -> anyhow::Result<()>;
-	/// Return a list of your resource dependencies here or an empty [`Vec`] if you don't need any resources.
-	/// Use the [`ResourceId::new`] function to acquire a [`ResourceId`] instance.
-	///
-	/// Usually you want the dependency to be an [`std::sync::Arc`], [`std::rc::Rc`] or some sort of channel receiver/sender,
-	/// as under the hood `fennel_runtime` clones the resource.
-	///
-	/// The resource is taken from the runtime's ECS world.
-	fn resource_dependencies(&self) -> HashMap<String, ResourceId>;
 	/// Return the plugin's name; must be unique and not change
 	fn name(&self) -> &'static str;
 }
