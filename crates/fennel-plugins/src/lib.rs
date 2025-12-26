@@ -55,7 +55,7 @@ pub trait Plugin {
 	///
 	/// # Arguments
 	/// * `dependencies`: [`HashMap`] keyed by a [`String`] with value [`AtomicRefCell`] with a box with [`Resource`] inside it.
-	/// * `register_system`: A closure used for registering additional systems into the ECS.
+	/// * `dispatcher_builder`: a mutable reference to [`DispatcherBuilder`] so the plugin can register its own systems
 	fn prepare(
 		&mut self,
 		dependencies: HashMap<String, &AtomicRefCell<Box<dyn Resource>>>,
