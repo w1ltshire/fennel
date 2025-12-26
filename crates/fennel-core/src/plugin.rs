@@ -5,6 +5,7 @@ use kanal::Receiver;
 use log::{debug, error};
 use specs::prelude::{Resource, ResourceId};
 use specs::shred::cell::AtomicRefCell;
+use specs::DispatcherBuilder;
 use fennel_plugins::Plugin;
 use fennel_resources::manager::ResourceManager;
 use crate::graphics::{Drawable, Graphics, WindowConfig};
@@ -75,7 +76,11 @@ impl WindowEventHandler for EventHandler {
 }
 
 impl Plugin for GraphicsPlugin {
-	fn prepare(&mut self, dependencies: HashMap<String, &AtomicRefCell<Box<dyn Resource>>>) -> anyhow::Result<()> {
+	fn prepare(
+		&mut self,
+		dependencies: HashMap<String, &AtomicRefCell<Box<dyn Resource>>>,
+		_dispatcher_builder: &mut DispatcherBuilder,
+	) -> anyhow::Result<()> {
 		// performance cost should be acceptable for these `.clone()`s as these are called only once
 		let name = self.name;
 		let dimensions = self.dimensions;
@@ -131,7 +136,7 @@ impl Plugin for GraphicsPlugin {
 		Ok(())
 	}
 
-	fn resource_dependencies(&mut self) -> HashMap<String, ResourceId> {
+	fn resource_dependencies(&self) -> HashMap<String, ResourceId> {
 		let mut map = HashMap::new();
 		map.insert("render_rx".to_string(), ResourceId::new::<Receiver<Vec<Drawable>>>());
 		map

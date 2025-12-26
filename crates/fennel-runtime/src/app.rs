@@ -26,20 +26,13 @@ pub struct App {
     plugins: Vec<Box<dyn Plugin + 'static + Send + Sync>>,
 }
 
-type Reg = Box<
-    dyn FnOnce(&mut DispatcherBuilder<'static, 'static>) -> DispatcherBuilder<'static, 'static>
-        + Send,
->;
-
 /// Builder for [`App`]
 #[derive(Default)]
 pub struct AppBuilder {
-    name: &'static str,
-    dimensions: (u32, u32),
     config: &'static str,
     world: World,
     component_registry: ComponentRegistry,
-    dispatcher_config: Vec<Reg>,
+    dispatcher_builder: DispatcherBuilder<'static, 'static>,
     plugins: Vec<Box<dyn Plugin + Send + Sync>>,
 }
 
@@ -92,26 +85,12 @@ impl AppBuilder {
     /// Create a new [`AppBuilder`]
     pub fn new() -> AppBuilder {
         AppBuilder {
-            name: "",
-            dimensions: (100, 100),
             config: "",
             world: World::new(),
             component_registry: ComponentRegistry::new(),
-            dispatcher_config: Vec::new(),
+            dispatcher_builder: DispatcherBuilder::new(),
             plugins: Vec::new(),
         }
-    }
-
-    /// Set the window name
-    pub fn name(mut self, name: &'static str) -> AppBuilder {
-        self.name = name;
-        self
-    }
-
-    /// Set the window dimensions
-    pub fn dimensions(mut self, dimensions: (u32, u32)) -> AppBuilder {
-        self.dimensions = dimensions;
-        self
     }
 
     /// Set the application config
@@ -130,12 +109,13 @@ impl AppBuilder {
     where
         for<'a> S: specs::System<'a> + Send + 'static,
     {
-        let reg: Reg = Box::new(|builder: &mut DispatcherBuilder<'static, 'static>| {
+        /* let reg: Reg = Box::new(|builder: &mut DispatcherBuilder<'static, 'static>| {
             let b = std::mem::take(builder);
             b.with(sys, name, dep)
         });
 
-        self.dispatcher_config.push(reg);
+        self.dispatcher_config.push(reg); */
+        self.dispatcher_builder.add(sys, name, dep);
         self
     }
 
@@ -164,15 +144,15 @@ impl AppBuilder {
     pub fn build(mut self) -> anyhow::Result<App> {
         let config_reader = fs::read(self.config)?;
         let config: Config = toml::from_slice(&config_reader)?;
-        let mut dispatcher_builder = DispatcherBuilder::new()
+        /*let mut dispatcher_builder = DispatcherBuilder::new()
             .with(SceneSystem, "scene_system", &[])
             .with(SpriteRenderingSystem, "sprite_rendering_system", &[])
             .with_thread_local(QueuedRenderingSystem)
-            .with(TickSystem, "tick_system", &[]);
-
-        for reg in self.dispatcher_config.drain(..) {
-            dispatcher_builder = reg(&mut dispatcher_builder);
-        }
+            .with(TickSystem, "tick_system", &[]);*/
+        self.dispatcher_builder.add(SceneSystem, "scene_system", &[]);
+        self.dispatcher_builder.add(SpriteRenderingSystem, "sprite_rendering_system", &[]);
+        self.dispatcher_builder.add(TickSystem, "tick_system", &[]);
+        self.dispatcher_builder.add_thread_local(QueuedRenderingSystem);
 
         self.world.register::<Scene>();
         self.world.insert(KeyEvents::default());
@@ -221,14 +201,14 @@ impl AppBuilder {
                     }
                 }
             });
-            plugin.prepare(dependencies).unwrap_or_else(|e| {
+            plugin.prepare(dependencies, &mut self.dispatcher_builder).unwrap_or_else(|e| {
                 error!("failed to prepare plugin: {e}");
             });
         });
 
         Ok(App {
             world: self.world,
-            dispatcher: dispatcher_builder.build(),
+            dispatcher: self.dispatcher_builder.build(),
             plugins: self.plugins,
         })
     }

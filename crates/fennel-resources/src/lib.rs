@@ -4,8 +4,8 @@
 //!
 //! ## Modules
 //! This library consists of the following modules:
-//! - [`manager`](manager)` - Implements the functionality of the resource manager, including caching, insertion, and fetching resources
-//! - [`resource`](resource)` - Defines the traits for resources to implement to be compatible with the resource manager
+//! - [`manager`] - Implements the functionality of the resource manager, including caching, insertion, and fetching resources
+//! - [`resource`] - Defines the traits for resources to implement to be compatible with the resource manager
 
 /// The resource manager itself
 pub mod manager;

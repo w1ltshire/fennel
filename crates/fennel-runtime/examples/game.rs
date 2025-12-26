@@ -60,7 +60,6 @@ impl<'a> System<'a> for SysA {
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
     let app = AppBuilder::new()
-        .name("game")
         .config("crates/fennel-runtime/examples/game.toml")
         .register_system(SysA, "sys_a", &[])
         .with_plugin(GraphicsPlugin::new("game", (800, 600), "assets"))
