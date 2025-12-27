@@ -1,7 +1,6 @@
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use kanal::Receiver;
-use log::{debug, error};
+use log::debug;
 use specs::{DispatcherBuilder, World};
 use fennel_plugins::Plugin;
 use fennel_resources::manager::ResourceManager;
@@ -9,19 +8,17 @@ use crate::graphics::{Drawable, Graphics, WindowConfig};
 use crate::Window;
 use crate::events;
 use crate::events::WindowEventHandler;
+use crate::plugin::event_handler::EventHandler;
 use crate::plugin::system::{Camera, QueuedRenderingSystem, RenderQueue};
 
 pub mod system;
+mod event_handler;
 
 /// The graphics module plugin for `fennel_runtime`
 pub struct GraphicsPlugin {
 	name: &'static str,
 	dimensions: (u32, u32),
 	assets_path: String,
-}
-
-struct EventHandler {
-	render_receiver: Receiver<Vec<Drawable>>
 }
 
 impl GraphicsPlugin {
@@ -40,41 +37,6 @@ impl GraphicsPlugin {
 	}
 }
 
-impl WindowEventHandler for EventHandler {
-	fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
-		Ok(())
-	}
-
-	fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
-		if let Ok(Some(queue)) = self.render_receiver.try_recv() {
-			window.graphics.canvas.clear();
-			for drawable in queue {
-				match drawable {
-					Drawable::Image(sprite) => {
-						window.graphics.draw_image(
-							sprite.image,
-							sprite.transform.position,
-							sprite.transform.rotation,
-							false,
-							false
-						).unwrap_or_else(|e| { error!("failed to draw image: {e}"); });
-					},
-					Drawable::Text { font, position, text, color, size } => {
-						window.graphics.draw_text(text, position, font, color, size)
-							.unwrap_or_else(|e| { error!("failed to draw text: {e}"); });
-					},
-					Drawable::Rect { w, h, x, y } => {
-						window.graphics.draw_rect(x, y, w, h)
-							.unwrap_or_else(|e| { error!("failed to draw rectangle: {e}"); });
-					}
-				}
-			}
-		}
-		window.graphics.canvas.present();
-		Ok(())
-	}
-}
-
 impl Plugin for GraphicsPlugin {
 	fn prepare(
 		&mut self,
@@ -90,7 +52,7 @@ impl Plugin for GraphicsPlugin {
 		world.insert(RenderQueue::new());
 		world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
 		world.insert(render_sender);
-		dispatcher_builder.add_thread_local(QueuedRenderingSystem);
+		dispatcher_builder.add(QueuedRenderingSystem, "queued_rendering_system", &[]);
 
 		std::thread::spawn(move || {
 			let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
