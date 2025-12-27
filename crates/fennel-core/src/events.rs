@@ -37,7 +37,6 @@ use sdl3::{
     mouse::{MouseButton, MouseState, MouseWheelDirection},
 };
 
-
 /// Represents a keyboard event.
 #[derive(Debug)]
 pub struct KeyboardEvent {
@@ -60,6 +59,7 @@ pub struct KeyboardEvent {
 }
 
 /// Represents a mouse motion event.
+#[derive(Debug)]
 pub struct MouseMotionEvent {
     /// When the event happened (in nanos)
     pub timestamp: u64,
@@ -80,6 +80,7 @@ pub struct MouseMotionEvent {
 }
 
 /// Represents a mouse click event.
+#[derive(Debug)]
 pub struct MouseClickEvent {
     /// When the event happened (in nanos)
     pub timestamp: u64,
@@ -98,6 +99,7 @@ pub struct MouseClickEvent {
 }
 
 /// Represents a mouse wheel event.
+#[derive(Debug)]
 pub struct MouseWheelEvent {
     /// When the event happened (in nanos)
     pub timestamp: u64,

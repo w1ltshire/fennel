@@ -8,6 +8,7 @@ use crate::aabb::BoundingBox;
 
 /// A struct representing a 2D rigid body
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct RigidBody {
     /// 2D position
     position: Vector2<f32>,

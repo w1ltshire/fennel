@@ -8,7 +8,7 @@ use crate::graphics::{Drawable, Graphics, WindowConfig};
 use crate::Window;
 use crate::events;
 use crate::events::WindowEventHandler;
-use crate::plugin::event_handler::EventHandler;
+use crate::plugin::event_handler::{EventHandler, PluginEvent};
 use crate::plugin::system::{Camera, QueuedRenderingSystem, RenderQueue};
 
 pub mod system;
@@ -48,10 +48,14 @@ impl Plugin for GraphicsPlugin {
 		let dimensions = self.dimensions;
 		let assets_path = self.assets_path.clone();
 		let (render_sender, render_receiver) = kanal::bounded::<Vec<Drawable>>(16);
-
+		let (event_sender, event_receiver) = kanal::unbounded::<PluginEvent>();
+		let plugin_event_vec: Vec<PluginEvent> = Vec::new();
+		
 		world.insert(RenderQueue::new());
 		world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
 		world.insert(render_sender);
+		world.insert(event_receiver);
+		world.insert(plugin_event_vec);
 		dispatcher_builder.add(QueuedRenderingSystem, "queued_rendering_system", &[]);
 
 		std::thread::spawn(move || {
@@ -73,7 +77,8 @@ impl Plugin for GraphicsPlugin {
 			let mut window = Window::new(graphics);
 			let handler: &'static mut dyn WindowEventHandler = {
 				let boxed = Box::new(EventHandler {
-					render_receiver
+					render_receiver,
+					event_sender,
 				});
 				Box::leak(boxed) as &'static mut dyn WindowEventHandler
 			};

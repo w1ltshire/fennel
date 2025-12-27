@@ -1,12 +1,29 @@
-use kanal::Receiver;
+use kanal::{Receiver, Sender};
 use log::error;
-use crate::events::WindowEventHandler;
+use crate::events::{KeyboardEvent, MouseClickEvent, MouseMotionEvent, MouseWheelEvent, WindowEventHandler};
 use crate::graphics::Drawable;
 use crate::Window;
 
-pub(crate) struct EventHandler {
-	pub(crate) render_receiver: Receiver<Vec<Drawable>>
+#[derive(Debug)]
+#[allow(dead_code)]
+pub enum PluginEvent {
+	KeyboardEvent(KeyboardEvent),
+	MouseMotionEvent(MouseMotionEvent),
+	MouseClickEvent(MouseClickEvent),
+	MouseWheelEvent(MouseWheelEvent),
 }
+
+pub(crate) struct EventHandler {
+	pub(crate) render_receiver: Receiver<Vec<Drawable>>,
+	pub(crate) event_sender: Sender<PluginEvent>,
+}
+
+// Corpse locked in the bathroom
+// Blood inside my sink
+// I wanna be catatonic
+// Where I can't even think
+// Bleeding out inside my closet
+// The secrets I will keep
 
 impl WindowEventHandler for EventHandler {
 	fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {
@@ -39,6 +56,36 @@ impl WindowEventHandler for EventHandler {
 			}
 		}
 		window.graphics.canvas.present();
+		Ok(())
+	}
+
+	fn key_down_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
+		self.event_sender.send(PluginEvent::KeyboardEvent(event))?;
+		Ok(())
+	}
+
+	fn key_up_event(&mut self, _window: &mut Window, event: KeyboardEvent) -> anyhow::Result<()> {
+		self.event_sender.send(PluginEvent::KeyboardEvent(event))?;
+		Ok(())
+	}
+
+	fn mouse_motion_event(&mut self, _window: &mut Window, event: MouseMotionEvent) -> anyhow::Result<()> {
+		self.event_sender.send(PluginEvent::MouseMotionEvent(event))?;
+		Ok(())
+	}
+
+	fn mouse_button_down_event(&mut self, _window: &mut Window, event: MouseClickEvent) -> anyhow::Result<()> {
+		self.event_sender.send(PluginEvent::MouseClickEvent(event))?;
+		Ok(())
+	}
+
+	fn mouse_button_up_event(&mut self, _window: &mut Window, event: MouseClickEvent) -> anyhow::Result<()> {
+		self.event_sender.send(PluginEvent::MouseClickEvent(event))?;
+		Ok(())
+	}
+
+	fn mouse_wheel_event(&mut self, _window: &mut Window, event: MouseWheelEvent) -> anyhow::Result<()> {
+		self.event_sender.send(PluginEvent::MouseWheelEvent(event))?;
 		Ok(())
 	}
 }
