@@ -1,14 +1,25 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use std::fs::File;
+use std::path::Path;
+use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
+
+pub struct Audio {
+	stream_handle: OutputStream
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl Audio {
+	/// Create a new instance of [`Audio`]
+	pub fn new() -> anyhow::Result<Self> {
+		let stream_handle = OutputStreamBuilder::open_default_stream()?;
+		Ok(Self {
+			stream_handle
+		})
+	}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+	pub fn play_file<P: AsRef<Path>>(&mut self, path: P) -> anyhow::Result<Sink> {
+		let file = File::open(path)?;
+		let source = Decoder::try_from(file)?;
+		let sink = Sink::connect_new(self.stream_handle.mixer());
+		sink.append(source);
+		Ok(sink)
+	}
 }

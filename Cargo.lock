@@ -694,6 +694,11 @@ dependencies = [
 [[package]]
 name = "fennel-audio"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "log",
+ "rodio",
+]
 
 [[package]]
 name = "fennel-core"

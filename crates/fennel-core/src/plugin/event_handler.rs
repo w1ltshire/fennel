@@ -29,6 +29,8 @@ impl WindowEventHandler for EventHandler {
 		Ok(())
 	}
 
+	// if there are drawables available then clear the screen, iterate over the queue, draw 'em
+	// and then outside the if-block present the canvas, this is made to avoid flickering
 	fn draw(&mut self, window: &mut Window) -> anyhow::Result<()> {
 		if let Ok(Some(queue)) = self.render_receiver.try_recv() {
 			window.graphics.canvas.clear();
