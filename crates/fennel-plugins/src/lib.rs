@@ -14,6 +14,7 @@
 //! consider facilitating the usage of channels and threads.
 
 use std::any::Any;
+use std::error::Error;
 use specs::{DispatcherBuilder, World};
 use specs::prelude::ResourceId;
 
@@ -46,6 +47,8 @@ impl DependencyDescriptor {
 /// use fennel_plugins::{Plugin, DependencyDescriptor};
 /// use specs::prelude::{ResourceId, Resource};
 /// use specs::shred::cell::AtomicRefCell;
+/// use std::boxed::Box;
+/// use std::error::Error;
 ///
 /// struct MyCoolPlugin;
 ///
@@ -54,12 +57,12 @@ impl DependencyDescriptor {
 /// 		&mut self,
 /// 		dispatcher_builder: &mut DispatcherBuilder,
 /// 		world: &mut World
-/// 	) -> anyhow::Result<()> {
+/// 	) -> Result<(), Box<dyn Error>> {
 ///         // initialize your plugin here
 ///         Ok(())
 ///     }
 ///
-///     fn update(&mut self, delta_time: f64) -> anyhow::Result<()> {
+///     fn update(&mut self, delta_time: f64) -> Result<(), Box<dyn Error>> {
 ///         // update your plugin state
 ///         Ok(())
 ///     }
@@ -79,9 +82,9 @@ pub trait Plugin {
 		&mut self,
 		dispatcher_builder: &mut DispatcherBuilder,
 		world: &mut World,
-	) -> anyhow::Result<()>;
+	) -> Result<(), Box<dyn Error>>;
 	/// Update the plugin state, return a result of this
-	fn update(&mut self, delta_time: f64) -> anyhow::Result<()>;
+	fn update(&mut self, delta_time: f64) -> Result<(), Box<dyn Error>>;
 	/// Return the plugin's name; must be unique and not change
 	fn name(&self) -> &'static str;
 }

@@ -6,5 +6,4 @@ license = "MIT"
 description = "Crate defining plugin trait for the Fennel engine"
 
 [dependencies]
-anyhow = "1.0.100"
 specs = "0.20.0"

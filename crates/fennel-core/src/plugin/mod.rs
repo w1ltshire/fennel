@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use log::debug;
@@ -42,7 +43,7 @@ impl Plugin for GraphicsPlugin {
 		&mut self,
 		dispatcher_builder: &mut DispatcherBuilder,
 		world: &mut World,
-	) -> anyhow::Result<()> {
+	) -> Result<(), Box<dyn Error>> {
 		// performance cost should be acceptable for these `.clone()`s as these are called only once
 		let name = self.name;
 		let dimensions = self.dimensions;
@@ -91,7 +92,7 @@ impl Plugin for GraphicsPlugin {
 		Ok(())
 	}
 
-	fn update(&mut self, _delta_time: f64) -> anyhow::Result<()> {
+	fn update(&mut self, _delta_time: f64) -> Result<(), Box<dyn Error>> {
 		Ok(())
 	}
 
