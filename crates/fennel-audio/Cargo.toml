@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 rodio = "0.21.1"
+fennel-plugins = { path = "../fennel-plugins", version = "0.1.0" }
+shred = "0.16.1"

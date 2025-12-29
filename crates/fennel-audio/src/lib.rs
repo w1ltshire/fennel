@@ -1,3 +1,5 @@
+pub mod plugin;
+
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
