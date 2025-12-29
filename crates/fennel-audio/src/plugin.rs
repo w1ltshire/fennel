@@ -17,7 +17,11 @@ impl AudioPlugin {
 }
 
 impl Plugin for AudioPlugin {
-	fn prepare(&mut self, _dispatcher_builder: &mut DispatcherBuilder, _world: &mut World) -> Result<(), Box<dyn Error>> {
+	fn prepare(
+		&mut self,
+		_dispatcher_builder: &mut DispatcherBuilder,
+		_world: &mut World,
+	) -> Result<(), Box<dyn Error>> {
 		Ok(())
 	}
 
