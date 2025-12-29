@@ -23,7 +23,6 @@ pub(crate) struct EventHandler {
 // I wanna be catatonic
 // Where I can't even think
 // Bleeding out inside my closet
-// The secrets I will keep
 
 impl WindowEventHandler for EventHandler {
 	fn update(&mut self, _window: &mut Window) -> anyhow::Result<()> {

@@ -1,7 +1,8 @@
-use kanal::Sender;
+use kanal::{Receiver, Sender};
 use log::error;
 use specs::{ReadExpect, System, WriteExpect};
 use crate::graphics::{Drawable, Transform};
+use crate::plugin::event_handler::PluginEvent;
 
 /// A simple queue of [`Drawable`] items to be consumed by a rendering system
 pub struct RenderQueue {
@@ -11,6 +12,10 @@ pub struct RenderQueue {
 
 /// ECS system that renders Sprite components from [`RenderQueue`]
 pub struct QueuedRenderingSystem;
+
+pub(crate) struct EventGatherSystem;
+
+pub(crate) struct CleanupSystem;
 
 impl<'a> System<'a> for QueuedRenderingSystem {
 	type SystemData = (
@@ -51,6 +56,29 @@ impl<'a> System<'a> for QueuedRenderingSystem {
 			}
 		}
 		sender.send(drained_drawables).unwrap_or_else(|e| error!("failed to send queue: {}", e));
+	}
+}
+
+impl<'a> System<'a> for EventGatherSystem {
+	type SystemData = (WriteExpect<'a, Receiver<PluginEvent>>, WriteExpect<'a, Vec<PluginEvent>>);
+
+	fn run(&mut self, (receiver, mut batch): Self::SystemData) {
+		loop {
+			let received = receiver.try_recv();
+			match received {
+				Ok(Some(event)) => batch.push(event),
+				Err(_) => break,
+				Ok(None) => break,
+			}
+		}
+	}
+}
+
+impl<'a> System<'a> for CleanupSystem {
+	type SystemData = (WriteExpect<'a, Vec<PluginEvent>>,);
+
+	fn run(&mut self, mut batch: Self::SystemData) {
+		batch.0.clear();
 	}
 }
 

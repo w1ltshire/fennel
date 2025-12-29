@@ -9,7 +9,7 @@ use crate::Window;
 use crate::events;
 use crate::events::WindowEventHandler;
 use crate::plugin::event_handler::{EventHandler, PluginEvent};
-use crate::plugin::system::{Camera, QueuedRenderingSystem, RenderQueue};
+use crate::plugin::system::{Camera, CleanupSystem, EventGatherSystem, QueuedRenderingSystem, RenderQueue};
 
 pub mod system;
 mod event_handler;
@@ -47,16 +47,19 @@ impl Plugin for GraphicsPlugin {
 		let name = self.name;
 		let dimensions = self.dimensions;
 		let assets_path = self.assets_path.clone();
-		let (render_sender, render_receiver) = kanal::bounded::<Vec<Drawable>>(16);
+		let (render_sender, render_receiver) = kanal::unbounded::<Vec<Drawable>>();
 		let (event_sender, event_receiver) = kanal::unbounded::<PluginEvent>();
 		let plugin_event_vec: Vec<PluginEvent> = Vec::new();
-		
+
 		world.insert(RenderQueue::new());
 		world.insert(Camera::new((0.0, 0.0), (0.0, 0.0)));
 		world.insert(render_sender);
 		world.insert(event_receiver);
 		world.insert(plugin_event_vec);
 		dispatcher_builder.add(QueuedRenderingSystem, "queued_rendering_system", &[]);
+		dispatcher_builder.add(EventGatherSystem, "event_gather_system", &[]);
+		dispatcher_builder.add_barrier();
+		dispatcher_builder.add(CleanupSystem, "cleanup_system", &[]);
 
 		std::thread::spawn(move || {
 			let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
