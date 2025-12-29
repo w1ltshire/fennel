@@ -1,6 +1,7 @@
+use std::error::Error;
 use fennel_audio::Audio;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
 	let mut audio = Audio::new()?;
 	let sink1 = audio.play_file("assets/music.ogg")?;
 	let sink2 = audio.play_file("assets/440.wav")?;

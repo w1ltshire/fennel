@@ -5,5 +5,3 @@ edition = "2024"
 
 [dependencies]
 rodio = "0.21.1"
-log = "0.4.29"
-anyhow = "1.0.100"
