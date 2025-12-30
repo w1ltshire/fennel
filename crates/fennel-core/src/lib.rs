@@ -2,8 +2,6 @@
 
 use crate::graphics::Graphics;
 
-/// Audio playback
-pub mod audio;
 /// Handling keyboard, window, mouse and other events
 pub mod events;
 /// Rendering layer and all the related things
