@@ -7,7 +7,7 @@ use fennel_core::plugin::GraphicsPlugin;
 struct MySystem;
 
 impl<'a> System<'a> for MySystem {
-    type SystemData = (ReadExpect<'a, Vec<PluginEvent>>);
+    type SystemData = ReadExpect<'a, Vec<PluginEvent>>;
 
     fn run(&mut self, events: Self::SystemData) {
         events

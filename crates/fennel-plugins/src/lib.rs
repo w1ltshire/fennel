@@ -13,30 +13,8 @@
 //!
 //! consider facilitating the usage of channels and threads.
 
-use std::any::Any;
 use std::error::Error;
 use specs::{DispatcherBuilder, World};
-use specs::prelude::ResourceId;
-
-/// A struct that represents a plugin dependency descriptor
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct DependencyDescriptor {
-	resource: ResourceId,
-}
-
-impl DependencyDescriptor {
-	/// Create a new instance of [`DependencyDescriptor`]
-	pub fn new<T: Any + Send + Sync>() -> Self {
-		Self {
-			resource: ResourceId::new::<T>(),
-		}
-	}
-
-	/// Returns the [`ResourceId`]
-	pub fn resource(&self) -> ResourceId {
-		self.resource.clone()
-	}
-}
 
 /// A trait that all plugins must implement to be inserted into `App`
 ///
@@ -44,7 +22,7 @@ impl DependencyDescriptor {
 /// ```
 /// use std::collections::HashMap;
 /// use specs::{DispatcherBuilder, World};
-/// use fennel_plugins::{Plugin, DependencyDescriptor};
+/// use fennel_plugins::Plugin;
 /// use specs::prelude::{ResourceId, Resource};
 /// use specs::shred::cell::AtomicRefCell;
 /// use std::boxed::Box;
