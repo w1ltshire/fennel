@@ -63,15 +63,14 @@ impl WindowBuilder {
 	}
 
 	pub fn build(self) -> anyhow::Result<Window> {
-		let window = Window::new(
+		Window::new(
 			self.dimensions,
 			self.title,
 			self.is_fullscreen,
 			self.is_maximized,
 			self.is_resizable,
 			self.is_centered,
-		);
-		window
+		)
 	}
 }
 
@@ -134,5 +133,11 @@ impl Window {
 			sdl_context,
 			renderer,
 		})
+	}
+}
+
+impl Default for WindowBuilder {
+	fn default() -> Self {
+		Self::new()
 	}
 }

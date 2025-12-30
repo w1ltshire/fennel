@@ -59,7 +59,7 @@ impl GPURenderer {
 	) -> anyhow::Result<Texture<'static>> {
 		let surface = unsafe { self.load_surface(image_path)? };
 
-		Ok(self.create_and_upload_texture(surface, command_buffer)?)
+		self.create_and_upload_texture(surface, command_buffer)
 	}
 
 	/// Creates a [`Texture`] from a [`Surface`].
@@ -96,7 +96,7 @@ impl GPURenderer {
 		});
 		buffer_mem.unmap();
 
-		let copy_pass = self.device.begin_copy_pass(&command_buffer)?; // didn't sdl docs said you need to minimize copy pass creations? ah, fuck that. Too bad!
+		let copy_pass = self.device.begin_copy_pass(command_buffer)?; // didn't sdl docs said you need to minimize copy pass creations? ah, fuck that. Too bad!
 
 		copy_pass.upload_to_gpu_texture(
 			TextureTransferInfo::new()

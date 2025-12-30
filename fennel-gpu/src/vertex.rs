@@ -1,5 +1,5 @@
 /// A vertex structure for 2D and 3D graphics
-#[repr(packed)]
+#[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Vertex {
 	/// Vertex X axis position

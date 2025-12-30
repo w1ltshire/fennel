@@ -72,8 +72,8 @@ impl ResourceManager {
 	/// let manager = ResourceManager::new();
 	/// let resource = manager.get("my_resource");
 	/// ```
-	pub fn get(&self, name: &str) -> anyhow::Result<&Box<dyn Resource>> {
-		self.cache.get(name).context("resource does not exist")
+	pub fn get(&self, name: &str) -> anyhow::Result<&dyn Resource> {
+		Ok(self.cache.get(name).context("resource does not exist")?.as_ref())
 	}
 
 	/// Get a type implementing [`Resource`] from [`ResourceManager`]. This function follows Rust's
@@ -92,12 +92,18 @@ impl ResourceManager {
 	/// let manager = ResourceManager::new();
 	/// let resource = manager.get_mut("my_resource");
 	/// ```
-	pub fn get_mut(&mut self, name: &str) -> anyhow::Result<&mut Box<dyn Resource>> {
-		self.cache.get_mut(name).context("resource does not exist")
+	pub fn get_mut(&mut self, name: &str) -> anyhow::Result<&mut dyn Resource> {
+		Ok(self.cache.get_mut(name).context("resource does not exist")?.as_mut())
 	}
 
 	/// Determines whether a resource exists in the cache and returns a boolean
 	pub fn is_cached(&self, name: &str) -> bool {
 		self.cache.contains_key(name)
+	}
+}
+
+impl Default for ResourceManager {
+	fn default() -> Self {
+		Self::new()
 	}
 }
