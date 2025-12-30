@@ -9,6 +9,7 @@ rust-version = "1.87.0"
 
 [dependencies]
 anyhow = "1.0.100"
+image = "0.25.8"
 imgui = "0.12.0"
 imgui-sdl3 = "0.4.1"
 log = "0.4.28"
