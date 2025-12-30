@@ -67,7 +67,7 @@ impl Plugin for GraphicsPlugin {
 				String::from(name),
 				dimensions,
 				resource_manager.clone(),
-				|mut graphics| -> anyhow::Result<()> {
+				|graphics| -> anyhow::Result<()> {
 					let mut resource_manager = match resource_manager.try_lock() {
 						Ok(guard) => guard,
 						Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),

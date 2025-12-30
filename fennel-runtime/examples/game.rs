@@ -21,8 +21,8 @@ impl<'a> System<'a> for MySystem {
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
     let app = AppBuilder::new()
-        .config("crates/fennel-runtime/examples/game.toml")
-        .with_plugin(GraphicsPlugin::new("game", (800, 600), "../../assets"))
+        .config("fennel-runtime/examples/game.toml")
+        .with_plugin(GraphicsPlugin::new("game", (800, 600), "assets"))
         .register_system(MySystem, "my_system", &["event_gather_system"])
         .build()?;
 
