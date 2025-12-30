@@ -59,8 +59,7 @@ impl Plugin for GraphicsPlugin {
 		world.insert(plugin_event_vec);
 		dispatcher_builder.add(QueuedRenderingSystem, "queued_rendering_system", &[]);
 		dispatcher_builder.add(EventGatherSystem, "event_gather_system", &[]);
-		dispatcher_builder.add_barrier();
-		dispatcher_builder.add(CleanupSystem, "cleanup_system", &[]); // this doesn't fucking work todo fix it
+		dispatcher_builder.add_thread_local(CleanupSystem);
 
 		std::thread::spawn(move || {
 			let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));

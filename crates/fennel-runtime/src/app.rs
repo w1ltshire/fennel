@@ -1,6 +1,6 @@
 use std::fs;
 use std::time::{Duration, Instant};
-use log::{error, warn};
+use log::{debug, error, warn};
 use serde::{Deserialize, Serialize};
 use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
 use fennel_core::graphics::{Drawable, Sprite};
@@ -11,6 +11,11 @@ use crate::{
     scenes::{ActiveScene, Scene, SceneSystem},
 };
 use crate::time::{Tick, TickSystem};
+
+type SystemRegistration = Box<
+    dyn FnOnce(&mut DispatcherBuilder<'static, 'static>) -> DispatcherBuilder<'static, 'static>
+    + Send,
+>;
 
 /// The application struct which contains [`World`] and `specs`
 /// `Dispatcher`
@@ -29,6 +34,7 @@ pub struct AppBuilder {
     world: World,
     component_registry: ComponentRegistry,
     dispatcher_builder: DispatcherBuilder<'static, 'static>,
+    dispatcher_config: Vec<SystemRegistration>,
     plugins: Vec<Box<dyn Plugin + Send + Sync>>,
 }
 
@@ -85,6 +91,7 @@ impl AppBuilder {
             world: World::new(),
             component_registry: ComponentRegistry::new(),
             dispatcher_builder: DispatcherBuilder::new(),
+            dispatcher_config: Vec::new(),
             plugins: Vec::new(),
         }
     }
@@ -105,13 +112,13 @@ impl AppBuilder {
     where
         for<'a> S: specs::System<'a> + Send + 'static,
     {
-        /* let reg: Reg = Box::new(|builder: &mut DispatcherBuilder<'static, 'static>| {
+        debug!("registering system {name} with deps {dep:?}");
+        let reg: SystemRegistration = Box::new(|builder: &mut DispatcherBuilder<'static, 'static>| {
             let b = std::mem::take(builder);
             b.with(sys, name, dep)
         });
 
-        self.dispatcher_config.push(reg); */
-        self.dispatcher_builder.add(sys, name, dep);
+        self.dispatcher_config.push(reg);
         self
     }
 
@@ -177,6 +184,13 @@ impl AppBuilder {
                 error!("failed to prepare plugin: {e}");
             });
         });
+
+        for reg in self.dispatcher_config.drain(..) {
+            self.dispatcher_builder = reg(&mut self.dispatcher_builder);
+        }
+
+        #[cfg(debug_assertions)]
+        self.dispatcher_builder.print_par_seq();
 
         Ok(App {
             world: self.world,
