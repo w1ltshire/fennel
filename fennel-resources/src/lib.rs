@@ -7,6 +7,15 @@
 //! - [`manager`] - Implements the functionality of the resource manager, including caching, insertion, and fetching resources
 //! - [`resource`] - Defines the traits for resources to implement to be compatible with the resource manager
 
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+/// Possible errors
+pub enum ResourceError {
+	#[error("requested resource was not found in cache")]
+	ResourceDoesNotExist,
+}
+
 /// The resource manager itself
 pub mod manager;
 /// All the things to represent a resource type
