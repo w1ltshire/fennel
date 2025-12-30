@@ -1,0 +1,11 @@
+[package]
+name = "fennel-2d"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+specs = "0.20.0"
+fennel-registry = { version = "0.1.0", path = "../fennel-registry" }
+fennel-graphics = { version = "0.5.1", path = "../fennel-graphics" }
+ron = "0.12.0"
+log = "0.4.29"

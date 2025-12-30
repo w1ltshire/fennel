@@ -40,3 +40,9 @@ impl Plugin for AudioPlugin {
 		"audio_plugin"
 	}
 }
+
+impl Default for AudioPlugin {
+	fn default() -> Self {
+		Self::new()
+	}
+}

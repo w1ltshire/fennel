@@ -7,7 +7,7 @@ use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
 };
-use fennel_core::{
+use fennel_graphics::{
     Window,
     events::{self, WindowEventHandler},
     graphics,
@@ -123,7 +123,7 @@ fn main() -> anyhow::Result<()> {
                 Ok(guard) => guard,
                 Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
             };
-            fennel_core::resources::load_dir(&mut resource_manager, PathBuf::from("../../assets"), graphics)?;
+            fennel_graphics::resources::load_dir(&mut resource_manager, PathBuf::from("../../assets"), graphics)?;
             Ok(())
         })
         .build();

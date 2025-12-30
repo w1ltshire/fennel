@@ -3,7 +3,9 @@ use specs::{Entity, LazyUpdate, World};
 use std::collections::HashMap;
 
 /// All components must have a factory implementing this trait to be able created from a scene
-/// config
+/// config.
+///
+/// You might want to use the [`impl_component_factory`] macro.
 pub trait ComponentFactory: Send + Sync {
     /// Build a component from `value` and insert it into `entity` of `world`
     fn insert(&self, world: &mut World, entity: Entity, value: &Value);
@@ -41,6 +43,17 @@ impl Default for ComponentRegistry {
     }
 }
 
+#[macro_export]
+/// Create and implement a component factory for a component.
+///
+/// # Arguments
+/// * `factory` - arbitrary factory name (tho component name + Factory is recommended)
+/// * `component` - the component itself
+///
+/// # Example
+/// ```ignore
+/// impl_component_factory!(SpriteFactory, Sprite);
+/// ```
 macro_rules! impl_component_factory {
     ($factory:ident, $component:ident) => {
         pub struct $factory;

@@ -1,0 +1,2 @@
+scenes_path = "examples/game/scenes"
+initial_scene = "main"

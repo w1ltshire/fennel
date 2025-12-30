@@ -1,0 +1,8 @@
+[package]
+name = "fennel-registry"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+specs = "0.20.0"
+ron = "0.12.0"

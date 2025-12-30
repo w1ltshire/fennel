@@ -3,13 +3,9 @@ use std::time::{Duration, Instant};
 use log::{debug, error, warn};
 use serde::{Deserialize, Serialize};
 use specs::{Builder, Component, Dispatcher, DispatcherBuilder, World, WorldExt};
-use fennel_core::graphics::{Drawable, Sprite};
 use fennel_plugins::Plugin;
-use crate::{
-    ecs::sprite::{SpriteFactory, SpriteRenderingSystem},
-    registry::{ComponentFactory, ComponentRegistry},
-    scenes::{ActiveScene, Scene, SceneSystem},
-};
+use fennel_registry::{ComponentFactory, ComponentRegistry};
+use crate::scenes::{ActiveScene, Scene, SceneSystem};
 use crate::time::{Tick, TickSystem};
 
 type SystemRegistration = Box<
@@ -49,7 +45,7 @@ struct Config {
 
 impl App {
     /// Runs the event loop, must be called only once, UB otherwise
-    pub async fn run(mut self) -> anyhow::Result<()> {
+    pub fn run(mut self) -> anyhow::Result<()> {
         loop {
             self.frame_tick()?;
         }
@@ -148,7 +144,7 @@ impl AppBuilder {
         let config_reader = fs::read(self.config)?;
         let config: Config = toml::from_slice(&config_reader)?;
         self.dispatcher_builder.add(SceneSystem, "scene_system", &[]);
-        self.dispatcher_builder.add(SpriteRenderingSystem, "sprite_rendering_system", &[]);
+        //self.dispatcher_builder.add(SpriteRenderingSystem, "sprite_rendering_system", &[]);
         self.dispatcher_builder.add(TickSystem, "tick_system", &[]);
 
         self.world.register::<Scene>();
@@ -157,7 +153,7 @@ impl AppBuilder {
             tick_rate: 16_000_000,
             total_elapsed_time: 0.0
         });
-        self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
+        //self = self.with_component::<Sprite, SpriteFactory>("sprite", SpriteFactory);
 
         let mut scenes: Vec<Scene> = vec![];
 
@@ -169,15 +165,11 @@ impl AppBuilder {
             scenes.push(scene.clone());
         }
 
-        let (render_tx, render_rx) = kanal::unbounded::<Vec<Drawable>>();
-
         self.world.insert(self.component_registry);
         self.world.insert(ActiveScene {
             name: String::from("main"),
             loaded: false,
         });
-        self.world.insert(render_rx);
-        self.world.insert(render_tx);
 
         self.plugins.iter_mut().for_each(|plugin| {
             plugin.prepare(&mut self.dispatcher_builder, &mut self.world).unwrap_or_else(|e| {

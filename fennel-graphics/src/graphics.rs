@@ -354,13 +354,13 @@ impl Graphics {
             Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
         };
         let key = path.clone();
-        if !manager.is_cached(&*key) {
+        if !manager.is_cached(&key) {
             // rust programmers when they have to .clone()
             let texture = Image::load(PathBuf::from(path.clone()), "".to_string(), self);
             manager.insert(texture?);
         }
 
-        let image = manager.get(&*key)?.data()
+        let image = manager.get(&key)?.data()
             .downcast_ref::<Rc<InnerImage>>().context("failed to downcast image")?;
 
         let dst_rect = FRect::new(
@@ -412,9 +412,8 @@ impl Graphics {
             color.to_u32(&PixelFormat::RGBA32)
         );
         let font: &InternalDummyFont = {
-            let asset = manager.get(&*font)?.data()
-                .downcast_ref::<InternalDummyFont>().context("failed to downcast font")?;
-            asset
+            manager.get(&font)?.data()
+                .downcast_ref::<InternalDummyFont>().context("failed to downcast font")?
         };
 
         let font_key = format!("{}|{}", font.name, size);

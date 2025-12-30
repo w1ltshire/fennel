@@ -1,5 +1,5 @@
 [package]
-name = "fennel-core"
+name = "fennel-graphics"
 version = "0.5.1"
 edition = "2024"
 repository = "https://github.com/w1ltshire/fennel.git"

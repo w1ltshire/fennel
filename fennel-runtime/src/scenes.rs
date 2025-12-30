@@ -7,7 +7,7 @@ use ron::Value;
 use serde::Deserialize;
 use specs::{Component, DenseVecStorage, WriteExpect};
 use specs::{Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System};
-use crate::registry::ComponentRegistry;
+use fennel_registry::ComponentRegistry;
 
 /// Scene struct
 #[derive(Deserialize, Debug, Clone, Component)]
@@ -40,7 +40,7 @@ pub struct ComponentDescriptor {
 pub struct ActiveScene {
     /// Scene name in the config
     pub name: String,
-    /// Has the scene been successfully loaded by [`crate::scenes::SceneSystem`]?
+    /// Has the scene been successfully loaded by [`SceneSystem`]?
     pub loaded: bool,
 }
 

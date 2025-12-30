@@ -8,11 +8,6 @@
 
 /// Application layer module
 pub mod app;
-/// Module providing component registry
-#[macro_use]
-pub mod registry;
-/// Module providing basic systems like rendering on top of `specs`
-pub mod ecs;
 /// Module providing advanced rendering functionality
 pub mod renderer;
 /// Module providing functionality of scenes

@@ -3,7 +3,7 @@
 //! Plugins allow extending the capabilities of the engine and also are an essential piece of it,
 //! as plugins are the backbone for most of the engine's features.
 //!
-//! An example is the `fennel_core::plugin::GraphicsPlugin` plugin, which provides the most important
+//! An example is the `fennel_graphics::plugin::GraphicsPlugin` plugin, which provides the most important
 //! part of the engine, the graphics.
 //!
 //! ## [`Plugin::update`]
@@ -32,10 +32,10 @@ use specs::{DispatcherBuilder, World};
 ///
 /// impl Plugin for MyCoolPlugin {
 ///     fn prepare(
-/// 		&mut self,
-/// 		dispatcher_builder: &mut DispatcherBuilder,
-/// 		world: &mut World
-/// 	) -> Result<(), Box<dyn Error>> {
+///         &mut self,
+///         dispatcher_builder: &mut DispatcherBuilder,
+///         world: &mut World
+///     ) -> Result<(), Box<dyn Error>> {
 ///         // initialize your plugin here
 ///         Ok(())
 ///     }

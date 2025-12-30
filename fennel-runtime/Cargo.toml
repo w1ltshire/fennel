@@ -9,13 +9,10 @@ rust-version = "1.87.0"
 
 [dependencies]
 anyhow = "1.0.100"
-fennel-core = { version = "0.5.0", path = "../fennel-core" }
 fennel-plugins = { version = "0.1.0", path = "../fennel-plugins" }
+fennel-registry = { version = "0.1.0", path = "../fennel-registry" }
 log = "0.4.28"
 ron = "0.12.0"
 serde = { version = "1.0.228", features = ["derive"] }
 specs = { version = "0.20.0", features = ["derive", "parallel"] }
-tokio = { version = "1.48.0", features = ["full"] }
 toml = "0.9.8"
-env_logger = "0.11.8"
-kanal = "0.1.1"

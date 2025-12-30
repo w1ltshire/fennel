@@ -162,8 +162,8 @@ impl GPURenderer {
 		let pipeline = self.device
 			.create_graphics_pipeline()
 			.with_primitive_type(PrimitiveType::TriangleList)
-			.with_fragment_shader(&frag_shader)
-			.with_vertex_shader(&vert_shader)
+			.with_fragment_shader(frag_shader)
+			.with_vertex_shader(vert_shader)
 			.with_vertex_input_state(
 				VertexInputState::new()
 					.with_vertex_buffer_descriptions(&[VertexBufferDescription::new()

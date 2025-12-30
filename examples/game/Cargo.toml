@@ -1,0 +1,14 @@
+[package]
+name = "game"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+fennel-runtime = { path = "../../fennel-runtime", version = "1.8.0" }
+fennel-graphics = { path = "../../fennel-graphics", version = "0.5.1" }
+fennel-2d = { path = "../../fennel-2d", version = "0.1.0" }
+log = "0.4.29"
+anyhow = "1.0.100"
+env_logger = "0.11.8"
+specs = "0.20.0"
