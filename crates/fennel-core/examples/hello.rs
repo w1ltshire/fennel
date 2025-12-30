@@ -54,8 +54,7 @@ impl WindowEventHandler for State {
     }
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     let resource_manager = Arc::new(Mutex::new(ResourceManager::new()));
     let graphics = graphics::GraphicsBuilder::new()
         .window_name(String::from("game"))

@@ -337,7 +337,7 @@ impl Graphics {
     ///
     /// # Example
     /// ```ignore
-    /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0), 0.0, false, false).await;
+    /// graphics.draw_image(String::from("examples/example.png"), (0.0, 0.0), 0.0, false, false);
     /// ```
     pub fn draw_image(
         &mut self,
