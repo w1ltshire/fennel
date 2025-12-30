@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
 	let swapchain_format = gpu.get_swapchain_texture_format(&window);
 	let mut renderer = GPURenderer::new(gpu, swapchain_format)?;
 	let command_buffer = renderer.device.acquire_command_buffer()?;
-	let _image = renderer.create_texture_from_image("assets/Sprite-0001.png", &command_buffer)?;
+	let _image = renderer.create_texture_from_image("../../assets/Sprite-0001.png", &command_buffer)?;
 
 	Ok(())
 }

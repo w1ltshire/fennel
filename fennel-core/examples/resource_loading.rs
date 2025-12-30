@@ -47,7 +47,7 @@ fn main() -> anyhow::Result<()> {
                 Ok(guard) => guard,
                 Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
             };
-            fennel_core::resources::load_dir(&mut resource_manager, PathBuf::from("assets"), graphics)?;
+            fennel_core::resources::load_dir(&mut resource_manager, PathBuf::from("../../assets"), graphics)?;
             Ok(())
         },
         graphics::WindowConfig::default(),

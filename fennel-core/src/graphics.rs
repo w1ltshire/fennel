@@ -434,7 +434,7 @@ impl Graphics {
             let image = Image::load_from_surface(cache_key.clone(), self, surface);
             manager.insert(image?);
         }
-        let texture = manager.get(&*cache_key)?.data()
+        let texture = manager.get(&cache_key)?.data()
             .downcast_ref::<Rc<InnerImage>>().context("failed to downcast image")?;
 
         let dst_rect = FRect::new(

@@ -72,7 +72,7 @@ impl Plugin for GraphicsPlugin {
 						Ok(guard) => guard,
 						Err(e) => return Err(anyhow::anyhow!("failed to lock resource_manager: {}", e)),
 					};
-					crate::resources::load_dir(&mut resource_manager, assets_path.parse()?, &mut graphics)?;
+					crate::resources::load_dir(&mut resource_manager, assets_path.parse()?, graphics)?;
 					Ok(())
 				},
 				WindowConfig::default(),

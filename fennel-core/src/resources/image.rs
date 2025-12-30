@@ -87,8 +87,8 @@ impl Image {
                     .create_texture_from_surface(surface)?,
             )
         };
-        let width = texture.width().clone();
-        let height = texture.height().clone();
+        let width = texture.width();
+        let height = texture.height();
 
         let inner = InnerImage {
             texture: Rc::new(texture),

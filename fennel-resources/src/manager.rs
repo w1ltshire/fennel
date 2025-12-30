@@ -7,6 +7,9 @@ pub struct ResourceManager {
 	cache: HashMap<String, Box<dyn Resource>>,
 }
 
+unsafe impl Send for ResourceManager {}
+unsafe impl Sync for ResourceManager {}
+
 impl ResourceManager {
 	/// Create a new instance of [`ResourceManager`]
 	///
