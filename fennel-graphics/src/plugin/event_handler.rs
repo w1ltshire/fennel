@@ -55,8 +55,8 @@ impl WindowEventHandler for EventHandler {
 					}
 				}
 			}
+			window.graphics.canvas.present();
 		}
-		window.graphics.canvas.present();
 		Ok(())
 	}
 

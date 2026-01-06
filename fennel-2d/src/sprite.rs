@@ -18,8 +18,7 @@ impl<'a> System<'a> for SpriteRenderingSystem {
 
     fn run(&mut self, (sprites, mut rq): Self::SystemData) {
         for sprite in (&sprites).join() {
-            rq.queue
-                .push(Drawable::Image(sprite.clone()));
+            rq.queue.push(Drawable::Image(sprite.clone()));
         }
     }
 }
